@@ -83,19 +83,22 @@
             min-height: 0;
         }
         
+        /* --- FIX: Chat box dengan proper overflow --- */
         #chat-box { 
             flex: 1;
             overflow-y: auto;
             padding: 15px; 
             display: flex; 
             flex-direction: column; 
-            gap: 10px; 
+            gap: 10px;
+            min-height: 0;
         }
         
-        .msg { padding: 10px 15px; border-radius: 18px; max-width: 80%; font-size: 0.95em; box-shadow: 0 2px 5px rgba(0,0,0,0.3); line-height: 1.4; word-wrap: break-word; }
+        .msg { padding: 10px 15px; border-radius: 18px; max-width: 80%; font-size: 0.95em; box-shadow: 0 2px 5px rgba(0,0,0,0.3); line-height: 1.4; word-wrap: break-word; flex-shrink: 0; }
         .msg-in { background: var(--bubble-in); color: white; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid rgba(157, 0, 255, 0.2); }
         .msg-out { background: linear-gradient(135deg, var(--accent), #9d00ff); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
         
+        /* --- FIX: Footer controls tetap di bawah --- */
         .footer-controls {
             flex-shrink: 0;
             background: rgba(26, 11, 46, 0.95); 
@@ -156,12 +159,27 @@
             flex: 1;
         }
 
-        .file-attachment { background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; margin-top: 5px; border: 1px solid rgba(255,255,255,0.1); }
-        .file-attachment img { max-width: 100%; display: block; }
+        /* --- FIX: Image sizing --- */
+        .file-attachment { 
+            background: rgba(0,0,0,0.3); 
+            border-radius: 10px; 
+            overflow: hidden; 
+            margin-top: 5px; 
+            border: 1px solid rgba(255,255,255,0.1);
+            max-width: 100%;
+        }
+        .file-attachment img { 
+            max-width: 100%; 
+            max-height: 300px;
+            width: auto;
+            height: auto;
+            display: block;
+            object-fit: contain;
+        }
         .file-info { padding: 8px; background: rgba(0,0,0,0.5); display: flex; align-items: center; gap: 8px; }
         .download-link { color: var(--accent); text-decoration: none; font-weight: 600; font-size: 0.85em; }
         
-        #file-input, #camera-input { display: none; }
+        #file-input { display: none; }
         .loading-status { text-align: center; color: var(--primary); font-size: 0.8em; padding: 5px; }
 
         .notification-popup {
@@ -218,6 +236,11 @@
             cursor: pointer;
             margin-top: 10px;
         }
+
+        @media (max-width: 768px) {
+            .file-attachment img { max-height: 200px; }
+            .msg { max-width: 85%; }
+        }
     </style>
 </head>
 <body>
@@ -257,9 +280,6 @@
 
         <div class="footer-controls">
             <div class="input-row">
-                <label for="camera-input" class="icon-btn" title="Kamera">📷</label>
-                <input type="file" id="camera-input" accept="image/*" capture="environment" onchange="handleFileSelect(event)">
-                
                 <label for="file-input" class="icon-btn" title="File">📎</label>
                 <input type="file" id="file-input" accept="image/*,.pdf,.doc,.docx,.txt" onchange="handleFileSelect(event)">
 
@@ -269,15 +289,15 @@
             </div>
             
             <div class="action-row">
-                <button id="btn-call" class="icon-btn btn-call" onclick="toggleCall()" title="Telepon Madam">📞</button>
+                <button id="btn-call" class="icon-btn btn-call" onclick="toggleCall()" title="Telepon Madam"></button>
                 <button class="btn-exit" onclick="exitSession()">🚪 Akhiri Sesi</button>
             </div>
         </div>
     </div>
 
     <div id="ended-screen">
-        <h2>🔮 Sesi Konsultasi Berakhir</h2>
-        <p>Terima kasih telah berkonsultasi dengan Madam Ti'</p>
+        <h2> Sesi Konsultasi Berakhir</h2>
+        <p id="end-message">Terima kasih telah berkonsultasi dengan Madam Ti'</p>
         <p style="font-size: 0.85em; opacity: 0.7;">Semoga energi baik menyertai Anda</p>
         <button class="btn-reconnect" onclick="location.reload()">🔄 Konsultasi Lagi</button>
     </div>
@@ -302,7 +322,6 @@
             Notification.requestPermission();
         }
 
-        // --- WAKE LOCK (Prevent Sleep) ---
         let wakeLock = null;
         async function requestWakeLock() {
             if ('wakeLock' in navigator) {
@@ -315,7 +334,6 @@
             }
         }
 
-        // --- HEARTBEAT (Keep Connection Alive) ---
         function startHeartbeat() {
             if (heartbeatInterval) clearInterval(heartbeatInterval);
             
@@ -367,51 +385,49 @@
             return '...';
         }
 
-        // --- FIX: Setup connection handlers IMMEDIATELY ---
         function setupConnectionHandlers() {
             if (!conn) {
                 console.error('❌ No connection object!');
                 return;
             }
             
-            console.log('🔧 Setting up connection handlers...');
+            console.log(' Setting up connection handlers...');
             
             conn.on('open', () => {
                 console.log('✅ Connection OPEN!');
                 reconnectAttempts = 0;
                 isConnected = true;
                 
-                // Update UI status
                 document.getElementById('connection-status').innerText = '● Online';
                 document.getElementById('connection-status').style.background = 'rgba(0, 255, 136, 0.2)';
                 
-                // Show patient name in header
                 document.getElementById('patient-info').style.display = 'flex';
                 document.getElementById('display-patient-name').innerText = '👤 ' + patientName;
                 
-                // Send patient info
                 conn.send({ type: 'patientInfo', name: patientName });
-                console.log('📤 Sent patient info:', patientName);
+                console.log(' Sent patient info:', patientName);
                 
-                // FIX: Transition to chat screen
                 transitionToChat();
                 
-                // Start heartbeat
                 startHeartbeat();
             });
 
             conn.on('data', (data) => {
-                console.log('📩 Received data:', data);
+                console.log(' Received data:', data);
                 
-                // Ignore heartbeat
                 if (data && data.type === 'heartbeat') {
                     return;
                 }
                 
-                // Handle exit notification
                 if (data && data.type === 'exit') {
-                    addSystemBubble('❌ Madam Ti\' mengakhiri sesi');
-                    setTimeout(() => exitSession(), 2000);
+                    const reason = data.reason || 'madam_finished';
+                    const message = data.message || 'Madam Ti\' telah mengakhiri sesi konsultasi';
+                    
+                    addSystemBubble('❌ ' + message);
+                    
+                    setTimeout(() => {
+                        exitSession(message);
+                    }, 2000);
                     return;
                 }
                 
@@ -424,7 +440,7 @@
                     
                     const div = document.createElement('div');
                     div.className = 'msg msg-in';
-                    div.innerHTML = `<b style="color:var(--accent); font-size:0.8em;">Madam Ti'</b><br>${messageText}`;
+                    div.innerHTML = '<b style="color:var(--accent); font-size:0.8em;">Madam Ti\'</b><br>' + messageText;
                     box.appendChild(div);
                     box.scrollTop = box.scrollHeight;
                     
@@ -440,6 +456,7 @@
                 document.getElementById('connection-status').style.background = 'rgba(255, 68, 68, 0.2)';
                 document.getElementById('status').innerText = 'Error: ' + err.type;
                 document.getElementById('btn-connect').disabled = false;
+                document.getElementById('btn-connect').innerText = 'Hubungkan Energi';
             });
 
             conn.on('close', () => {
@@ -459,17 +476,12 @@
             });
         }
 
-        // --- FIX: Separate function to transition UI ---
         function transitionToChat() {
             console.log('🔄 Transitioning to chat screen...');
             
-            // Hide login
             document.getElementById('login-container').style.display = 'none';
-            
-            // Show chat
             document.getElementById('chat-area').style.display = 'flex';
             
-            // Add welcome message
             addSystemBubble('✅ Anda terhubung. Silakan mulai konsultasi.');
             
             console.log('✅ Transition complete!');
@@ -480,48 +492,43 @@
             patientName = document.getElementById('patientName').value.trim();
             
             if(!patientName) {
-                alert("Masukkan nama Anda!");
+                alert('Masukkan nama Anda!');
                 return;
             }
             if(!adminId) {
-                alert("Masukkan ID Madam Ti' (4 digit)!");
+                alert('Masukkan ID Madam Ti\' (4 digit)!');
                 return;
             }
             if(adminId.length !== 4 || !/^\d+$/.test(adminId)) {
-                alert("ID harus 4 digit angka!");
+                alert('ID harus 4 digit angka!');
                 return;
             }
             
-            // Disable button during connection
             const btn = document.getElementById('btn-connect');
             btn.disabled = true;
             btn.innerText = 'Menghubungkan...';
-            document.getElementById('status').innerText = "Menghubungkan...";
+            document.getElementById('status').innerText = 'Menghubungkan...';
             
             console.log('🔮 Connecting to:', adminId);
             
-            // Create new peer
             peer = new Peer();
             
             peer.on('open', (id) => {
                 console.log('✅ Patient peer open:', id);
                 
-                // Create connection
                 conn = peer.connect(adminId);
-                
-                // Setup handlers IMMEDIATELY
                 setupConnectionHandlers();
             });
 
             peer.on('error', (err) => {
                 console.error('❌ Peer error:', err);
-                document.getElementById('status').innerText = "Error: " + err.type;
+                document.getElementById('status').innerText = 'Error: ' + err.type;
                 btn.disabled = false;
                 btn.innerText = 'Hubungkan Energi';
             });
             
             peer.on('disconnected', () => {
-                console.log('⚠️ Peer disconnected');
+                console.log('️ Peer disconnected');
             });
         }
 
@@ -562,7 +569,7 @@
 
         function addSystemBubble(text) {
              const box = document.getElementById('chat-box');
-             box.innerHTML += `<div style="text-align:center; color:#888; font-size:0.75em; margin:5px 0;">${text}</div>`;
+             box.innerHTML += '<div style="text-align:center; color:#888; font-size:0.75em; margin:5px 0;">' + text + '</div>';
         }
 
         function handleFileSelect(event) {
@@ -570,7 +577,7 @@
             if (!file) return;
 
             if (file.size > MAX_FILE_SIZE) {
-                alert(`File terlalu besar! Maksimal 3MB.`);
+                alert('File terlalu besar! Maksimal 3MB.');
                 event.target.value = '';
                 return;
             }
@@ -579,7 +586,7 @@
             const box = document.getElementById('chat-box');
             const status = document.createElement('div');
             status.className = 'loading-status';
-            status.innerHTML = `⏳ Mengirim (${fileSizeMB}MB)...`;
+            status.innerHTML = '⏳ Mengirim (' + fileSizeMB + 'MB)...';
             box.appendChild(status);
             box.scrollTop = box.scrollHeight;
 
@@ -603,19 +610,19 @@
             const box = document.getElementById('chat-box');
             const isImage = fileData.fileType.startsWith('image/');
             const div = document.createElement('div');
-            div.className = `msg msg-${type}`;
+            div.className = 'msg msg-' + type;
             
             let content = '';
             if (isImage) {
-                content = `<div class="file-attachment"><img src="${fileData.data}" onclick="window.open(this.src)"></div>`;
+                content = '<div class="file-attachment"><img src="' + fileData.data + '" onclick="window.open(this.src)"></div>';
             } else {
                 content = `
                     <div class="file-attachment">
                         <div class="file-info">
-                            <span></span>
+                            <span>📎</span>
                             <div style="flex:1; overflow:hidden;">
                                 <div style="font-weight:600; font-size:0.85em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${fileData.name}</div>
-                                <a href="${fileData.data}" download="${fileData.name}" class="download-link"> Simpan</a>
+                                <a href="${fileData.data}" download="${fileData.name}" class="download-link">⬇ Simpan</a>
                             </div>
                         </div>
                     </div>
@@ -640,15 +647,22 @@
                 return;
             }
             
-            navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+            navigator.mediaDevices.getUserMedia({ 
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                } 
+            })
+            .then((stream) => {
                 localStream = stream;
                 call = peer.call(adminId, stream);
                 
                 isCalling = true;
                 const btn = document.getElementById('btn-call');
                 btn.classList.add('active-call');
-                btn.innerHTML = '📴';
-                addSystemBubble("🔊 Panggilan dimulai...");
+                btn.innerHTML = '';
+                addSystemBubble('🔊 Panggilan dimulai...');
                 
                 call.on('stream', (remoteStream) => {
                     document.getElementById('remoteAudio').srcObject = remoteStream;
@@ -656,8 +670,10 @@
                 });
 
                 call.on('close', () => resetCallUI());
-            }).catch(err => {
-                alert("Gagal akses mikrofon: " + err.message);
+            })
+            .catch(err => {
+                console.error('Audio error:', err);
+                alert('❌ Gagal akses mikrofon: ' + err.message + '\n\nPastikan:\n1. Izinkan akses mikrofon di browser\n2. Tidak ada aplikasi lain yang menggunakan mikrofon\n3. Restart browser jika perlu');
             });
         }
 
@@ -672,35 +688,35 @@
             const btn = document.getElementById('btn-call');
             btn.classList.remove('active-call');
             btn.innerHTML = '📞';
-            addSystemBubble("Panggilan diakhiri.");
+            addSystemBubble('Panggilan diakhiri.');
         }
 
-        // --- EXIT SESSION FUNCTION ---
-        function exitSession() {
-            if(confirm('🚪 Akhiri Sesi Konsultasi?\n\nAnda akan keluar dari konsultasi ini.\nLanjutkan?')) {
-                if (call) {
-                    call.close();
-                }
-                if (localStream) {
-                    localStream.getTracks().forEach(track => track.stop());
-                }
-                if (conn) {
-                    conn.send({ type: 'exit', reason: 'patient_left' });
-                    conn.close();
-                }
-                if (peer) {
-                    peer.destroy();
-                }
-                
-                stopHeartbeat();
-                
-                document.getElementById('chat-area').style.display = 'none';
-                document.getElementById('patient-info').style.display = 'none';
-                document.getElementById('ended-screen').style.display = 'flex';
+        function exitSession(customMessage) {
+            if (customMessage) {
+                document.getElementById('end-message').innerText = customMessage;
             }
+            
+            if (call) {
+                call.close();
+            }
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            if (conn) {
+                conn.send({ type: 'exit', reason: 'patient_left' });
+                conn.close();
+            }
+            if (peer) {
+                peer.destroy();
+            }
+            
+            stopHeartbeat();
+            
+            document.getElementById('chat-area').style.display = 'none';
+            document.getElementById('patient-info').style.display = 'none';
+            document.getElementById('ended-screen').style.display = 'flex';
         }
 
-        // Handle visibility change
         document.addEventListener('visibilitychange', async () => {
             if (document.visibilityState === 'visible') {
                 console.log('📱 Halaman kembali aktif');
@@ -717,12 +733,10 @@
             }
         });
 
-        // Initialize wake lock
         requestWakeLock();
 
-        // Keep session alive
         setInterval(() => {
-            console.log(' Session check...');
+            console.log('💫 Session check...');
         }, 30000);
     </script>
 </body>
