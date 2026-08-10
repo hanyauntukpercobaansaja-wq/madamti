@@ -381,8 +381,8 @@
         </div>
         
         <div class="sidebar-tabs">
-            <button class="tab-btn active" onclick="switchTab('active')"> Aktif</button>
-            <button class="tab-btn" onclick="switchTab('history')"> History</button>
+            <button class="tab-btn active" onclick="switchTab('active')">🟢 Aktif</button>
+            <button class="tab-btn" onclick="switchTab('history')">📜 History</button>
         </div>
 
         <ul id="patient-list" class="patient-list"></ul>
@@ -411,8 +411,8 @@
                     </div>
                 </div>
                 <div class="chat-header-right">
-                    <button id="btn-speaker" class="icon-btn btn-speaker" onclick="toggleSpeaker()" title="Loudspeaker">🔊</button>
-                    <button id="btn-call" class="icon-btn btn-call" onclick="startCall()" title="Telepon"></button>
+                    <button id="btn-speaker" class="icon-btn btn-speaker" onclick="toggleSpeaker()" title="Loudspeaker"></button>
+                    <button id="btn-call" class="icon-btn btn-call" onclick="startCall()" title="Telepon">📞</button>
                     <button id="btn-end" class="icon-btn btn-end" onclick="endCall()" title="Tutup">📴</button>
                 </div>
             </div>
@@ -423,7 +423,7 @@
                 <label for="camera-input" class="icon-btn" title="Kamera">📷</label>
                 <input type="file" id="camera-input" accept="image/*" capture="environment" onchange="handleFileSelect(event)">
                 
-                <label for="file-input" class="icon-btn" title="File">📎</label>
+                <label for="file-input" class="icon-btn" title="File"></label>
                 <input type="file" id="file-input" accept="image/*,.pdf,.doc,.docx,.txt" onchange="handleFileSelect(event)">
                 
                 <input type="text" id="msg-input" placeholder="Ketik pesan..." onkeypress="handleEnter(event)">
@@ -464,22 +464,18 @@
         return String(Math.floor(1000 + Math.random() * 9000));
     }
 
-    // Generate ID Baru - Fungsi Baru
+    // Generate ID Baru
     function generateNewId() {
-        if(confirm('️ Generate ID Baru?\n\nID lama tidak akan bisa digunakan lagi.\nPastikan tidak ada pasien yang sedang terhubung.\n\nLanjutkan?')) {
-            // Close all active connections
+        if(confirm('⚠️ Generate ID Baru?\n\nID lama tidak akan bisa digunakan lagi.\nPastikan tidak ada pasien yang sedang terhubung.\n\nLanjutkan?')) {
             Object.values(connections).forEach(conn => conn.close());
             connections = {};
             
-            // Generate new ID
             const newId = generateId();
             storeId(newId);
             
-            // Show loading
             document.getElementById('my-id').innerText = '...';
             document.getElementById('connection-status').innerText = '● Generating...';
             
-            // Reload page to apply new ID
             setTimeout(() => {
                 window.location.reload();
             }, 1000);
@@ -533,7 +529,7 @@
     });
 
     peer.on('disconnected', () => {
-        console.log('️ Disconnected, attempting reconnect...');
+        console.log('⚠️ Disconnected, attempting reconnect...');
         document.getElementById('connection-status').innerText = '● Reconnecting...';
         document.getElementById('connection-status').style.color = '#ffa500';
         
@@ -551,6 +547,22 @@
         addSystemMessage(' Koneksi dipulihkan');
     });
 
+    // --- FIX: Helper function untuk extract message text ---
+    function getMessageText(data) {
+        if (typeof data === 'string') {
+            return data;
+        } else if (data && typeof data === 'object') {
+            if (data.text) {
+                return data.text;
+            } else if (data.message) {
+                return data.message;
+            } else if (data.content) {
+                return data.content;
+            }
+        }
+        return '';
+    }
+
     peer.on('connection', (conn) => {
         connections[conn.peer] = conn;
         unreadCounts[conn.peer] = 0;
@@ -560,23 +572,53 @@
         console.log('🔮 Anak Madam terhubung:', conn.peer);
         
         conn.on('data', (data) => {
-            if (data.type === 'patientInfo') {
-                conn.patientData.name = data.name;
-                patientNames[conn.peer] = data.name;
+            console.log('📩 Received data:', data);
+            
+            // FIX: Handle patientInfo
+            if (data && data.type === 'patientInfo') {
+                conn.patientData.name = data.name || 'Anak Madam';
+                patientNames[conn.peer] = data.name || 'Anak Madam';
                 updatePatientList();
+                console.log('📛 Patient name:', conn.patientData.name);
                 return;
             }
             
-            saveMessageToHistory(conn.peer, conn.patientData.name, data, 'in');
+            // FIX: Handle heartbeat
+            if (data && data.type === 'heartbeat') {
+                return;
+            }
+            
+            // FIX: Handle exit notification
+            if (data && data.type === 'exit') {
+                addSystemMessage('❌ ' + (conn.patientData.name || 'Anak Madam') + ' keluar dari sesi');
+                conn.close();
+                return;
+            }
+            
+            // FIX: Get message text properly
+            const messageText = getMessageText(data);
+            const messageType = data && data.type ? data.type : 'text';
+            
+            saveMessageToHistory(conn.peer, conn.patientData.name, {
+                type: messageType,
+                text: messageText,
+                data: data.data,
+                fileType: data.fileType,
+                name: data.name
+            }, 'in');
             
             const senderName = conn.patientData.name || 'Anak Madam';
-            const preview = data.type === 'file' ? '📷 Mengirim foto' : data.text;
+            const preview = messageType === 'file' ? ' Mengirim foto' : messageText;
             showNotification(senderName, preview);
             
-            conn.lastMessage = data.type === 'file' ? '📷 Foto' : (data.text || 'File');
+            conn.lastMessage = messageType === 'file' ? '📷 Foto' : (messageText || 'File');
+            
             if (activePeerId === conn.peer) {
-                if (data.type === 'file') addFileToWindow(data, 'in');
-                else addMessageToWindow(data.text, 'in');
+                if (messageType === 'file') {
+                    addFileToWindow(data, 'in');
+                } else if (messageText) {
+                    addMessageToWindow(messageText, 'in');
+                }
             } else {
                 unreadCounts[conn.peer] = (unreadCounts[conn.peer] || 0) + 1;
                 updatePatientList();
@@ -645,12 +687,12 @@
 
     function showNotification(title, message) {
         if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification(title, { body: message, vibrate: [200, 100, 200] });
+            new Notification(title, { body: message || 'Pesan baru', vibrate: [200, 100, 200] });
         }
         
         const popup = document.getElementById('notification');
         document.getElementById('notif-title').innerText = title;
-        document.getElementById('notif-message').innerText = message;
+        document.getElementById('notif-message').innerText = message || 'Pesan baru';
         
         popup.classList.add('show');
         
@@ -717,7 +759,7 @@
             li.onclick = () => loadHistoryChat(pid);
             
             const lastMsg = record.messages.length > 0 ? 
-                (record.messages[record.messages.length - 1].type === 'file' ? '📷 Foto' : record.messages[record.messages.length - 1].text) 
+                (record.messages[record.messages.length - 1].type === 'file' ? ' Foto' : record.messages[record.messages.length - 1].text) 
                 : 'Tidak ada pesan';
             
             const date = new Date(record.lastUpdate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit' });
@@ -727,7 +769,7 @@
                 <div class="patient-info">
                     <div class="patient-name">${record.name}</div>
                     <div class="last-msg">${lastMsg}</div>
-                    <div class="history-date"> ${date}</div>
+                    <div class="history-date">📅 ${date}</div>
                 </div>
             `;
             listEl.appendChild(li);
@@ -804,7 +846,7 @@
     function updateSpeakerButton() {
         const btn = document.getElementById('btn-speaker');
         btn.style.display = isSpeakerOn ? 'flex' : 'none';
-        btn.innerHTML = isSpeakerOn ? '🔊' : '';
+        btn.innerHTML = isSpeakerOn ? '' : '🔉';
         btn.style.background = isSpeakerOn ? '#1a4d2e' : '#2d1b4e';
     }
 
@@ -820,7 +862,7 @@
 
         const statusDiv = document.createElement('div');
         statusDiv.className = 'msg-sys';
-        statusDiv.innerText = '⏳ Mengirim...';
+        statusDiv.innerText = ' Mengirim...';
         document.getElementById('chat-window').appendChild(statusDiv);
 
         const reader = new FileReader();
