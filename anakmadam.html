@@ -83,7 +83,6 @@
             min-height: 0;
         }
         
-        /* --- FIX: Chat box dengan proper overflow --- */
         #chat-box { 
             flex: 1;
             overflow-y: auto;
@@ -98,7 +97,6 @@
         .msg-in { background: var(--bubble-in); color: white; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid rgba(157, 0, 255, 0.2); }
         .msg-out { background: linear-gradient(135deg, var(--accent), #9d00ff); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
         
-        /* --- FIX: Footer controls tetap di bawah --- */
         .footer-controls {
             flex-shrink: 0;
             background: rgba(26, 11, 46, 0.95); 
@@ -159,7 +157,6 @@
             flex: 1;
         }
 
-        /* --- FIX: Image sizing --- */
         .file-attachment { 
             background: rgba(0,0,0,0.3); 
             border-radius: 10px; 
@@ -179,6 +176,7 @@
         .file-info { padding: 8px; background: rgba(0,0,0,0.5); display: flex; align-items: center; gap: 8px; }
         .download-link { color: var(--accent); text-decoration: none; font-weight: 600; font-size: 0.85em; }
         
+        /* NO camera input - only file */
         #file-input { display: none; }
         .loading-status { text-align: center; color: var(--primary); font-size: 0.8em; padding: 5px; }
 
@@ -280,8 +278,9 @@
 
         <div class="footer-controls">
             <div class="input-row">
-                <label for="file-input" class="icon-btn" title="File">📎</label>
-                <input type="file" id="file-input" accept="image/*,.pdf,.doc,.docx,.txt" onchange="handleFileSelect(event)">
+                <!-- ONLY FILE UPLOAD - NO CAMERA -->
+                <label for="file-input" class="icon-btn" title="Upload File">📎</label>
+                <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif" onchange="handleFileSelect(event)">
 
                 <input type="text" id="msgInput" placeholder="Ketik pesan..." onkeypress="if(event.key==='Enter') sendMsg()">
                 
@@ -289,14 +288,14 @@
             </div>
             
             <div class="action-row">
-                <button id="btn-call" class="icon-btn btn-call" onclick="toggleCall()" title="Telepon Madam"></button>
+                <button id="btn-call" class="icon-btn btn-call" onclick="toggleCall()" title="Telepon Madam">📞</button>
                 <button class="btn-exit" onclick="exitSession()">🚪 Akhiri Sesi</button>
             </div>
         </div>
     </div>
 
     <div id="ended-screen">
-        <h2> Sesi Konsultasi Berakhir</h2>
+        <h2>🔮 Sesi Konsultasi Berakhir</h2>
         <p id="end-message">Terima kasih telah berkonsultasi dengan Madam Ti'</p>
         <p style="font-size: 0.85em; opacity: 0.7;">Semoga energi baik menyertai Anda</p>
         <button class="btn-reconnect" onclick="location.reload()">🔄 Konsultasi Lagi</button>
@@ -405,7 +404,7 @@
                 document.getElementById('display-patient-name').innerText = '👤 ' + patientName;
                 
                 conn.send({ type: 'patientInfo', name: patientName });
-                console.log(' Sent patient info:', patientName);
+                console.log('📤 Sent patient info:', patientName);
                 
                 transitionToChat();
                 
@@ -413,7 +412,7 @@
             });
 
             conn.on('data', (data) => {
-                console.log(' Received data:', data);
+                console.log('📩 Received data:', data);
                 
                 if (data && data.type === 'heartbeat') {
                     return;
@@ -521,14 +520,14 @@
             });
 
             peer.on('error', (err) => {
-                console.error('❌ Peer error:', err);
+                console.error(' Peer error:', err);
                 document.getElementById('status').innerText = 'Error: ' + err.type;
                 btn.disabled = false;
                 btn.innerText = 'Hubungkan Energi';
             });
             
             peer.on('disconnected', () => {
-                console.log('️ Peer disconnected');
+                console.log('⚠️ Peer disconnected');
             });
         }
 
@@ -661,7 +660,7 @@
                 isCalling = true;
                 const btn = document.getElementById('btn-call');
                 btn.classList.add('active-call');
-                btn.innerHTML = '';
+                btn.innerHTML = '📴';
                 addSystemBubble('🔊 Panggilan dimulai...');
                 
                 call.on('stream', (remoteStream) => {
