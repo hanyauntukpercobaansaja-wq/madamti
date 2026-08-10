@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Madam Ti' - Terawang Online</title>
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f0518;
+            --bg-panel: #1a0b2e;
+            --primary: #9d00ff;
+            --accent: #ff007f;
+            --text-main: #e0e0e0;
+            --text-dim: #a0a0a0;
+            --bubble-in: #2d1b4e;
+            --bubble-out: #ff007f;
+            --glass: rgba(26, 11, 46, 0.85);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+        
+        html, body { 
+            height: 100%; 
+            overflow: hidden; 
+            font-family: 'Lato', sans-serif; 
+            background: radial-gradient(circle at center, #2e004f 0%, #000000 100%); 
+            color: var(--text-main);
+        }
+        
+        h1, h2, h3, .mystic-font { font-family: 'Cinzel', serif; }
+
+        .app-container {
+            display: flex;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .sidebar { 
+            width: 320px; 
+            background: var(--bg-panel); 
+            border-right: 1px solid #4b0082; 
+            display: flex; 
+            flex-direction: column; 
+            z-index: 100; 
+            box-shadow: 5px 0 20px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease;
+        }
+        
+        .admin-header { 
+            background: linear-gradient(135deg, #4b0082, #000); 
+            color: #fff; 
+            padding: 15px; 
+            text-align: center; 
+            border-bottom: 2px solid var(--accent);
+            flex-shrink: 0;
+        }
+        
+        .admin-title { font-size: 1.2em; margin: 0; text-shadow: 0 0 10px var(--primary); }
+        .admin-subtitle { font-size: 0.7em; opacity: 0.8; margin-top: 5px; letter-spacing: 1px; }
+        
+        .admin-id-box { 
+            background: rgba(0,0,0,0.5); 
+            border: 1px solid var(--primary);
+            padding: 10px; 
+            border-radius: 8px; 
+            margin: 10px 0; 
+            font-family: monospace; 
+            color: var(--accent);
+            font-size: 1.5em;
+            font-weight: bold;
+            text-shadow: 0 0 10px var(--accent);
+            letter-spacing: 5px;
+        }
+
+        .sidebar-tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            font-weight: bold;
+            transition: 0.3s;
+            font-size: 0.9em;
+        }
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom: 2px solid var(--accent);
+            background: rgba(157, 0, 255, 0.1);
+        }
+
+        .patient-list { flex: 1; overflow-y: auto; list-style: none; padding: 0; margin: 0; }
+        .patient-item { 
+            padding: 12px; 
+            border-bottom: 1px solid rgba(255,255,255,0.05); 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            transition: 0.3s; 
+        }
+        .patient-item:hover { background: rgba(157, 0, 255, 0.1); }
+        .patient-item.active { background: linear-gradient(90deg, rgba(157, 0, 255, 0.2), transparent); border-left: 4px solid var(--accent); }
+        
+        .avatar { 
+            width: 40px; height: 40px; 
+            background: linear-gradient(45deg, #4b0082, #000); 
+            border: 1px solid var(--primary);
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: bold; 
+            color: var(--accent); 
+            font-size: 1em; 
+            flex-shrink: 0;
+            box-shadow: 0 0 10px rgba(157, 0, 255, 0.3);
+        }
+        
+        .patient-info { flex: 1; min-width: 0; }
+        .patient-name { font-weight: 600; color: #fff; margin-bottom: 3px; font-family: 'Cinzel', serif; font-size: 0.95em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .patient-real-name { font-size: 0.7em; color: var(--accent); margin-bottom: 3px; font-style: italic; }
+        .last-msg { font-size: 0.8em; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .badge { background: var(--accent); color: white; border-radius: 10px; padding: 2px 6px; font-size: 0.7em; font-weight: bold; box-shadow: 0 0 5px var(--accent); }
+        .history-date { font-size: 0.65em; color: #666; margin-top: 2px; }
+        
+        .main-chat { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMGYwNTE4Ii8+CjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiMxYTBiMmUiLz4KPC9zdmc+'); 
+            position: relative; 
+            width: 100%;
+        }
+        
+        .chat-header { 
+            background: var(--glass); 
+            backdrop-filter: blur(10px);
+            padding: 12px; 
+            border-bottom: 1px solid rgba(157, 0, 255, 0.3); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            height: 60px; 
+            flex-shrink: 0;
+        }
+        
+        .chat-header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .back-btn { 
+            font-size: 1.5em; 
+            background: none; 
+            border: none; 
+            cursor: pointer; 
+            color: var(--accent);
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+        }
+        
+        .patient-header-info {
+            min-width: 0;
+            flex: 1;
+        }
+        
+        #current-patient-name {
+            font-weight: 600; 
+            color: #fff; 
+            font-size: 1em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #current-patient-realname {
+            font-size: 0.7em; 
+            color: var(--accent); 
+            text-shadow: 0 0 5px var(--accent);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .chat-header-right {
+            display: flex; 
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .chat-window { 
+            flex: 1; 
+            padding: 15px; 
+            overflow-y: auto; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+            background: transparent;
+            min-height: 0;
+        }
+        
+        .message { 
+            max-width: 85%; 
+            padding: 10px 15px; 
+            border-radius: 15px; 
+            font-size: 0.9em; 
+            line-height: 1.4; 
+            position: relative; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            animation: popIn 0.3s ease;
+            word-wrap: break-word;
+        }
+        
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .msg-in { background: var(--bubble-in); color: #fff; align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid rgba(157, 0, 255, 0.2); }
+        .msg-out { background: linear-gradient(135deg, var(--accent), #9d00ff); color: white; align-self: flex-end; border-bottom-right-radius: 2px; box-shadow: 0 0 15px rgba(255, 0, 127, 0.4); }
+        .msg-sys { background: rgba(0,0,0,0.6); color: var(--primary); align-self: center; font-size: 0.75em; padding: 6px 12px; border-radius: 20px; border: 1px solid var(--primary); text-transform: uppercase; letter-spacing: 1px; text-align: center; }
+        .msg-time { font-size: 0.6em; opacity: 0.6; margin-top: 4px; text-align: right; display: block; }
+
+        .file-attachment { margin-top: 6px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
+        .file-attachment img { max-width: 100%; display: block; cursor: pointer; filter: brightness(0.9); }
+        .file-info { padding: 6px; display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.5); }
+        .download-btn { color: var(--accent); text-decoration: none; font-size: 0.8em; font-weight: 600; }
+
+        .input-area { 
+            background: var(--bg-panel); 
+            padding: 10px; 
+            display: flex; 
+            gap: 8px; 
+            align-items: center; 
+            border-top: 1px solid rgba(157, 0, 255, 0.3); 
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
+            flex-shrink: 0;
+        }
+        
+        .input-area input { 
+            flex: 1; 
+            padding: 10px 15px; 
+            border: 1px solid #4b0082; 
+            border-radius: 20px; 
+            background: #0f0518; 
+            color: white; 
+            font-size: 14px; 
+            outline: none; 
+            transition: 0.3s;
+            min-width: 0;
+        }
+        .input-area input:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(255, 0, 127, 0.3); }
+        
+        .icon-btn { 
+            width: 40px; 
+            height: 40px; 
+            min-width: 40px;
+            border-radius: 50%; 
+            border: none; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 1.2em; 
+            transition: 0.2s; 
+            background: #2d1b4e;
+            color: var(--text-main);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            flex-shrink: 0;
+        }
+        .icon-btn:active { transform: scale(0.9); }
+        .btn-send { background: var(--accent); color: white; box-shadow: 0 0 15px rgba(255, 0, 127, 0.5); }
+        .btn-call { background: #2d1b4e; color: var(--accent); border: 1px solid var(--accent); }
+        .btn-end { background: #500000; color: #ff4444; border: 1px solid #ff4444; display: none; }
+        .btn-speaker { background: #1a4d2e; color: #4ade80; border: 1px solid #4ade80; display: none; }
+        .btn-clear { background: #500000; color: #ff4444; border: 1px solid #ff4444; font-size: 0.75em; padding: 8px 10px; margin: 10px; width: calc(100% - 20px); }
+
+        .empty-state { 
+            position: absolute; 
+            top: 0; left: 0; right: 0; bottom: 0; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            color: var(--text-dim); 
+            background: radial-gradient(circle, #1a0b2e 0%, #000 100%); 
+            z-index: 50; 
+            padding: 20px;
+        }
+        .crystal-ball { 
+            width: 80px; height: 80px; 
+            background: radial-gradient(circle at 30% 30%, rgba(157, 0, 255, 0.8), #000); 
+            border-radius: 50%; 
+            margin-bottom: 20px; 
+            box-shadow: 0 0 30px rgba(157, 0, 255, 0.5);
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        .notification-popup {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.3s ease;
+            max-width: 90%;
+            width: 350px;
+        }
+        .notification-popup.show {
+            transform: translateX(-50%) translateY(0);
+        }
+        .notification-icon { font-size: 1.5em; }
+        .notification-content { flex: 1; min-width: 0; }
+        .notification-title { font-weight: bold; font-size: 0.9em; margin-bottom: 3px; }
+        .notification-message { font-size: 0.85em; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        @media (max-width: 768px) {
+            .app-container { flex-direction: column; }
+            .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 100%; max-width: 100%; z-index: 200; }
+            .sidebar.hidden { transform: translateX(-100%); }
+            .main-chat { width: 100%; }
+            .back-btn { display: flex !important; }
+            .admin-title { font-size: 1.1em; }
+            .message { max-width: 90%; font-size: 0.85em; }
+            .input-area { gap: 6px; padding: 8px; }
+            .icon-btn { width: 38px; height: 38px; min-width: 38px; font-size: 1.1em; }
+            .chat-header { height: 55px; padding: 10px; }
+        }
+        
+        @media (min-width: 769px) { 
+            .back-btn { display: none !important; }
+        }
+
+        #file-input, #camera-input { display: none; }
+        .hidden { display: none !important; }
+        audio { display: none; }
+    </style>
+</head>
+<body>
+
+<div id="notification" class="notification-popup">
+    <div class="notification-icon"></div>
+    <div class="notification-content">
+        <div class="notification-title" id="notif-title">Pesan Baru</div>
+        <div class="notification-message" id="notif-message">...</div>
+    </div>
+</div>
+
+<div class="app-container">
+    <div class="sidebar" id="sidebar">
+        <div class="admin-header">
+            <h1 class="admin-title mystic-font">🔮 Madam Ti'</h1>
+            <div class="admin-subtitle">ID Spiritual Anda</div>
+            <div class="admin-id-box" id="my-id">----</div>
+            <button onclick="copyId()" style="background: rgba(255,255,255,0.1); border: 1px solid var(--primary); color: var(--accent); padding: 5px 15px; border-radius: 15px; font-size: 0.75em; cursor: pointer; font-family: 'Lato';">📋 Salin ID</button>
+            <div id="connection-status" style="font-size: 0.7em; color: #00ff88; margin-top: 5px;">● Online</div>
+        </div>
+        
+        <div class="sidebar-tabs">
+            <button class="tab-btn active" onclick="switchTab('active')"> Aktif</button>
+            <button class="tab-btn" onclick="switchTab('history')"> History</button>
+        </div>
+
+        <ul id="patient-list" class="patient-list"></ul>
+        <ul id="history-list" class="patient-list hidden"></ul>
+        
+        <div style="padding: 10px;">
+            <button class="btn-clear" onclick="clearHistory()">️ Hapus Semua History</button>
+        </div>
+    </div>
+
+    <div class="main-chat">
+        <div id="empty-state" class="empty-state">
+            <div class="crystal-ball"></div>
+            <h3 class="mystic-font" style="color: var(--primary); text-shadow: 0 0 10px var(--primary); font-size: 1.2em;">Menunggu Energi Masuk...</h3>
+            <p style="font-size: 0.85em; opacity: 0.7; margin-top: 10px; text-align: center;">Pilih Anak Madam dari daftar untuk mulai menerawang</p>
+        </div>
+
+        <div id="chat-interface" class="hidden" style="display: flex; flex-direction: column; height: 100%;">
+            <div class="chat-header">
+                <div class="chat-header-left">
+                    <button class="back-btn" onclick="backToSidebar()">←</button>
+                    <div class="patient-header-info">
+                        <div id="current-patient-name" class="mystic-font">Anak Madam</div>
+                        <div id="current-patient-realname" style="font-size: 0.7em; color: var(--accent); text-shadow: 0 0 5px var(--accent);">● Terhubung</div>
+                    </div>
+                </div>
+                <div class="chat-header-right">
+                    <button id="btn-speaker" class="icon-btn btn-speaker" onclick="toggleSpeaker()" title="Loudspeaker">🔊</button>
+                    <button id="btn-call" class="icon-btn btn-call" onclick="startCall()">📞</button>
+                    <button id="btn-end" class="icon-btn btn-end" onclick="endCall()"></button>
+                </div>
+            </div>
+
+            <div id="chat-window" class="chat-window"></div>
+
+            <div class="input-area">
+                <label for="camera-input" class="icon-btn" title="Foto"></label>
+                <input type="file" id="camera-input" accept="image/*" capture="environment" onchange="handleFileSelect(event)">
+                
+                <label for="file-input" class="icon-btn" title="File" style="font-size: 1em;"></label>
+                <input type="file" id="file-input" accept="image/*,.pdf,.doc,.docx,.txt" onchange="handleFileSelect(event)">
+                
+                <input type="text" id="msg-input" placeholder="Ketik pesan..." onkeypress="handleEnter(event)">
+                <button class="icon-btn btn-send" onclick="sendMessage()">➤</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<audio id="remote-audio" autoplay playsinline></audio>
+
+<script>
+    let peer = null;
+    let connections = {};
+    let activePeerId = null;
+    let currentCall = null;
+    let localStream = null;
+    let unreadCounts = {};
+    let isSpeakerOn = false;
+    let currentTab = 'active';
+    let patientNames = {};
+    const MAX_FILE_SIZE = 3 * 1024 * 1024;
+    const STORAGE_KEY = 'madamTi_id';
+
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+
+    // --- PERSISTENT ID SYSTEM ---
+    function getStoredId() {
+        return localStorage.getItem(STORAGE_KEY);
+    }
+
+    function storeId(id) {
+        localStorage.setItem(STORAGE_KEY, id);
+    }
+
+    function generateId() {
+        return String(Math.floor(1000 + Math.random() * 9000));
+    }
+
+    // Gunakan ID dari storage jika ada, atau buat baru
+    let adminId = getStoredId();
+    if (!adminId) {
+        adminId = generateId();
+        storeId(adminId);
+    }
+
+    console.log('🔮 Using ID:', adminId);
+    
+    peer = new Peer(adminId, {
+        debug: 2,
+        config: {
+            'iceServers': [
+                { url: 'stun:stun.l.google.com:19302' },
+                { url: 'stun:stun1.l.google.com:19302' }
+            ]
+        },
+        pingInterval: 5000 // Heartbeat lebih sering
+    });
+
+    peer.on('open', (id) => {
+        document.getElementById('my-id').innerText = id;
+        document.getElementById('connection-status').innerText = '● Online';
+        document.getElementById('connection-status').style.color = '#00ff88';
+        console.log('✅ Madam Ti Online:', id);
+        
+        // Simpan ID yang berhasil
+        storeId(id);
+    });
+
+    peer.on('error', (err) => {
+        console.error('Peer Error:', err);
+        document.getElementById('connection-status').innerText = '● Offline';
+        document.getElementById('connection-status').style.color = '#ff4444';
+        
+        if (err.type === 'unavailable-id') {
+            // ID sudah dipakai, generate baru
+            console.log('⚠️ ID unavailable, generating new...');
+            const newId = generateId();
+            storeId(newId);
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else if (err.type === 'peer-disconnected') {
+            // Auto reconnect
+            setTimeout(() => {
+                if (peer.disconnected) peer.reconnect();
+            }, 3000);
+        }
+    });
+
+    peer.on('disconnected', () => {
+        console.log('️ Disconnected, attempting reconnect...');
+        document.getElementById('connection-status').innerText = '● Reconnecting...';
+        document.getElementById('connection-status').style.color = '#ffa500';
+        
+        // Auto reconnect dengan ID yang sama
+        setTimeout(() => {
+            if (peer.disconnected) {
+                peer.reconnect();
+            }
+        }, 3000);
+    });
+
+    peer.on('reconnected', () => {
+        console.log('✅ Reconnected!');
+        document.getElementById('connection-status').innerText = '● Online';
+        document.getElementById('connection-status').style.color = '#00ff88';
+        
+        // Restore connections if needed
+        addSystemMessage('📡 Koneksi dipulihkan');
+    });
+
+    peer.on('connection', (conn) => {
+        connections[conn.peer] = conn;
+        unreadCounts[conn.peer] = 0;
+        conn.patientData = { name: 'Menunggu nama...', id: conn.peer };
+        updatePatientList();
+        
+        console.log('🔮 Anak Madam terhubung:', conn.peer);
+        
+        conn.on('data', (data) => {
+            if (data.type === 'patientInfo') {
+                conn.patientData.name = data.name;
+                patientNames[conn.peer] = data.name;
+                updatePatientList();
+                return;
+            }
+            
+            saveMessageToHistory(conn.peer, conn.patientData.name, data, 'in');
+            
+            const senderName = conn.patientData.name || 'Anak Madam';
+            const preview = data.type === 'file' ? '📷 Mengirim foto' : data.text;
+            showNotification(senderName, preview);
+            
+            conn.lastMessage = data.type === 'file' ? ' Foto' : (data.text || 'File');
+            if (activePeerId === conn.peer) {
+                if (data.type === 'file') addFileToWindow(data, 'in');
+                else addMessageToWindow(data.text, 'in');
+            } else {
+                unreadCounts[conn.peer] = (unreadCounts[conn.peer] || 0) + 1;
+                updatePatientList();
+                if(navigator.vibrate) navigator.vibrate(200);
+            }
+        });
+
+        conn.on('close', () => {
+            console.log('❌ Koneksi ditutup:', conn.peer);
+            delete connections[conn.peer];
+            delete unreadCounts[conn.peer];
+            if(activePeerId === conn.peer) backToSidebar();
+            updatePatientList();
+        });
+
+        conn.on('error', (err) => {
+            console.error('Connection error:', err);
+        });
+    });
+
+    peer.on('call', (call) => {
+        if(connections[call.peer]) {
+            selectPatient(call.peer);
+            const callerName = connections[call.peer].patientData.name || 'Anak Madam';
+            showNotification('📞 Panggilan Masuk', callerName + ' sedang menelepon...');
+            if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            
+            if(confirm(`🔮 Panggilan masuk dari ${callerName}\n\nTerima?`)) {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then((stream) => {
+                        localStream = stream;
+                        call.answer(stream);
+                        handleCall(call);
+                        enableLoudspeaker();
+                    })
+                    .catch(err => alert("Gagal akses mikrofon: " + err.message));
+            } else {
+                call.close();
+            }
+        }
+    });
+
+    // --- WAKE LOCK (Prevent Sleep) ---
+    let wakeLock = null;
+    async function requestWakeLock() {
+        if ('wakeLock' in navigator) {
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+                console.log(' Wake Lock aktif');
+                wakeLock.addEventListener('release', () => {
+                    console.log('💫 Wake Lock released');
+                });
+            } catch (err) {
+                console.log('Wake Lock tidak didukung:', err);
+            }
+        }
+    }
+
+    // Request wake lock saat halaman aktif
+    requestWakeLock();
+
+    // Re-request wake lock saat halaman kembali aktif
+    document.addEventListener('visibilitychange', async () => {
+        if (document.visibilityState === 'visible') {
+            console.log('📱 Halaman kembali aktif');
+            requestWakeLock();
+            
+            // Reconnect jika perlu
+            if (peer && peer.disconnected) {
+                peer.reconnect();
+            }
+        } else {
+            console.log('📱 Halaman background');
+        }
+    });
+
+    // --- NOTIFICATION FUNCTION ---
+    function showNotification(title, message) {
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(title, {
+                body: message,
+                vibrate: [200, 100, 200]
+            });
+        }
+        
+        const popup = document.getElementById('notification');
+        document.getElementById('notif-title').innerText = title;
+        document.getElementById('notif-message').innerText = message;
+        
+        popup.classList.add('show');
+        
+        setTimeout(() => {
+            popup.classList.remove('show');
+        }, 3000);
+        
+        popup.onclick = () => {
+            popup.classList.remove('show');
+        };
+    }
+
+    // --- HISTORY FUNCTIONS ---
+    function getHistory() {
+        const history = localStorage.getItem('madamTi_history');
+        return history ? JSON.parse(history) : {};
+    }
+
+    function saveMessageToHistory(peerId, patientName, data, direction) {
+        const history = getHistory();
+        if (!history[peerId]) {
+            history[peerId] = {
+                name: patientName,
+                messages: [],
+                lastUpdate: new Date().toISOString()
+            };
+        }
+        
+        history[peerId].name = patientName;
+        history[peerId].lastUpdate = new Date().toISOString();
+        
+        history[peerId].messages.push({
+            type: data.type,
+            text: data.text,
+            data: data.data,
+            fileType: data.fileType,
+            fileName: data.name,
+            direction: direction,
+            timestamp: new Date().toISOString()
+        });
+
+        if (history[peerId].messages.length > 100) {
+            history[peerId].messages.shift();
+        }
+
+        localStorage.setItem('madamTi_history', JSON.stringify(history));
+        if (currentTab === 'history') renderHistoryList();
+    }
+
+    function renderHistoryList() {
+        const listEl = document.getElementById('history-list');
+        listEl.innerHTML = '';
+        const history = getHistory();
+        const peers = Object.keys(history).sort((a, b) => new Date(history[b].lastUpdate) - new Date(history[a].lastUpdate));
+
+        if (peers.length === 0) {
+            listEl.innerHTML = '<li style="padding:20px; text-align:center; color:#666;">Belum ada history</li>';
+            return;
+        }
+
+        peers.forEach(pid => {
+            const record = history[pid];
+            const li = document.createElement('li');
+            li.className = 'patient-item';
+            li.onclick = () => loadHistoryChat(pid);
+            
+            const lastMsg = record.messages.length > 0 ? 
+                (record.messages[record.messages.length - 1].type === 'file' ? '📷 Foto' : record.messages[record.messages.length - 1].text) 
+                : 'Tidak ada pesan';
+            
+            const date = new Date(record.lastUpdate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit' });
+            
+            li.innerHTML = `
+                <div class="avatar">🔮</div>
+                <div class="patient-info">
+                    <div class="patient-name">${record.name}</div>
+                    <div class="last-msg">${lastMsg}</div>
+                    <div class="history-date">📅 ${date}</div>
+                </div>
+            `;
+            listEl.appendChild(li);
+        });
+    }
+
+    function loadHistoryChat(peerId) {
+        const history = getHistory();
+        const record = history[peerId];
+        if (!record) return;
+
+        activePeerId = peerId;
+        
+        document.getElementById('empty-state').classList.add('hidden');
+        document.getElementById('chat-interface').classList.remove('hidden');
+        document.getElementById('chat-interface').style.display = 'flex';
+        document.getElementById('current-patient-name').innerText = record.name;
+        document.getElementById('current-patient-realname').innerText = `📜 History`;
+        document.getElementById('chat-window').innerHTML = '';
+        
+        if(window.innerWidth <= 768) {
+            document.getElementById('sidebar').classList.add('hidden');
+        }
+
+        record.messages.forEach(msg => {
+            if (msg.type === 'file') {
+                addFileToWindow({ type: 'file', data: msg.data, fileType: msg.fileType, name: msg.fileName, size: 0 }, msg.direction);
+            } else {
+                addMessageToWindow(msg.text, msg.direction);
+            }
+        });
+
+        addSystemMessage(`--- History dengan ${record.name} ---`);
+    }
+
+    function clearHistory() {
+        if(confirm('Yakin ingin menghapus semua history?')) {
+            localStorage.removeItem('madamTi_history');
+            renderHistoryList();
+            alert('History dihapus.');
+        }
+    }
+
+    function switchTab(tab) {
+        currentTab = tab;
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        if (tab === 'active') {
+            document.getElementById('patient-list').classList.remove('hidden');
+            document.getElementById('history-list').classList.add('hidden');
+            updatePatientList();
+        } else {
+            document.getElementById('patient-list').classList.add('hidden');
+            document.getElementById('history-list').classList.remove('hidden');
+            renderHistoryList();
+        }
+    }
+
+    // --- LOUDSPEAKER ---
+    function enableLoudspeaker() {
+        const audio = document.getElementById('remote-audio');
+        audio.volume = 1.0;
+        isSpeakerOn = true;
+        updateSpeakerButton();
+    }
+
+    function toggleSpeaker() {
+        isSpeakerOn = !isSpeakerOn;
+        const audio = document.getElementById('remote-audio');
+        audio.volume = isSpeakerOn ? 1.0 : 0.5;
+        updateSpeakerButton();
+    }
+
+    function updateSpeakerButton() {
+        const btn = document.getElementById('btn-speaker');
+        btn.style.display = isSpeakerOn ? 'flex' : 'none';
+        btn.innerHTML = isSpeakerOn ? '' : '🔉';
+        btn.style.background = isSpeakerOn ? '#1a4d2e' : '#2d1b4e';
+    }
+
+    // --- FILE HANDLING ---
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file || !activePeerId) return;
+
+        if (file.size > MAX_FILE_SIZE) {
+            alert(`File terlalu besar! Maksimal 3MB.`);
+            event.target.value = '';
+            return;
+        }
+
+        const statusDiv = document.createElement('div');
+        statusDiv.className = 'msg-sys';
+        statusDiv.innerText = '⏳ Mengirim...';
+        document.getElementById('chat-window').appendChild(statusDiv);
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const fileData = {
+                type: 'file',
+                name: file.name,
+                size: file.size,
+                fileType: file.type,
+                data: e.target.result
+            };
+
+            if (connections[activePeerId]) {
+                connections[activePeerId].send(fileData);
+                saveMessageToHistory(activePeerId, connections[activePeerId].patientData.name, fileData, 'out');
+                addFileToWindow(fileData, 'out');
+                connections[activePeerId].lastMessage = ' Foto';
+                updatePatientList();
+            }
+            statusDiv.remove();
+            event.target.value = '';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // --- CHAT FUNCTIONS ---
+    function sendMessage() {
+        if(!activePeerId) return;
+        const input = document.getElementById('msg-input');
+        const msg = input.value.trim();
+        if(msg) {
+            if (connections[activePeerId]) {
+                connections[activePeerId].send({ type: 'text', text: msg });
+                saveMessageToHistory(activePeerId, connections[activePeerId].patientData.name, { type: 'text', text: msg }, 'out');
+                addMessageToWindow(msg, 'out');
+                connections[activePeerId].lastMessage = msg;
+            } else {
+                addMessageToWindow(msg, 'out');
+                const history = getHistory();
+                if(history[activePeerId]) {
+                     saveMessageToHistory(activePeerId, history[activePeerId].name, { type: 'text', text: msg }, 'out');
+                }
+            }
+            input.value = '';
+            updatePatientList();
+        }
+    }
+
+    function handleEnter(e) { if(e.key === 'Enter') sendMessage(); }
+
+    function addMessageToWindow(text, type) {
+        const div = document.createElement('div');
+        div.className = `message msg-${type}`;
+        div.innerHTML = `${text}<span class="msg-time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>`;
+        const win = document.getElementById('chat-window');
+        win.appendChild(div);
+        win.scrollTop = win.scrollHeight;
+    }
+
+    function addFileToWindow(fileData, type) {
+        const div = document.createElement('div');
+        div.className = `message msg-${type}`;
+        const isImage = fileData.fileType && fileData.fileType.startsWith('image/');
+        const fileSizeKB = fileData.size ? (fileData.size / 1024).toFixed(1) : '0';
+        
+        let content = '';
+        if (isImage) {
+            content = `<div class="file-attachment"><img src="${fileData.data}" onclick="viewImage(this.src)"></div>`;
+        } else {
+            content = `
+                <div class="file-attachment">
+                    <div class="file-info">
+                        <span style="font-size:1.3em">📜</span>
+                        <div style="flex:1">
+                            <div style="font-weight:600; font-size:0.8em">${fileData.name || 'File'}</div>
+                            <div style="font-size:0.7em; color:#aaa">${fileSizeKB} KB</div>
+                        </div>
+                        ${fileData.data ? `<a href="${fileData.data}" download="${fileData.name}" class="download-btn"></a>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        div.innerHTML = content + `<span class="msg-time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>`;
+        const win = document.getElementById('chat-window');
+        win.appendChild(div);
+        win.scrollTop = win.scrollHeight;
+    }
+
+    function viewImage(src) {
+        const win = window.open();
+        win.document.write(`<body style="background:#000; margin:0; display:flex; justify-content:center; align-items:center; height:100vh;"><img src="${src}" style="max-width:100%; max-height:100%;"></body>`);
+    }
+
+    // --- UI FUNCTIONS ---
+    function updatePatientList() {
+        if (currentTab !== 'active') return;
+        const listEl = document.getElementById('patient-list');
+        listEl.innerHTML = '';
+        const peers = Object.keys(connections);
+
+        if (peers.length === 0) {
+            listEl.innerHTML = '<li style="padding:20px; text-align:center; color:#666;">Belum ada Anak Madam</li>';
+            return;
+        }
+
+        peers.forEach(pid => {
+            const conn = connections[pid];
+            const patientData = conn.patientData || { name: 'Anonim', id: pid };
+            const li = document.createElement('li');
+            li.className = `patient-item ${activePeerId === pid ? 'active' : ''}`;
+            li.onclick = () => selectPatient(pid);
+            
+            const badgeCount = unreadCounts[pid] || 0;
+            
+            li.innerHTML = `
+                <div class="avatar"></div>
+                <div class="patient-info">
+                    <div class="patient-name">${patientData.name}</div>
+                    <div class="last-msg">${conn.lastMessage || 'Menunggu...'}</div>
+                </div>
+                ${badgeCount > 0 ? `<span class="badge">${badgeCount}</span>` : ''}
+            `;
+            listEl.appendChild(li);
+        });
+    }
+
+    function selectPatient(pid) {
+        activePeerId = pid;
+        unreadCounts[pid] = 0;
+        
+        const patientData = connections[pid].patientData || { name: 'Anonim' };
+        
+        document.getElementById('empty-state').classList.add('hidden');
+        document.getElementById('chat-interface').classList.remove('hidden');
+        document.getElementById('chat-interface').style.display = 'flex';
+        document.getElementById('current-patient-name').innerText = patientData.name;
+        document.getElementById('current-patient-realname').innerText = `● Terhubung`;
+        document.getElementById('chat-window').innerHTML = '';
+        
+        if(window.innerWidth <= 768) {
+            document.getElementById('sidebar').classList.add('hidden');
+        }
+        
+        const history = getHistory();
+        if (history[pid]) {
+            addSystemMessage(`📜 Memuat history...`);
+            history[pid].messages.forEach(msg => {
+                if (msg.type === 'file') {
+                    addFileToWindow({ type: 'file', data: msg.data, fileType: msg.fileType, name: msg.fileName, size: 0 }, msg.direction);
+                } else {
+                    addMessageToWindow(msg.text, msg.direction);
+                }
+            });
+        }
+        
+        addSystemMessage(`Sesi dengan ${patientData.name} Dimulai`);
+        updatePatientList();
+    }
+
+    function backToSidebar() {
+        activePeerId = null;
+        document.getElementById('chat-interface').classList.add('hidden');
+        document.getElementById('empty-state').classList.remove('hidden');
+        document.getElementById('sidebar').classList.remove('hidden');
+        updatePatientList();
+    }
+
+    function addSystemMessage(text) {
+        const div = document.createElement('div');
+        div.className = 'message msg-sys';
+        div.innerText = text;
+        document.getElementById('chat-window').appendChild(div);
+    }
+
+    // --- CALL FUNCTIONS ---
+    function startCall() {
+        if(!activePeerId || !connections[activePeerId]) return;
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then((stream) => {
+                localStream = stream;
+                const call = peer.call(activePeerId, stream);
+                handleCall(call);
+                enableLoudspeaker();
+            })
+            .catch(err => alert("Gagal akses mikrofon: " + err.message));
+    }
+
+    function handleCall(call) {
+        currentCall = call;
+        document.getElementById('btn-call').style.display = 'none';
+        document.getElementById('btn-end').style.display = 'flex';
+        document.getElementById('btn-speaker').style.display = 'flex';
+        
+        call.on('stream', (remoteStream) => {
+            document.getElementById('remote-audio').srcObject = remoteStream;
+            document.getElementById('remote-audio').play();
+            addSystemMessage(" Suara Terbuka");
+        });
+
+        call.on('close', endCallUI);
+    }
+
+    function endCall() {
+        if(currentCall) currentCall.close();
+        if(localStream) localStream.getTracks().forEach(t => t.stop());
+        endCallUI();
+    }
+
+    function endCallUI() {
+        document.getElementById('btn-call').style.display = 'flex';
+        document.getElementById('btn-end').style.display = 'none';
+        document.getElementById('btn-speaker').style.display = 'none';
+        isSpeakerOn = false;
+        addSystemMessage("Suara Ditutup");
+    }
+
+    function copyId() {
+        const idText = document.getElementById('my-id').innerText;
+        navigator.clipboard.writeText(idText);
+        alert("ID Disalin: " + idText);
+    }
+
+    // Keep session alive dengan heartbeat
+    setInterval(() => {
+        console.log('💫 Session aktif...');
+        if (peer && peer.disconnected) {
+            peer.reconnect();
+        }
+    }, 10000); // Cek setiap 10 detik
+</script>
+</body>
+</html>
