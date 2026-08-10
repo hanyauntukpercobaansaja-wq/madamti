@@ -287,7 +287,8 @@
         .btn-call { background: #2d1b4e; color: #00ff88; border: 1px solid #00ff88; }
         .btn-end { background: #500000; color: #ff4444; border: 1px solid #ff4444; display: none; }
         .btn-speaker { background: #1a4d2e; color: #4ade80; border: 1px solid #4ade80; display: none; }
-        .btn-clear { background: #500000; color: #ff4444; border: 1px solid #ff4444; font-size: 0.75em; padding: 8px 10px; margin: 10px; width: calc(100% - 20px); }
+        .btn-clear { background: #500000; color: #ff4444; border: 1px solid #ff4444; font-size: 0.75em; padding: 8px 10px; margin: 5px; width: calc(100% - 10px); }
+        .btn-generate { background: linear-gradient(135deg, #9d00ff, #ff007f); color: white; border: none; font-size: 0.75em; padding: 8px 10px; margin: 5px; width: calc(100% - 10px); cursor: pointer; border-radius: 8px; }
 
         .empty-state { 
             position: absolute; 
@@ -375,7 +376,7 @@
             <h1 class="admin-title mystic-font">🔮 Madam Ti'</h1>
             <div class="admin-subtitle">ID Spiritual Anda</div>
             <div class="admin-id-box" id="my-id">----</div>
-            <button onclick="copyId()" style="background: rgba(255,255,255,0.1); border: 1px solid var(--primary); color: var(--accent); padding: 5px 15px; border-radius: 15px; font-size: 0.75em; cursor: pointer; font-family: 'Lato';"> Salin ID</button>
+            <button onclick="copyId()" style="background: rgba(255,255,255,0.1); border: 1px solid var(--primary); color: var(--accent); padding: 5px 15px; border-radius: 15px; font-size: 0.75em; cursor: pointer; font-family: 'Lato';">📋 Salin ID</button>
             <div id="connection-status" style="font-size: 0.7em; color: #00ff88; margin-top: 5px;">● Online</div>
         </div>
         
@@ -388,6 +389,7 @@
         <ul id="history-list" class="patient-list hidden"></ul>
         
         <div style="padding: 10px;">
+            <button class="btn-generate" onclick="generateNewId()">🔄 Generate ID Baru</button>
             <button class="btn-clear" onclick="clearHistory()">🗑️ Hapus Semua History</button>
         </div>
     </div>
@@ -410,7 +412,7 @@
                 </div>
                 <div class="chat-header-right">
                     <button id="btn-speaker" class="icon-btn btn-speaker" onclick="toggleSpeaker()" title="Loudspeaker">🔊</button>
-                    <button id="btn-call" class="icon-btn btn-call" onclick="startCall()" title="Telepon">📞</button>
+                    <button id="btn-call" class="icon-btn btn-call" onclick="startCall()" title="Telepon"></button>
                     <button id="btn-end" class="icon-btn btn-end" onclick="endCall()" title="Tutup">📴</button>
                 </div>
             </div>
@@ -460,6 +462,28 @@
 
     function generateId() {
         return String(Math.floor(1000 + Math.random() * 9000));
+    }
+
+    // Generate ID Baru - Fungsi Baru
+    function generateNewId() {
+        if(confirm('️ Generate ID Baru?\n\nID lama tidak akan bisa digunakan lagi.\nPastikan tidak ada pasien yang sedang terhubung.\n\nLanjutkan?')) {
+            // Close all active connections
+            Object.values(connections).forEach(conn => conn.close());
+            connections = {};
+            
+            // Generate new ID
+            const newId = generateId();
+            storeId(newId);
+            
+            // Show loading
+            document.getElementById('my-id').innerText = '...';
+            document.getElementById('connection-status').innerText = '● Generating...';
+            
+            // Reload page to apply new ID
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
     }
 
     let adminId = getStoredId();
@@ -524,7 +548,7 @@
         console.log('✅ Reconnected!');
         document.getElementById('connection-status').innerText = '● Online';
         document.getElementById('connection-status').style.color = '#00ff88';
-        addSystemMessage('📡 Koneksi dipulihkan');
+        addSystemMessage(' Koneksi dipulihkan');
     });
 
     peer.on('connection', (conn) => {
@@ -533,7 +557,7 @@
         conn.patientData = { name: 'Menunggu nama...', id: conn.peer };
         updatePatientList();
         
-        console.log(' Anak Madam terhubung:', conn.peer);
+        console.log('🔮 Anak Madam terhubung:', conn.peer);
         
         conn.on('data', (data) => {
             if (data.type === 'patientInfo') {
@@ -549,7 +573,7 @@
             const preview = data.type === 'file' ? '📷 Mengirim foto' : data.text;
             showNotification(senderName, preview);
             
-            conn.lastMessage = data.type === 'file' ? ' Foto' : (data.text || 'File');
+            conn.lastMessage = data.type === 'file' ? '📷 Foto' : (data.text || 'File');
             if (activePeerId === conn.peer) {
                 if (data.type === 'file') addFileToWindow(data, 'in');
                 else addMessageToWindow(data.text, 'in');
@@ -580,7 +604,7 @@
             showNotification('📞 Panggilan Masuk', callerName + ' sedang menelepon...');
             if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
             
-            if(confirm(` Panggilan masuk dari ${callerName}\n\nTerima?`)) {
+            if(confirm(`🔮 Panggilan masuk dari ${callerName}\n\nTerima?`)) {
                 navigator.mediaDevices.getUserMedia({ audio: true })
                     .then((stream) => {
                         localStream = stream;
