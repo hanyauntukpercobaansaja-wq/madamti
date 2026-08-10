@@ -204,9 +204,9 @@
             display: flex; 
             gap: 8px;
             flex-shrink: 0;
+            align-items: center;
         }
         
-        /* --- FIX: Chat window dengan proper overflow --- */
         .chat-window { 
             flex: 1; 
             padding: 15px; 
@@ -238,7 +238,6 @@
         .msg-sys { background: rgba(0,0,0,0.6); color: var(--primary); align-self: center; font-size: 0.75em; padding: 6px 12px; border-radius: 20px; border: 1px solid var(--primary); text-transform: uppercase; letter-spacing: 1px; text-align: center; }
         .msg-time { font-size: 0.6em; opacity: 0.6; margin-top: 4px; text-align: right; display: block; }
 
-        /* --- FIX: Image sizing agar tidak overflow --- */
         .file-attachment { 
             margin-top: 6px; 
             background: rgba(0,0,0,0.3); 
@@ -260,7 +259,6 @@
         .file-info { padding: 6px; display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.5); }
         .download-btn { color: var(--accent); text-decoration: none; font-size: 0.8em; font-weight: 600; }
 
-        /* --- FIX: Input area tetap di bawah --- */
         .input-area { 
             background: var(--bg-panel); 
             padding: 10px; 
@@ -308,7 +306,7 @@
         .btn-call { background: #2d1b4e; color: #00ff88; border: 1px solid #00ff88; }
         .btn-end { background: #500000; color: #ff4444; border: 1px solid #ff4444; display: none; }
         .btn-speaker { background: #1a4d2e; color: #4ade80; border: 1px solid #4ade80; display: none; }
-        .btn-finish { background: linear-gradient(135deg, #ff4444, #ff007f); color: white; border: none; font-size: 0.85em; padding: 10px 20px; border-radius: 20px; cursor: pointer; margin-left: 10px; }
+        .btn-finish { background: linear-gradient(135deg, #ff4444, #ff007f); color: white; border: none; font-size: 0.85em; padding: 10px 20px; border-radius: 20px; cursor: pointer; }
         .btn-clear { background: #500000; color: #ff4444; border: 1px solid #ff4444; font-size: 0.75em; padding: 8px 10px; margin: 5px; width: calc(100% - 10px); }
         .btn-generate { background: linear-gradient(135deg, #9d00ff, #ff007f); color: white; border: none; font-size: 0.75em; padding: 8px 10px; margin: 5px; width: calc(100% - 10px); cursor: pointer; border-radius: 8px; }
 
@@ -387,7 +385,7 @@
 <body>
 
 <div id="notification" class="notification-popup">
-    <div class="notification-icon"></div>
+    <div class="notification-icon">💬</div>
     <div class="notification-content">
         <div class="notification-title" id="notif-title">Pesan Baru</div>
         <div class="notification-message" id="notif-message">...</div>
@@ -400,7 +398,7 @@
             <h1 class="admin-title mystic-font">🔮 Madam Ti'</h1>
             <div class="admin-subtitle">ID Spiritual Anda</div>
             <div class="admin-id-box" id="my-id">----</div>
-            <button onclick="copyId()" style="background: rgba(255,255,255,0.1); border: 1px solid var(--primary); color: var(--accent); padding: 5px 15px; border-radius: 15px; font-size: 0.75em; cursor: pointer; font-family: 'Lato';">📋 Salin ID</button>
+            <button onclick="copyId()" style="background: rgba(255,255,255,0.1); border: 1px solid var(--primary); color: var(--accent); padding: 5px 15px; border-radius: 15px; font-size: 0.75em; cursor: pointer; font-family: 'Lato';"> Salin ID</button>
             <div id="connection-status" style="font-size: 0.7em; color: #00ff88; margin-top: 5px;">● Online</div>
         </div>
         
@@ -435,7 +433,7 @@
                     </div>
                 </div>
                 <div class="chat-header-right">
-                    <button id="btn-speaker" class="icon-btn btn-speaker" onclick="toggleSpeaker()" title="Loudspeaker"></button>
+                    <button id="btn-speaker" class="icon-btn btn-speaker" onclick="toggleSpeaker()" title="Loudspeaker">🔊</button>
                     <button id="btn-call" class="icon-btn btn-call" onclick="startCall()" title="Telepon">📞</button>
                     <button id="btn-end" class="icon-btn btn-end" onclick="endCall()" title="Tutup">📴</button>
                     <button class="btn-finish" onclick="finishSession()">✓ Selesai</button>
@@ -583,22 +581,29 @@
         return '';
     }
 
+    // --- FIX: Setup connection handlers immediately ---
     peer.on('connection', (conn) => {
+        console.log('🔮 New connection from:', conn.peer);
+        
         connections[conn.peer] = conn;
         unreadCounts[conn.peer] = 0;
         conn.patientData = { name: 'Menunggu nama...', id: conn.peer };
         updatePatientList();
         
-        console.log('🔮 Anak Madam terhubung:', conn.peer);
+        // Setup handlers IMMEDIATELY
+        conn.on('open', () => {
+            console.log('✅ Connection opened with:', conn.peer);
+        });
         
         conn.on('data', (data) => {
-            console.log(' Received data:', data);
+            console.log('📩 Received data:', data);
             
-            if (data && data.type === 'patientInfo') {
-                conn.patientData.name = data.name || 'Anak Madam';
-                patientNames[conn.peer] = data.name || 'Anak Madam';
+            // FIX: Handle patientInfo with better checking
+            if (data && data.type === 'patientInfo' && data.name) {
+                conn.patientData.name = data.name;
+                patientNames[conn.peer] = data.name;
+                console.log('📛 Patient name received:', data.name);
                 updatePatientList();
-                console.log('📛 Patient name:', conn.patientData.name);
                 return;
             }
             
@@ -643,7 +648,7 @@
         });
 
         conn.on('close', () => {
-            console.log('❌ Koneksi ditutup:', conn.peer);
+            console.log('❌ Connection closed:', conn.peer);
             delete connections[conn.peer];
             delete unreadCounts[conn.peer];
             if(activePeerId === conn.peer) backToSidebar();
@@ -871,7 +876,7 @@
     function updateSpeakerButton() {
         const btn = document.getElementById('btn-speaker');
         btn.style.display = isSpeakerOn ? 'flex' : 'none';
-        btn.innerHTML = isSpeakerOn ? '🔊' : '🔉';
+        btn.innerHTML = isSpeakerOn ? '🔊' : '';
         btn.style.background = isSpeakerOn ? '#1a4d2e' : '#2d1b4e';
     }
 
@@ -912,7 +917,7 @@
 
         const statusDiv = document.createElement('div');
         statusDiv.className = 'msg-sys';
-        statusDiv.innerText = ' Mengirim...';
+        statusDiv.innerText = '⏳ Mengirim...';
         document.getElementById('chat-window').appendChild(statusDiv);
 
         const reader = new FileReader();
@@ -929,7 +934,7 @@
                 connections[activePeerId].send(fileData);
                 saveMessageToHistory(activePeerId, connections[activePeerId].patientData.name, fileData, 'out');
                 addFileToWindow(fileData, 'out');
-                connections[activePeerId].lastMessage = ' Foto';
+                connections[activePeerId].lastMessage = '📷 Foto';
                 updatePatientList();
             }
             statusDiv.remove();
