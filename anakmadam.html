@@ -178,8 +178,9 @@
             display: none; flex: 1; flex-direction: column;
             justify-content: center; align-items: center; padding: 20px;
             text-align: center; min-height: 0;
+            background: radial-gradient(circle at center, #2e004f 0%, #000000 100%);
         }
-        #ended-screen h2 { color: var(--accent); margin-bottom: 10px; }
+        #ended-screen h2 { color: var(--accent); margin-bottom: 10px; font-family: 'Cinzel', serif; }
         #ended-screen p { color: var(--text-dim); margin-bottom: 20px; }
         .btn-reconnect {
             background: linear-gradient(90deg, var(--primary), var(--accent));
@@ -216,7 +217,7 @@
     </div>
 </div>
 
-<div class="header">
+<div class="header" id="main-header">
     <div class="header-top">
         <h2>🔮 Konsultasi Madam Ti'</h2>
         <button class="btn-exit-header" onclick="exitSession()" id="exit-btn" style="display: none;">🚪 Akhiri Sesi</button>
@@ -274,6 +275,7 @@
     let reconnectAttempts = 0;
     let isConnected = false;
     let callTimeout = null;
+    let isSessionEnded = false; // FIX: Flag untuk mencegah reconnect setelah sesi berakhir
     const MAX_FILE_SIZE = 3 * 1024 * 1024;
     const MAX_RECONNECT = 5;
 
@@ -294,7 +296,7 @@
         heartbeatInterval = setInterval(() => {
             if (conn && conn.open) {
                 conn.send({ type: 'heartbeat', timestamp: Date.now() });
-            } else if (conn && !conn.open && reconnectAttempts < MAX_RECONNECT) {
+            } else if (conn && !conn.open && reconnectAttempts < MAX_RECONNECT && !isSessionEnded) {
                 reconnectAttempts++;
                 reconnect();
             }
@@ -306,7 +308,7 @@
     }
 
     function reconnect() {
-        if (!adminId) return;
+        if (!adminId || isSessionEnded) return; // FIX: Jangan reconnect jika sesi sudah berakhir
         document.getElementById('connection-status').innerText = '🔄 Reconnecting...';
         document.getElementById('connection-status').style.background = 'rgba(255, 165, 0, 0.2)';
         peer = new Peer({ debug: 2, config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } });
@@ -329,6 +331,11 @@
         if (!conn) return;
 
         conn.on('open', () => {
+            // FIX: Jangan tampilkan chat jika sesi sudah berakhir
+            if (isSessionEnded) {
+                console.log('Sesi sudah berakhir, tidak menampilkan chat');
+                return;
+            }
             reconnectAttempts = 0;
             isConnected = true;
             document.getElementById('connection-status').innerText = '● Online';
@@ -344,9 +351,9 @@
         conn.on('data', (data) => {
             if (data && data.type === 'heartbeat') return;
 
-            // Handle sinyal end_call dari Admin (hanya tutup call, sesi chat tetap jalan)
+            // FIX: Handle sinyal end_call dari Admin (HANYA tutup call, sesi chat TETAP JALAN)
             if (data && data.type === 'end_call') {
-                console.log(' Menerima sinyal end_call dari Admin');
+                console.log('📴 Menerima sinyal end_call dari Admin - hanya menutup call');
                 isRemoteEndingCall = true;
                 if (callTimeout) { clearTimeout(callTimeout); callTimeout = null; }
                 if (call) { call.close(); call = null; }
@@ -357,14 +364,17 @@
                 return;
             }
 
-            // Handle sinyal exit dari Admin (tutup semua: chat, call, sesi)
+            // FIX: Handle sinyal exit dari Admin (tutup SEMUA: chat, call, sesi)
             if (data && data.type === 'exit') {
                 const message = data.message || 'Madam Ti\' telah mengakhiri sesi konsultasi';
-                addSystemBubble('❌ ' + message);
+                console.log('🚪 Menerima sinyal exit dari Admin:', message);
+                addSystemBubble(' ' + message);
                 if (callTimeout) { clearTimeout(callTimeout); callTimeout = null; }
                 if (call) { call.close(); call = null; }
                 if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
-                setTimeout(() => { exitSession(message); }, 2000);
+                // Set flag sebelum exitSession untuk mencegah race condition
+                isSessionEnded = true;
+                setTimeout(() => { exitSession(message); }, 1500);
                 return;
             }
 
@@ -384,6 +394,7 @@
         });
 
         conn.on('error', (err) => {
+            if (isSessionEnded) return; // FIX: Ignore error jika sesi sudah berakhir
             document.getElementById('connection-status').innerText = '⚠️ Error';
             document.getElementById('connection-status').style.background = 'rgba(255, 68, 68, 0.2)';
             document.getElementById('status').innerText = 'Error: ' + err.type;
@@ -392,9 +403,17 @@
         });
 
         conn.on('close', () => {
+            console.log('❌ Connection closed. isSessionEnded:', isSessionEnded);
             stopHeartbeat();
             isConnected = false;
             document.getElementById('exit-btn').style.display = 'none';
+            
+            // FIX: Jangan reconnect jika sesi sudah berakhir
+            if (isSessionEnded) {
+                console.log('Sesi sudah berakhir, tidak melakukan reconnect');
+                return;
+            }
+            
             if (reconnectAttempts < MAX_RECONNECT) {
                 setTimeout(() => { reconnect(); }, 3000);
             } else {
@@ -406,6 +425,11 @@
     }
 
     function transitionToChat() {
+        // FIX: Jangan tampilkan chat jika sesi sudah berakhir
+        if (isSessionEnded) {
+            console.log('Sesi sudah berakhir, tidak menampilkan chat area');
+            return;
+        }
         document.getElementById('login-container').style.display = 'none';
         document.getElementById('chat-area').style.display = 'flex';
         addSystemBubble('✅ Anda terhubung. Silakan mulai konsultasi.');
@@ -432,6 +456,7 @@
         });
 
         peer.on('error', (err) => {
+            if (isSessionEnded) return;
             document.getElementById('status').innerText = 'Error: ' + err.type;
             btn.disabled = false;
             btn.innerText = 'Hubungkan Energi';
@@ -513,7 +538,7 @@
         if (isImage) {
             content = '<div class="file-attachment"><img src="' + fileData.data + '" onclick="window.open(this.src)"></div>';
         } else {
-            content = '<div class="file-attachment"><div class="file-info"><span>📄</span><div style="flex:1; overflow:hidden;"><div style="font-weight:600; font-size:0.85em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + fileData.name + '</div><a href="' + fileData.data + '" download="' + fileData.name + '" class="download-link">⬇ Simpan</a></div></div></div>';
+            content = '<div class="file-attachment"><div class="file-info"><span></span><div style="flex:1; overflow:hidden;"><div style="font-weight:600; font-size:0.85em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + fileData.name + '</div><a href="' + fileData.data + '" download="' + fileData.name + '" class="download-link">⬇ Simpan</a></div></div></div>';
         }
         div.innerHTML = content;
         box.appendChild(div);
@@ -525,7 +550,6 @@
             endCall();
         } else {
             startCall();
-            // Auto hang up setelah 1 menit jika tidak dijawab
             callTimeout = setTimeout(() => {
                 if (isCalling) {
                     addSystemBubble('⏰ Panggilan tidak dijawab, diakhiri otomatis');
@@ -545,7 +569,7 @@
             const btn = document.getElementById('btn-call');
             btn.classList.add('active-call');
             btn.innerHTML = '📴';
-            addSystemBubble('📞 Panggilan dimulai...');
+            addSystemBubble(' Panggilan dimulai...');
             call.on('stream', (remoteStream) => {
                 document.getElementById('remoteAudio').srcObject = remoteStream;
                 document.getElementById('remoteAudio').play();
@@ -561,7 +585,7 @@
 
     function endCall() {
         if (callTimeout) { clearTimeout(callTimeout); callTimeout = null; }
-        // Kirim sinyal ke admin untuk menutup call di sisi mereka (hanya call, bukan sesi)
+        // FIX: Kirim sinyal end_call (bukan exit) agar hanya call yang ditutup
         if (!isRemoteEndingCall && conn && conn.open) {
             conn.send({ type: 'end_call' });
         }
@@ -574,28 +598,44 @@
         isCalling = false;
         const btn = document.getElementById('btn-call');
         btn.classList.remove('active-call');
-        btn.innerHTML = '📞';
+        btn.innerHTML = '';
     }
 
     function exitSession(customMessage) {
+        // FIX: Set flag di awal untuk mencegah race condition dengan reconnect
+        isSessionEnded = true;
+        console.log(' exitSession dipanggil. isSessionEnded = true');
+
         if (customMessage) document.getElementById('end-message').innerText = customMessage;
+        
         // Pastikan call ditutup jika sedang aktif
         if (isCalling) endCall();
+
         if (conn && conn.open) {
             conn.send({ type: 'exit', reason: 'patient_left' });
             conn.close();
         }
         if (peer) peer.destroy();
         stopHeartbeat();
+
+        // FIX: Sembunyikan SEMUA elemen UI kecuali ended-screen
+        document.getElementById('main-header').style.display = 'none';
+        document.getElementById('login-container').style.display = 'none';
         document.getElementById('chat-area').style.display = 'none';
         document.getElementById('patient-info').style.display = 'none';
         document.getElementById('exit-btn').style.display = 'none';
+        document.getElementById('notification').style.display = 'none';
+        
+        // Tampilkan hanya ended-screen
         document.getElementById('ended-screen').style.display = 'flex';
+        
+        console.log('✅ Sesi berakhir. UI dibersihkan.');
     }
 
     document.addEventListener('visibilitychange', async () => {
         if (document.visibilityState === 'visible') {
             requestWakeLock();
+            if (isSessionEnded) return; // FIX: Jangan reconnect jika sesi sudah berakhir
             if (peer && peer.disconnected) peer.reconnect();
             if (conn && !conn.open && reconnectAttempts < MAX_RECONNECT) {
                 addSystemBubble('🔄 Memulihkan koneksi...');
