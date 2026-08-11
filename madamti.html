@@ -154,7 +154,7 @@
 
 <div class="quick-chat-overlay" id="quick-chat-overlay">
     <div class="quick-chat-modal">
-        <h3> Quick Chat Templates</h3>
+        <h3>⚡ Riwayat Chat Cepat</h3>
         <div id="quick-chat-list"></div>
         <button class="qc-add" onclick="addQuickChatTemplate()">+ Tambah Template Baru</button>
         <button class="qc-close" onclick="closeQuickChat()">Tutup</button>
@@ -168,17 +168,17 @@
             <div class="admin-subtitle">ID Spiritual Anda</div>
             <div class="admin-id-box" id="my-id">----</div>
             <button onclick="copyId()" style="background: rgba(255,255,255,0.1); border: 1px solid var(--primary); color: var(--accent); padding: 5px 15px; border-radius: 15px; font-size: 0.75em; cursor: pointer; font-family: 'Lato';">📋 Salin ID</button>
-            <div id="connection-status" style="font-size: 0.7em; color: #00ff88; margin-top: 5px;">● Online</div>
+            <div id="connection-status" style="font-size: 0.7em; color: #00ff88; margin-top: 5px;">● Tersambung</div>
         </div>
         <div class="sidebar-tabs">
             <button class="tab-btn active" onclick="switchTab('active')">🟢 Aktif</button>
-            <button class="tab-btn" onclick="switchTab('history')">📜 History</button>
+            <button class="tab-btn" onclick="switchTab('history')">📜 Riwayat</button>
         </div>
         <ul id="patient-list" class="patient-list"></ul>
         <ul id="history-list" class="patient-list hidden"></ul>
         <div style="padding: 10px;">
-            <button class="btn-sidebar primary" onclick="generateNewId()">🔄 Generate ID Baru</button>
-            <button class="btn-sidebar" onclick="clearHistory()">🗑️ Hapus Semua History</button>
+            <button class="btn-sidebar primary" onclick="generateNewId()">🔄 Buat ID Baru</button>
+            <button class="btn-sidebar" onclick="clearHistory()">🗑️ Hapus Semua Riwayat</button>
             <button class="btn-sidebar" onclick="exitApp()" style="margin-top: 10px;">🚪 Keluar Aplikasi</button>
         </div>
     </div>
@@ -195,11 +195,11 @@
                     <button class="back-btn" onclick="backToSidebar()">⬅</button>
                     <div class="patient-header-info">
                         <div id="current-patient-name" class="mystic-font">Anak Madam</div>
-                        <div id="current-patient-realname" style="font-size: 0.7em; color: var(--accent); text-shadow: 0 0 5px var(--accent);">● Terhubung</div>
+                        <div id="current-patient-realname" style="font-size: 0.7em; color: var(--accent); text-shadow: 0 0 5px var(--accent);">● Tersambung</div>
                     </div>
                 </div>
                 <div class="chat-header-right">
-                    <button id="btn-speaker" class="icon-btn btn-speaker" onclick="toggleSpeaker()" title="Loudspeaker">🔊</button>
+                    <button id="btn-speaker" class="icon-btn btn-speaker" onclick="toggleSpeaker()" title="Pengeras Suara"></button>
                     <button id="btn-call" class="icon-btn btn-call" onclick="startCall()" title="Telepon">📞</button>
                     <button id="btn-end" class="icon-btn btn-end" onclick="endCall()" title="Tutup">📴</button>
                     <button class="btn-finish" onclick="finishSession()">✓ Selesai</button>
@@ -207,9 +207,9 @@
             </div>
             <div id="chat-window" class="chat-window"></div>
             <div class="input-area">
-                <label for="file-input" class="icon-btn" title="File">📎</label>
+                <label for="file-input" class="icon-btn" title="Kirim File">📎</label>
                 <input type="file" id="file-input" accept="image/*,.pdf,.doc,.docx,.txt" onchange="handleFileSelect(event)">
-                <button class="icon-btn btn-quick" onclick="openQuickChat()" title="Quick Chat">⚡</button>
+                <button class="icon-btn btn-quick" onclick="openQuickChat()" title="Chat Cepat">⚡</button>
                 <input type="text" id="msg-input" placeholder="Ketik pesan..." onkeypress="handleEnter(event)">
                 <button class="icon-btn btn-send" onclick="sendMessage()" title="Kirim">▶</button>
             </div>
@@ -234,10 +234,10 @@
     function generateId() { return String(Math.floor(1000 + Math.random() * 9000)); }
 
     function generateNewId() {
-        if(confirm('⚠️ Generate ID Baru?\n\nID lama tidak akan bisa digunakan lagi.\nPastikan tidak ada pasien yang sedang terhubung.\n\nLanjutkan?')) {
+        if(confirm('⚠️ Buat ID Baru?\n\nID lama tidak akan bisa digunakan lagi.\nPastikan tidak ada pasien yang sedang terhubung.\n\nLanjutkan?')) {
             Object.values(connections).forEach(conn => { conn.send({ type: 'exit', reason: 'madam_changed_id' }); conn.close(); });
             connections = {}; activeSessions = {}; const newId = generateId(); storeId(newId);
-            document.getElementById('my-id').innerText = '...'; document.getElementById('connection-status').innerText = '● Generating...';
+            document.getElementById('my-id').innerText = '...'; document.getElementById('connection-status').innerText = '● Membuat ID baru...';
             setTimeout(() => { window.location.reload(); }, 1000);
         }
     }
@@ -280,10 +280,10 @@
 
     peer = new Peer(adminId, { debug: 2, config: { iceServers: iceServers }, pingInterval: 5000 });
 
-    peer.on('open', (id) => { document.getElementById('my-id').innerText = id; document.getElementById('connection-status').innerText = '● Online'; document.getElementById('connection-status').style.color = '#00ff88'; storeId(id); });
-    peer.on('error', (err) => { document.getElementById('connection-status').innerText = '● Offline'; document.getElementById('connection-status').style.color = '#ff4444'; if (err.type === 'unavailable-id') { const newId = generateId(); storeId(newId); setTimeout(() => { window.location.reload(); }, 2000); } else if (err.type === 'peer-disconnected' || err.type === 'network') { setTimeout(() => { if (peer.disconnected) peer.reconnect(); }, 3000); } });
-    peer.on('disconnected', () => { document.getElementById('connection-status').innerText = '● Reconnecting...'; document.getElementById('connection-status').style.color = '#ffa500'; setTimeout(() => { if (peer.disconnected) peer.reconnect(); }, 3000); });
-    peer.on('reconnected', () => { document.getElementById('connection-status').innerText = '● Online'; document.getElementById('connection-status').style.color = '#00ff88'; addSystemMessage('🔗 Koneksi dipulihkan'); });
+    peer.on('open', (id) => { document.getElementById('my-id').innerText = id; document.getElementById('connection-status').innerText = '● Tersambung'; document.getElementById('connection-status').style.color = '#00ff88'; storeId(id); });
+    peer.on('error', (err) => { document.getElementById('connection-status').innerText = '● Tidak Terhubung'; document.getElementById('connection-status').style.color = '#ff4444'; if (err.type === 'unavailable-id') { const newId = generateId(); storeId(newId); setTimeout(() => { window.location.reload(); }, 2000); } else if (err.type === 'peer-disconnected' || err.type === 'network') { setTimeout(() => { if (peer.disconnected) peer.reconnect(); }, 3000); } });
+    peer.on('disconnected', () => { document.getElementById('connection-status').innerText = '● Menghubungkan ulang...'; document.getElementById('connection-status').style.color = '#ffa500'; setTimeout(() => { if (peer.disconnected) peer.reconnect(); }, 3000); });
+    peer.on('reconnected', () => { document.getElementById('connection-status').innerText = '● Tersambung'; document.getElementById('connection-status').style.color = '#00ff88'; addSystemMessage(' Koneksi dipulihkan'); });
 
     peer.on('call', (incomingCall) => {
         if (!connections[incomingCall.peer] && !Object.values(activeSessions).some(s => s.peerId === incomingCall.peer)) { incomingCall.close(); return; }
@@ -310,7 +310,7 @@
         selectPatient(pId);
         navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } })
         .then((stream) => { localStream = stream; pendingCall.answer(stream); currentCall = pendingCall; pendingCall = null; handleCall(currentCall); enableLoudspeaker(); })
-        .catch(err => { alert('❌ Gagal akses mikrofon: ' + err.message); rejectIncomingCall(); });
+        .catch(err => { alert('❌ Gagal mengakses mikrofon: ' + err.message); rejectIncomingCall(); });
     }
 
     function rejectIncomingCall() {
@@ -335,7 +335,6 @@
                     const blob = new Blob([data], { type: pendingFileMeta.fileType });
                     const url = URL.createObjectURL(blob);
                     addFileToWindow({ name: pendingFileMeta.name, fileType: pendingFileMeta.fileType, data: url, size: pendingFileMeta.size }, 'in');
-                    // Simpan metadata saja ke history untuk menghemat localStorage
                     saveMessageToHistory(conn.peer, conn.patientData.name, { type: 'file', name: pendingFileMeta.name, fileType: pendingFileMeta.fileType, size: pendingFileMeta.size }, 'in');
                     conn.lastMessage = '📎 ' + pendingFileMeta.name;
                     pendingFileMeta = null;
@@ -355,16 +354,14 @@
                 
                 // FIX: Session Resumption Logic
                 if (activeSessions[data.name]) {
-                    // Pasien reconnect ke sesi yang sama
                     activeSessions[data.name].conn = conn;
                     activeSessions[data.name].peerId = conn.peer;
                     console.log('Sesi dilanjutkan untuk:', data.name);
                     if (activePeerName === data.name) {
-                        document.getElementById('current-patient-realname').innerText = '● Terhubung (Sesi Dilanjutkan)';
-                        setTimeout(() => { document.getElementById('current-patient-realname').innerText = '● Terhubung'; }, 3000);
+                        document.getElementById('current-patient-realname').innerText = '● Tersambung (Sesi Dilanjutkan)';
+                        setTimeout(() => { document.getElementById('current-patient-realname').innerText = '● Tersambung'; }, 3000);
                     }
                 } else {
-                    // Sesi baru
                     activeSessions[data.name] = { conn: conn, peerId: conn.peer, name: data.name };
                 }
                 updatePatientList();
@@ -410,7 +407,7 @@
             if (activeSessions[pName]) {
                 activeSessions[pName].conn = null; // Tandai terputus tapi jangan hapus sesi
                 if (activePeerName === pName) {
-                    document.getElementById('current-patient-realname').innerText = '⚠️ Terputus, menunggu...';
+                    document.getElementById('current-patient-realname').innerText = '️ Terputus, menunggu...';
                 }
             }
             updatePatientList(); 
@@ -424,9 +421,9 @@
     function showNotification(title, message) { if ('Notification' in window && Notification.permission === 'granted') { new Notification(title, { body: message || 'Pesan baru', vibrate: [200, 100, 200] }); } const popup = document.getElementById('notification'); document.getElementById('notif-title').innerText = title; document.getElementById('notif-message').innerText = message || 'Pesan baru'; popup.classList.add('show'); setTimeout(() => { popup.classList.remove('show'); }, 3000); popup.onclick = () => { popup.classList.remove('show'); }; }
     function getHistory() { const history = localStorage.getItem('madamTi_history'); return history ? JSON.parse(history) : {}; }
     function saveMessageToHistory(peerId, patientName, data, direction) { const history = getHistory(); if (!history[peerId]) { history[peerId] = { name: patientName, messages: [], lastUpdate: new Date().toISOString() }; } history[peerId].name = patientName; history[peerId].lastUpdate = new Date().toISOString(); history[peerId].messages.push({ type: data.type, text: data.text, data: data.data, fileType: data.fileType, fileName: data.name, direction: direction, timestamp: new Date().toISOString() }); if (history[peerId].messages.length > 100) history[peerId].messages.shift(); localStorage.setItem('madamTi_history', JSON.stringify(history)); if (currentTab === 'history') renderHistoryList(); }
-    function renderHistoryList() { const listEl = document.getElementById('history-list'); listEl.innerHTML = ''; const history = getHistory(); const peers = Object.keys(history).sort((a, b) => new Date(history[b].lastUpdate) - new Date(history[a].lastUpdate)); if (peers.length === 0) { listEl.innerHTML = '<li style="padding:20px; text-align:center; color:#666;">Belum ada history</li>'; return; } peers.forEach(pid => { const record = history[pid]; const li = document.createElement('li'); li.className = 'patient-item'; li.onclick = () => loadHistoryChat(pid); const lastMsg = record.messages.length > 0 ? (record.messages[record.messages.length - 1].type === 'file' ? ' ' + record.messages[record.messages.length - 1].fileName : record.messages[record.messages.length - 1].text) : 'Tidak ada pesan'; const date = new Date(record.lastUpdate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit' }); li.innerHTML = `<div class="avatar"></div><div class="patient-info"><div class="patient-name">${record.name}</div><div class="last-msg">${lastMsg}</div><div class="history-date">📅 ${date}</div></div>`; listEl.appendChild(li); }); }
-    function loadHistoryChat(peerId) { const history = getHistory(); const record = history[peerId]; if (!record) return; activePeerId = peerId; document.getElementById('empty-state').classList.add('hidden'); document.getElementById('chat-interface').classList.remove('hidden'); document.getElementById('chat-interface').style.display = 'flex'; document.getElementById('current-patient-name').innerText = record.name; document.getElementById('current-patient-realname').innerText = ' History'; document.getElementById('chat-window').innerHTML = ''; if(window.innerWidth <= 768) document.getElementById('sidebar').classList.add('hidden'); record.messages.forEach(msg => { if (msg.type === 'file') addFileToWindow({ type: 'file', data: msg.data, fileType: msg.fileType, name: msg.fileName, size: msg.size }, msg.direction); else addMessageToWindow(msg.text, msg.direction); }); addSystemMessage('--- History dengan ' + record.name + ' ---'); }
-    function clearHistory() { if(confirm('Yakin ingin menghapus semua history?')) { localStorage.removeItem('madamTi_history'); renderHistoryList(); alert('History dihapus.'); } }
+    function renderHistoryList() { const listEl = document.getElementById('history-list'); listEl.innerHTML = ''; const history = getHistory(); const peers = Object.keys(history).sort((a, b) => new Date(history[b].lastUpdate) - new Date(history[a].lastUpdate)); if (peers.length === 0) { listEl.innerHTML = '<li style="padding:20px; text-align:center; color:#666;">Belum ada riwayat</li>'; return; } peers.forEach(pid => { const record = history[pid]; const li = document.createElement('li'); li.className = 'patient-item'; li.onclick = () => loadHistoryChat(pid); const lastMsg = record.messages.length > 0 ? (record.messages[record.messages.length - 1].type === 'file' ? ' ' + record.messages[record.messages.length - 1].fileName : record.messages[record.messages.length - 1].text) : 'Tidak ada pesan'; const date = new Date(record.lastUpdate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit' }); li.innerHTML = `<div class="avatar"></div><div class="patient-info"><div class="patient-name">${record.name}</div><div class="last-msg">${lastMsg}</div><div class="history-date">📅 ${date}</div></div>`; listEl.appendChild(li); }); }
+    function loadHistoryChat(peerId) { const history = getHistory(); const record = history[peerId]; if (!record) return; activePeerId = peerId; document.getElementById('empty-state').classList.add('hidden'); document.getElementById('chat-interface').classList.remove('hidden'); document.getElementById('chat-interface').style.display = 'flex'; document.getElementById('current-patient-name').innerText = record.name; document.getElementById('current-patient-realname').innerText = '📜 Riwayat'; document.getElementById('chat-window').innerHTML = ''; if(window.innerWidth <= 768) document.getElementById('sidebar').classList.add('hidden'); record.messages.forEach(msg => { if (msg.type === 'file') addFileToWindow({ type: 'file', data: msg.data, fileType: msg.fileType, name: msg.fileName, size: msg.size }, msg.direction); else addMessageToWindow(msg.text, msg.direction); }); addSystemMessage('--- Riwayat dengan ' + record.name + ' ---'); }
+    function clearHistory() { if(confirm('Yakin ingin menghapus semua riwayat?')) { localStorage.removeItem('madamTi_history'); renderHistoryList(); alert('Riwayat dihapus.'); } }
     function switchTab(tab) { currentTab = tab; document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active')); event.target.classList.add('active'); if (tab === 'active') { document.getElementById('patient-list').classList.remove('hidden'); document.getElementById('history-list').classList.add('hidden'); updatePatientList(); } else { document.getElementById('patient-list').classList.add('hidden'); document.getElementById('history-list').classList.remove('hidden'); renderHistoryList(); } }
     function enableLoudspeaker() { document.getElementById('remote-audio').volume = 1.0; isSpeakerOn = true; updateSpeakerButton(); }
     function toggleSpeaker() { isSpeakerOn = !isSpeakerOn; document.getElementById('remote-audio').volume = isSpeakerOn ? 1.0 : 0.5; updateSpeakerButton(); }
@@ -460,7 +457,6 @@
             const arrayBuffer = e.target.result; 
             const conn = activeSessions[activePeerName].conn;
             if (conn && conn.open) { 
-                // FIX: Kirim metadata dulu, lalu kirim raw ArrayBuffer (PeerJS akan chunking otomatis)
                 conn.send({ type: 'file-meta', name: file.name, fileType: file.type, size: file.size }); 
                 conn.send(arrayBuffer); 
                 
@@ -473,13 +469,13 @@
             } 
             statusDiv.remove(); event.target.value = ''; 
         }; 
-        reader.readAsArrayBuffer(file); // FIX: Gunakan ArrayBuffer, bukan DataURL
+        reader.readAsArrayBuffer(file);
     }
 
     function sendMessage() { if(!activePeerName || !activeSessions[activePeerName]?.conn) return; const input = document.getElementById('msg-input'); const msg = input.value.trim(); if(msg) { const conn = activeSessions[activePeerName].conn; conn.send({ type: 'text', text: msg }); saveMessageToHistory(conn.peer, conn.patientData.name, { type: 'text', text: msg }, 'out'); addMessageToWindow(msg, 'out'); conn.lastMessage = msg; input.value = ''; updatePatientList(); } }
     function handleEnter(e) { if(e.key === 'Enter') sendMessage(); }
     function addMessageToWindow(text, type) { const div = document.createElement('div'); div.className = 'message msg-' + type; div.innerHTML = text + '<span class="msg-time">' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + '</span>'; const win = document.getElementById('chat-window'); win.appendChild(div); win.scrollTop = win.scrollHeight; }
-    function addFileToWindow(fileData, type) { const div = document.createElement('div'); div.className = 'message msg-' + type; const isImage = fileData.fileType && fileData.fileType.startsWith('image/'); const fileSizeKB = fileData.size ? (fileData.size / 1024).toFixed(1) : '0'; let content = ''; if (isImage) { content = '<div class="file-attachment"><img src="' + fileData.data + '" onclick="viewImage(this.src)"></div>'; } else { content = `<div class="file-attachment"><div class="file-info"><span style="font-size:1.3em">📄</span><div style="flex:1"><div style="font-weight:600; font-size:0.8em">${fileData.name || 'File'}</div><div style="font-size:0.7em; color:#aaa">${fileSizeKB} KB</div></div>${fileData.data ? '<a href="' + fileData.data + '" download="' + fileData.name + '" class="download-btn">⬇</a>' : ''}</div></div>`; } div.innerHTML = content + '<span class="msg-time">' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + '</span>'; const win = document.getElementById('chat-window'); win.appendChild(div); win.scrollTop = win.scrollHeight; }
+    function addFileToWindow(fileData, type) { const div = document.createElement('div'); div.className = 'message msg-' + type; const isImage = fileData.fileType && fileData.fileType.startsWith('image/'); const fileSizeKB = fileData.size ? (fileData.size / 1024).toFixed(1) : '0'; let content = ''; if (isImage) { content = '<div class="file-attachment"><img src="' + fileData.data + '" onclick="viewImage(this.src)"></div>'; } else { content = `<div class="file-attachment"><div class="file-info"><span style="font-size:1.3em">📄</span><div style="flex:1"><div style="font-weight:600; font-size:0.8em">${fileData.name || 'File'}</div><div style="font-size:0.7em; color:#aaa">${fileSizeKB} KB</div></div>${fileData.data ? '<a href="' + fileData.data + '" download="' + fileData.name + '" class="download-btn"> Unduh</a>' : ''}</div></div>`; } div.innerHTML = content + '<span class="msg-time">' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + '</span>'; const win = document.getElementById('chat-window'); win.appendChild(div); win.scrollTop = win.scrollHeight; }
     function viewImage(src) { const win = window.open(); win.document.write('<body style="background:#000; margin:0; display:flex; justify-content:center; align-items:center; height:100vh;"><img src="' + src + '" style="max-width:100%; max-height:100%;"></body>'); }
     
     function updatePatientList() { 
@@ -510,15 +506,13 @@
         activePeerId = pid; activePeerName = session.name; unreadCounts[pid] = 0; 
         document.getElementById('empty-state').classList.add('hidden'); document.getElementById('chat-interface').classList.remove('hidden'); document.getElementById('chat-interface').style.display = 'flex'; 
         document.getElementById('current-patient-name').innerText = session.name; 
-        document.getElementById('current-patient-realname').innerText = session.conn ? '● Terhubung' : '⚠️ Terputus, menunggu...'; 
+        document.getElementById('current-patient-realname').innerText = session.conn ? '● Tersambung' : '⚠️ Terputus, menunggu...'; 
         document.getElementById('chat-window').innerHTML = ''; 
         if(window.innerWidth <= 768) document.getElementById('sidebar').classList.add('hidden'); 
-        const history = getHistory(); const hKey = pid; // Gunakan peerId lama untuk history jika ada, atau cari berdasarkan nama
-        // Cari history berdasarkan nama karena peerId bisa berubah saat reconnect
         const histData = getHistory();
         const histKey = Object.keys(histData).find(k => histData[k].name === session.name) || pid;
         if (histData[histKey]) { 
-            addSystemMessage('📜 Memuat history...'); 
+            addSystemMessage(' Memuat riwayat...'); 
             histData[histKey].messages.forEach(msg => { if (msg.type === 'file') addFileToWindow({ type: 'file', data: msg.data, fileType: msg.fileType, name: msg.fileName, size: msg.size }, msg.direction); else addMessageToWindow(msg.text, msg.direction); }); 
         } 
         addSystemMessage('Sesi dengan ' + session.name + (session.conn ? ' Dimulai/Dilanjutkan' : ' (Menunggu koneksi...)')); 
@@ -527,7 +521,7 @@
 
     function backToSidebar() { activePeerId = null; activePeerName = null; document.getElementById('chat-interface').classList.add('hidden'); document.getElementById('empty-state').classList.remove('hidden'); document.getElementById('sidebar').classList.remove('hidden'); updatePatientList(); }
     function addSystemMessage(text) { const div = document.createElement('div'); div.className = 'message msg-sys'; div.innerText = text; document.getElementById('chat-window').appendChild(div); }
-    function startCall() { if(!activePeerName || !activeSessions[activePeerName]?.conn) { alert('Tidak ada pasien yang terhubung'); return; } const session = activeSessions[activePeerName]; navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }).then((stream) => { localStream = stream; const call = peer.call(session.peerId, stream); handleCall(call); enableLoudspeaker(); incomingCallTimeout = setTimeout(() => { if (currentCall) { addSystemMessage('⏰ Panggilan tidak dijawab, diakhiri otomatis'); endCall(); } }, 60000); }).catch(err => { alert('❌ Gagal akses mikrofon: ' + err.message); }); }
+    function startCall() { if(!activePeerName || !activeSessions[activePeerName]?.conn) { alert('Tidak ada pasien yang terhubung'); return; } const session = activeSessions[activePeerName]; navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }).then((stream) => { localStream = stream; const call = peer.call(session.peerId, stream); handleCall(call); enableLoudspeaker(); incomingCallTimeout = setTimeout(() => { if (currentCall) { addSystemMessage(' Panggilan tidak dijawab, diakhiri otomatis'); endCall(); } }, 60000); }).catch(err => { alert('❌ Gagal mengakses mikrofon: ' + err.message); }); }
     function handleCall(call) { currentCall = call; document.getElementById('btn-call').style.display = 'none'; document.getElementById('btn-end').style.display = 'flex'; document.getElementById('btn-speaker').style.display = 'flex'; call.on('stream', (remoteStream) => { document.getElementById('remote-audio').srcObject = remoteStream; document.getElementById('remote-audio').volume = 1.0; document.getElementById('remote-audio').play(); addSystemMessage('🔊 Suara Terbuka'); }); call.on('close', () => { if (!isRemoteEndingCall) endCallUI(); }); }
     function endCall() { if (incomingCallTimeout) { clearTimeout(incomingCallTimeout); incomingCallTimeout = null; } const session = activeSessions[activePeerName]; if (!isRemoteEndingCall && session?.conn?.open) { session.conn.send({ type: 'end_call' }); } if(currentCall) { currentCall.close(); currentCall = null; } if(localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; } endCallUI(); }
     function endCallUI() { document.getElementById('btn-call').style.display = 'flex'; document.getElementById('btn-end').style.display = 'none'; document.getElementById('btn-speaker').style.display = 'none'; isSpeakerOn = false; currentCall = null; stopRingtone(); addSystemMessage('📴 Panggilan Diakhiri'); }
@@ -536,10 +530,10 @@
     function saveQuickChatTemplates(templates) { localStorage.setItem('madamTi_quickchat', JSON.stringify(templates)); }
     function openQuickChat() { if (!activePeerName || !activeSessions[activePeerName]?.conn) { alert('Pilih pasien terlebih dahulu'); return; } renderQuickChatList(); document.getElementById('quick-chat-overlay').classList.add('show'); }
     function closeQuickChat() { document.getElementById('quick-chat-overlay').classList.remove('show'); }
-    function renderQuickChatList() { const list = document.getElementById('quick-chat-list'); const templates = getQuickChatTemplates(); list.innerHTML = ''; templates.forEach((text, index) => { const item = document.createElement('div'); item.className = 'quick-chat-item'; item.innerHTML = `<textarea class="quick-chat-text" id="qc-text-${index}" rows="2">${text}</textarea><div class="quick-chat-actions"><button class="qc-btn qc-send" onclick="sendQuickChat(${index})">Kirim</button><button class="qc-btn qc-save" onclick="saveQuickChatItem(${index})">💾</button><button class="qc-btn qc-delete" onclick="deleteQuickChatItem(${index})">🗑️</button></div>`; list.appendChild(item); }); }
+    function renderQuickChatList() { const list = document.getElementById('quick-chat-list'); const templates = getQuickChatTemplates(); list.innerHTML = ''; templates.forEach((text, index) => { const item = document.createElement('div'); item.className = 'quick-chat-item'; item.innerHTML = `<textarea class="quick-chat-text" id="qc-text-${index}" rows="2">${text}</textarea><div class="quick-chat-actions"><button class="qc-btn qc-send" onclick="sendQuickChat(${index})">Kirim</button><button class="qc-btn qc-save" onclick="saveQuickChatItem(${index})">💾 Simpan</button><button class="qc-btn qc-delete" onclick="deleteQuickChatItem(${index})">️ Hapus</button></div>`; list.appendChild(item); }); }
     function sendQuickChat(index) { const textarea = document.getElementById('qc-text-' + index); const msg = textarea.value.trim(); if (!msg) { alert('Pesan kosong'); return; } const session = activeSessions[activePeerName]; if (session?.conn?.open) { session.conn.send({ type: 'text', text: msg }); saveMessageToHistory(session.peerId, session.name, { type: 'text', text: msg }, 'out'); addMessageToWindow(msg, 'out'); session.conn.lastMessage = msg; updatePatientList(); closeQuickChat(); } }
     function saveQuickChatItem(index) { const textarea = document.getElementById('qc-text-' + index); const templates = getQuickChatTemplates(); templates[index] = textarea.value.trim(); saveQuickChatTemplates(templates); alert('✅ Template disimpan'); }
-    function deleteQuickChatItem(index) { if (!confirm('Hapus template ini?')) return; const templates = getQuickChatTemplates(); templates.splice(index, 1); saveQuickChatTemplates(templates); renderQuickChatList(); }
+    function deleteQuickChatItem(index) { if (!confirm('Yakin ingin menghapus template ini?')) return; const templates = getQuickChatTemplates(); templates.splice(index, 1); saveQuickChatTemplates(templates); renderQuickChatList(); }
     function addQuickChatTemplate() { const templates = getQuickChatTemplates(); templates.push('Template baru...'); saveQuickChatTemplates(templates); renderQuickChatList(); }
     document.getElementById('quick-chat-overlay').addEventListener('click', function(e) { if (e.target === this) closeQuickChat(); });
     setInterval(() => { if (peer && peer.disconnected) peer.reconnect(); }, 10000);
