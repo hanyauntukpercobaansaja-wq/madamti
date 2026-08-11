@@ -37,8 +37,12 @@
         .icon-btn { width: 44px; height: 44px; min-width: 44px; max-width: 44px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.3em; background: #2d1b4e; color: white; transition: 0.2s; flex-shrink: 0; }
         .icon-btn:active { transform: scale(0.9); }
         .btn-send { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+        /* FIX: Tombol call dengan dua span untuk icon idle dan active */
         .btn-call { background: #1a4d2e; color: #00ff88; border: 1px solid #00ff88; }
+        .btn-call .icon-active { display: none; }
         .btn-call.active-call { background: #500000; color: #ff4444; border-color: #ff4444; animation: pulse 1.5s infinite; }
+        .btn-call.active-call .icon-idle { display: none; }
+        .btn-call.active-call .icon-active { display: inline; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); } }
         .file-attachment { background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; margin-top: 5px; border: 1px solid rgba(255,255,255,0.1); max-width: 100%; }
         .file-attachment img { max-width: 100%; max-height: 250px; width: auto; height: auto; display: block; object-fit: contain; margin: 0 auto; }
@@ -89,7 +93,6 @@
 </head>
 <body>
 
-<!-- Audio sunyi untuk menjaga koneksi tetap hidup di background HP -->
 <audio id="keep-alive-audio" loop preload="auto">
     <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" type="audio/wav">
 </audio>
@@ -108,7 +111,7 @@
         <p id="incoming-caller-name">Madam Ti' sedang menelepon...</p>
         <div class="incoming-call-actions">
             <div class="call-action-wrapper">
-                <button class="call-action-btn btn-reject" onclick="rejectIncomingCall()">📴</button>
+                <button class="call-action-btn btn-reject" onclick="rejectIncomingCall()"></button>
                 <div class="call-action-label">Tolak</div>
             </div>
             <div class="call-action-wrapper">
@@ -121,7 +124,7 @@
 
 <div class="header" id="main-header">
     <div class="header-top">
-        <h2> Konsultasi Madam Ti'</h2>
+        <h2>🔮 Konsultasi Madam Ti'</h2>
         <button class="btn-exit-header" onclick="exitSession()" id="exit-btn" style="display: none;">🚪 Akhiri Sesi</button>
     </div>
     <div class="patient-info" id="patient-info" style="display: none;">
@@ -135,8 +138,8 @@
         <p style="color:#aaa; text-align: center; margin-bottom: 15px; font-size: 0.9em;">Isi data untuk memulai terawang</p>
         <label>✦ Nama Anda</label>
         <input type="text" id="patientName" placeholder="Masukkan nama Anda">
-        <label>✦ ID Spiritual Madam Ti' (4 Digit)</label>
-        <input type="text" id="adminId" placeholder="Contoh: 8392" maxlength="4" inputmode="numeric" pattern="[0-9]*">
+        <label> ID Spiritual Madam Ti' (4 Digit)</label>
+        <input type="text" id="adminId" placeholder="Minta ID sama Madam Ti'" maxlength="4" inputmode="numeric" pattern="[0-9]*">
         <button class="btn-connect" id="btn-connect" onclick="connect()">Hubungkan Energi</button>
         <div id="status" class="status">Menunggu koneksi spiritual...</div>
     </div>
@@ -146,12 +149,15 @@
     <div id="chat-box"></div>
     <div class="footer-controls">
         <div class="input-row">
-            <!-- Icon ditanam langsung agar pasti muncul di HP -->
             <label for="file-input" class="icon-btn" title="Upload File">📎</label>
             <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif" onchange="handleFileSelect(event)">
             <input type="text" id="msgInput" placeholder="Ketik pesan..." onkeypress="if(event.key==='Enter') sendMsg()">
             <button class="icon-btn btn-send" onclick="sendMsg()" title="Kirim">▶</button>
-            <button id="btn-call" class="icon-btn btn-call" onclick="toggleCall()" title="Telepon Madam">📞</button>
+            <!-- FIX: Tombol call dengan dua span - icon tidak pernah dimanipulasi via JS -->
+            <button id="btn-call" class="icon-btn btn-call" onclick="toggleCall()" title="Telepon Madam">
+                <span class="icon-idle">📞</span>
+                <span class="icon-active">📴</span>
+            </button>
         </div>
     </div>
 </div>
@@ -175,7 +181,6 @@
 
     if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
 
-    // Konfigurasi TURN Server untuk lintas network (WiFi vs Data Seluler)
     const iceConfig = {
         iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
@@ -228,7 +233,7 @@
             document.getElementById('connection-status').innerText = '● Online';
             document.getElementById('connection-status').style.background = 'rgba(0, 255, 136, 0.2)';
             document.getElementById('patient-info').style.display = 'flex';
-            document.getElementById('display-patient-name').innerText = '👤 ' + patientName;
+            document.getElementById('display-patient-name').innerText = ' ' + patientName;
             document.getElementById('exit-btn').style.display = 'block';
             conn.send({ type: 'patientInfo', name: patientName });
             transitionToChat(); startHeartbeat();
@@ -244,7 +249,7 @@
             }
             if (data && data.type === 'exit') {
                 const message = data.message || 'Madam Ti\' telah mengakhiri sesi konsultasi';
-                addSystemBubble('❌ ' + message); isSessionEnded = true; hideAllUI();
+                addSystemBubble(' ' + message); isSessionEnded = true; hideAllUI();
                 setTimeout(() => { showEndedScreen(message); }, 1000); return;
             }
             const box = document.getElementById('chat-box');
@@ -289,7 +294,7 @@
             const ringtone = document.getElementById('ringtone');
             ringtone.currentTime = 0; ringtone.play().catch(e => {}); ringtonePlaying = true;
             if(navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
-            showNotification(' Panggilan Masuk', 'Madam Ti\' sedang menelepon...');
+            showNotification('📞 Panggilan Masuk', 'Madam Ti\' sedang menelepon...');
             incomingCallTimeout = setTimeout(() => { rejectIncomingCall(); addSystemBubble(' Panggilan tidak dijawab, diakhiri otomatis'); }, 60000);
         });
     }
@@ -300,8 +305,8 @@
         navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } })
         .then((stream) => {
             localStream = stream; call.answer(stream); isCalling = true;
-            const btn = document.getElementById('btn-call');
-            btn.classList.add('active-call'); btn.innerHTML = '📴';
+            // FIX: Toggle class saja, tidak manipulasi innerHTML
+            document.getElementById('btn-call').classList.add('active-call');
             addSystemBubble('📞 Panggilan dengan Madam Ti dimulai...');
             call.on('stream', (remoteStream) => {
                 const audio = document.getElementById('remoteAudio');
@@ -310,7 +315,7 @@
             call.on('close', () => { if (!isRemoteEndingCall) handleCallRejected(); });
             enableLoudspeaker();
         })
-        .catch(err => { alert(' Gagal akses mikrofon: ' + err.message); rejectIncomingCall(); });
+        .catch(err => { alert('❌ Gagal akses mikrofon: ' + err.message); rejectIncomingCall(); });
     }
 
     function rejectIncomingCall() {
@@ -327,14 +332,14 @@
         if (ringtonePlaying) { ringtone.pause(); ringtone.currentTime = 0; ringtonePlaying = false; }
     }
 
+    // FIX: Hanya toggle class, tidak pernah mengubah innerHTML
     function handleCallRejected() {
         if (callTimeout) { clearTimeout(callTimeout); callTimeout = null; }
         if (incomingCallTimeout) { clearTimeout(incomingCallTimeout); incomingCallTimeout = null; }
         if (call) { call.close(); call = null; }
         if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; }
         isCalling = false; isRemoteEndingCall = false;
-        const btn = document.getElementById('btn-call');
-        btn.classList.remove('active-call'); btn.innerHTML = '';
+        document.getElementById('btn-call').classList.remove('active-call');
         document.getElementById('incoming-call-overlay').classList.remove('show');
         stopRingtone();
     }
@@ -403,7 +408,7 @@
         const fileSizeMB = (file.size / (1024*1024)).toFixed(1);
         const box = document.getElementById('chat-box');
         const status = document.createElement('div');
-        status.className = 'loading-status'; status.innerHTML = '⏳ Mengirim (' + fileSizeMB + ' MB)...';
+        status.className = 'loading-status'; status.innerHTML = ' Mengirim (' + fileSizeMB + ' MB)...';
         box.appendChild(status); box.scrollTop = box.scrollHeight;
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -421,7 +426,7 @@
         const div = document.createElement('div'); div.className = 'msg msg-' + type;
         let content = '';
         if (isImage) { content = '<div class="file-attachment"><img src="' + fileData.data + '" onclick="window.open(this.src)"></div>'; } 
-        else { content = '<div class="file-attachment"><div class="file-info"><span>📄</span><div style="flex:1; overflow:hidden;"><div style="font-weight:600; font-size:0.85em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + fileData.name + '</div><a href="' + fileData.data + '" download="' + fileData.name + '" class="download-link"> Simpan</a></div></div></div>'; }
+        else { content = '<div class="file-attachment"><div class="file-info"><span>📄</span><div style="flex:1; overflow:hidden;"><div style="font-weight:600; font-size:0.85em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + fileData.name + '</div><a href="' + fileData.data + '" download="' + fileData.name + '" class="download-link">⬇ Simpan</a></div></div></div>'; }
         div.innerHTML = content; box.appendChild(div); box.scrollTop = box.scrollHeight;
     }
 
@@ -430,7 +435,7 @@
         else {
             startCall();
             callTimeout = setTimeout(() => {
-                if (isCalling) { addSystemBubble(' Panggilan tidak dijawab, diakhiri otomatis'); endCall(); }
+                if (isCalling) { addSystemBubble('⏰ Panggilan tidak dijawab, diakhiri otomatis'); endCall(); }
             }, 60000);
         }
     }
@@ -440,9 +445,9 @@
         navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } })
         .then((stream) => {
             localStream = stream; call = peer.call(adminId, stream); isCalling = true;
-            const btn = document.getElementById('btn-call');
-            btn.classList.add('active-call'); btn.innerHTML = '📴';
-            addSystemBubble('📞 Panggilan dimulai...');
+            // FIX: Toggle class saja, tidak manipulasi innerHTML
+            document.getElementById('btn-call').classList.add('active-call');
+            addSystemBubble(' Panggilan dimulai...');
             call.on('stream', (remoteStream) => {
                 const audio = document.getElementById('remoteAudio');
                 audio.srcObject = remoteStream; audio.volume = 1.0; audio.play().catch(e => {});
