@@ -121,11 +121,11 @@
 
 <div class="header" id="main-header">
     <div class="header-top">
-        <h2>🔮 Konsultasi Madam Ti'</h2>
+        <h2> Konsultasi Madam Ti'</h2>
         <button class="btn-exit-header" onclick="exitSession()" id="exit-btn" style="display: none;">🚪 Akhiri Sesi</button>
     </div>
     <div class="patient-info" id="patient-info" style="display: none;">
-        <span id="display-patient-name"> Nama Pasien</span>
+        <span id="display-patient-name">👤 Nama Pasien</span>
         <span class="connection-status" id="connection-status">● Online</span>
     </div>
 </div>
@@ -146,11 +146,12 @@
     <div id="chat-box"></div>
     <div class="footer-controls">
         <div class="input-row">
+            <!-- Icon ditanam langsung agar pasti muncul di HP -->
             <label for="file-input" class="icon-btn" title="Upload File">📎</label>
             <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif" onchange="handleFileSelect(event)">
             <input type="text" id="msgInput" placeholder="Ketik pesan..." onkeypress="if(event.key==='Enter') sendMsg()">
             <button class="icon-btn btn-send" onclick="sendMsg()" title="Kirim">▶</button>
-            <button id="btn-call" class="icon-btn btn-call" onclick="toggleCall()" title="Telepon Madam"></button>
+            <button id="btn-call" class="icon-btn btn-call" onclick="toggleCall()" title="Telepon Madam">📞</button>
         </div>
     </div>
 </div>
@@ -174,11 +175,14 @@
 
     if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
 
-    // Konfigurasi TURN Server untuk lintas network
+    // Konfigurasi TURN Server untuk lintas network (WiFi vs Data Seluler)
     const iceConfig = {
         iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
             { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun.cloudflare.com:3478' },
+            { urls: 'turn:freeturn.net:3478', username: 'free', credential: 'free' },
+            { urls: 'turn:freeturn.net:3478?transport=tcp', username: 'free', credential: 'free' },
             { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
             { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
             { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
@@ -190,10 +194,7 @@
 
     function startKeepAlive() {
         const audio = document.getElementById('keep-alive-audio');
-        if (audio) {
-            audio.volume = 0.01;
-            audio.play().catch(e => {});
-        }
+        if (audio) { audio.volume = 0.01; audio.play().catch(e => {}); }
     }
     document.body.addEventListener('click', startKeepAlive, { once: true });
     document.body.addEventListener('touchstart', startKeepAlive, { once: true });
@@ -236,7 +237,7 @@
         conn.on('data', (data) => {
             if (data && data.type === 'heartbeat') return;
             if (data && data.type === 'call_rejected') {
-                handleCallRejected(); addSystemBubble(' Panggilan dibatalkan oleh Madam Ti'); return;
+                handleCallRejected(); addSystemBubble('📴 Panggilan dibatalkan oleh Madam Ti'); return;
             }
             if (data && data.type === 'end_call') {
                 isRemoteEndingCall = true; handleCallRejected(); addSystemBubble('📴 Panggilan diakhiri oleh Madam Ti'); isRemoteEndingCall = false; return;
@@ -288,8 +289,8 @@
             const ringtone = document.getElementById('ringtone');
             ringtone.currentTime = 0; ringtone.play().catch(e => {}); ringtonePlaying = true;
             if(navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
-            showNotification('📞 Panggilan Masuk', 'Madam Ti\' sedang menelepon...');
-            incomingCallTimeout = setTimeout(() => { rejectIncomingCall(); addSystemBubble('⏰ Panggilan tidak dijawab, diakhiri otomatis'); }, 60000);
+            showNotification(' Panggilan Masuk', 'Madam Ti\' sedang menelepon...');
+            incomingCallTimeout = setTimeout(() => { rejectIncomingCall(); addSystemBubble(' Panggilan tidak dijawab, diakhiri otomatis'); }, 60000);
         });
     }
 
@@ -301,7 +302,7 @@
             localStream = stream; call.answer(stream); isCalling = true;
             const btn = document.getElementById('btn-call');
             btn.classList.add('active-call'); btn.innerHTML = '📴';
-            addSystemBubble(' Panggilan dengan Madam Ti dimulai...');
+            addSystemBubble('📞 Panggilan dengan Madam Ti dimulai...');
             call.on('stream', (remoteStream) => {
                 const audio = document.getElementById('remoteAudio');
                 audio.srcObject = remoteStream; audio.volume = 1.0; audio.play().catch(e => {});
@@ -309,7 +310,7 @@
             call.on('close', () => { if (!isRemoteEndingCall) handleCallRejected(); });
             enableLoudspeaker();
         })
-        .catch(err => { alert('❌ Gagal akses mikrofon: ' + err.message); rejectIncomingCall(); });
+        .catch(err => { alert(' Gagal akses mikrofon: ' + err.message); rejectIncomingCall(); });
     }
 
     function rejectIncomingCall() {
@@ -318,7 +319,7 @@
         if (call) { call.close(); call = null; }
         if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
         if (conn && conn.open) { conn.send({ type: 'end_call' }); }
-        addSystemBubble(' Panggilan ditolak');
+        addSystemBubble('📴 Panggilan ditolak');
     }
 
     function stopRingtone() {
@@ -333,7 +334,7 @@
         if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; }
         isCalling = false; isRemoteEndingCall = false;
         const btn = document.getElementById('btn-call');
-        btn.classList.remove('active-call'); btn.innerHTML = '📞';
+        btn.classList.remove('active-call'); btn.innerHTML = '';
         document.getElementById('incoming-call-overlay').classList.remove('show');
         stopRingtone();
     }
@@ -364,7 +365,7 @@
             document.getElementById('status').innerText = 'Error: ' + err.type;
             btn.disabled = false; btn.innerText = 'Hubungkan Energi';
             if (err.type === 'peer-unavailable') alert('❌ ID Madam Ti tidak ditemukan atau sedang offline.');
-            else if (err.type === 'network') alert('️ Error jaringan.');
+            else if (err.type === 'network') alert('⚠️ Error jaringan.');
         });
     }
 
@@ -420,7 +421,7 @@
         const div = document.createElement('div'); div.className = 'msg msg-' + type;
         let content = '';
         if (isImage) { content = '<div class="file-attachment"><img src="' + fileData.data + '" onclick="window.open(this.src)"></div>'; } 
-        else { content = '<div class="file-attachment"><div class="file-info"><span>📄</span><div style="flex:1; overflow:hidden;"><div style="font-weight:600; font-size:0.85em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + fileData.name + '</div><a href="' + fileData.data + '" download="' + fileData.name + '" class="download-link">⬇ Simpan</a></div></div></div>'; }
+        else { content = '<div class="file-attachment"><div class="file-info"><span>📄</span><div style="flex:1; overflow:hidden;"><div style="font-weight:600; font-size:0.85em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + fileData.name + '</div><a href="' + fileData.data + '" download="' + fileData.name + '" class="download-link"> Simpan</a></div></div></div>'; }
         div.innerHTML = content; box.appendChild(div); box.scrollTop = box.scrollHeight;
     }
 
@@ -429,7 +430,7 @@
         else {
             startCall();
             callTimeout = setTimeout(() => {
-                if (isCalling) { addSystemBubble('⏰ Panggilan tidak dijawab, diakhiri otomatis'); endCall(); }
+                if (isCalling) { addSystemBubble(' Panggilan tidak dijawab, diakhiri otomatis'); endCall(); }
             }, 60000);
         }
     }
@@ -492,7 +493,7 @@
             startKeepAlive();
             if (isSessionEnded) return;
             if (peer && peer.disconnected) peer.reconnect();
-            if (conn && !conn.open && reconnectAttempts < MAX_RECONNECT) { addSystemBubble(' Memulihkan koneksi...'); reconnect(); }
+            if (conn && !conn.open && reconnectAttempts < MAX_RECONNECT) { addSystemBubble('🔄 Memulihkan koneksi...'); reconnect(); }
         }
     });
 
