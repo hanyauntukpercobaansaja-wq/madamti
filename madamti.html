@@ -17,6 +17,8 @@
         .admin-title { font-size: 1.2em; margin: 0; text-shadow: 0 0 10px var(--primary); }
         .admin-subtitle { font-size: 0.7em; opacity: 0.8; margin-top: 5px; letter-spacing: 1px; }
         .admin-id-box { background: rgba(0,0,0,0.5); border: 1px solid var(--primary); padding: 10px; border-radius: 8px; margin: 10px 0; font-family: monospace; color: var(--accent); font-size: 1.5em; font-weight: bold; text-shadow: 0 0 10px var(--accent); letter-spacing: 5px; }
+        .btn-exit-app { background: #500000; color: #ff4444; border: 1px solid #ff4444; padding: 8px 15px; border-radius: 20px; font-size: 0.8em; font-weight: 600; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        .btn-exit-app:hover { background: #ff4444; color: white; }
         .sidebar-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
         .tab-btn { flex: 1; padding: 12px; background: transparent; border: none; color: var(--text-dim); cursor: pointer; font-family: 'Cinzel', serif; font-weight: bold; transition: 0.3s; font-size: 0.9em; }
         .tab-btn.active { color: var(--accent); border-bottom: 2px solid var(--accent); background: rgba(157, 0, 255, 0.1); }
@@ -124,7 +126,7 @@
 
 <audio id="ringtone" src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-tone-996.mp3" loop></audio>
 <div id="notification" class="notification-popup">
-    <div class="notification-icon"></div>
+    <div class="notification-icon">🔮</div>
     <div class="notification-content">
         <div class="notification-title" id="notif-title">Pesan Baru</div>
         <div class="notification-message" id="notif-message">...</div>
@@ -133,7 +135,7 @@
 
 <div class="incoming-call-overlay" id="incoming-call-overlay">
     <div class="incoming-call-modal">
-        <h3> PANGGILAN MASUK</h3>
+        <h3>📞 PANGGILAN MASUK</h3>
         <p id="incoming-caller-name">Anak Madam sedang menelepon...</p>
         <div class="incoming-call-actions">
             <div class="call-action-wrapper">
@@ -141,7 +143,7 @@
                 <div class="call-action-label">Tolak</div>
             </div>
             <div class="call-action-wrapper">
-                <button class="call-action-btn btn-answer" onclick="answerIncomingCall()">📞</button>
+                <button class="call-action-btn btn-answer" onclick="answerIncomingCall()"></button>
                 <div class="call-action-label">Jawab</div>
             </div>
         </div>
@@ -150,7 +152,7 @@
 
 <div class="quick-chat-overlay" id="quick-chat-overlay">
     <div class="quick-chat-modal">
-        <h3>⚡ Quick Chat Templates</h3>
+        <h3> Quick Chat Templates</h3>
         <div id="quick-chat-list"></div>
         <button class="qc-add" onclick="addQuickChatTemplate()">+ Tambah Template Baru</button>
         <button class="qc-close" onclick="closeQuickChat()">Tutup</button>
@@ -165,6 +167,7 @@
             <div class="admin-id-box" id="my-id">----</div>
             <button onclick="copyId()" style="background: rgba(255,255,255,0.1); border: 1px solid var(--primary); color: var(--accent); padding: 5px 15px; border-radius: 15px; font-size: 0.75em; cursor: pointer; font-family: 'Lato';">📋 Salin ID</button>
             <div id="connection-status" style="font-size: 0.7em; color: #00ff88; margin-top: 5px;">● Online</div>
+            <button class="btn-exit-app" onclick="exitApplication()">🚪 Keluar Aplikasi</button>
         </div>
         <div class="sidebar-tabs">
             <button class="tab-btn active" onclick="switchTab('active')">🟢 Aktif</button>
@@ -173,7 +176,7 @@
         <ul id="patient-list" class="patient-list"></ul>
         <ul id="history-list" class="patient-list hidden"></ul>
         <div style="padding: 10px;">
-            <button class="btn-generate" onclick="generateNewId()"> Generate ID Baru</button>
+            <button class="btn-generate" onclick="generateNewId()">🔄 Generate ID Baru</button>
             <button class="btn-clear" onclick="clearHistory()">🗑️ Hapus Semua History</button>
         </div>
     </div>
@@ -235,6 +238,33 @@
         }
     }
 
+    // FIX 2: Fungsi untuk keluar dari aplikasi dan memutuskan semua sesi
+    function exitApplication() {
+        if(Object.keys(connections).length > 0) {
+            if(!confirm('🚪 Keluar dari Aplikasi?\n\nSemua sesi konsultasi dengan Anak Madam akan diakhiri.\n\nLanjutkan?')) {
+                return;
+            }
+        }
+        
+        // Kirim sinyal exit ke semua pasien yang terhubung
+        Object.values(connections).forEach(conn => {
+            if(conn.open) {
+                conn.send({ type: 'exit', reason: 'madam_exited', message: 'Madam Ti\' telah keluar dari aplikasi' });
+            }
+            conn.close();
+        });
+        
+        // Tutup call jika ada
+        if(currentCall) { currentCall.close(); currentCall = null; }
+        if(localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+        
+        // Destroy peer
+        if(peer) { peer.destroy(); }
+        
+        // Tampilkan pesan keluar
+        document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;background:radial-gradient(circle at center, #2e004f 0%, #000000 100%);color:white;font-family:Cinzel,serif;text-align:center;padding:20px;"><div><h1 style="font-size:2em;margin-bottom:20px;">🔮 Madam Ti\' Telah Keluar</h1><p style="font-size:1.1em;opacity:0.8;">Semoga energi baik menyertai Anda</p><button onclick="location.reload()" style="margin-top:30px;padding:15px 30px;background:linear-gradient(90deg,#9d00ff,#ff007f);color:white;border:none;border-radius:25px;font-size:1em;cursor:pointer;">🔄 Masuk Kembali</button></div></div>';
+    }
+
     let adminId = getStoredId();
     if (!adminId) { adminId = generateId(); storeId(adminId); }
 
@@ -284,7 +314,22 @@
         conn.on('data', (data) => {
             if (data && data.type === 'patientInfo' && data.name) { conn.patientData.name = data.name; patientNames[conn.peer] = data.name; updatePatientList(); return; }
             if (data && data.type === 'heartbeat') return;
-            if (data && data.type === 'end_call') { isRemoteEndingCall = true; if (currentCall) { currentCall.close(); currentCall = null; } if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; } endCallUI(); addSystemMessage('📴 Panggilan diakhiri oleh pasien'); isRemoteEndingCall = false; return; }
+            
+            // FIX 1: Handle sinyal end_call dari pasien (pasien membatalkan call)
+            if (data && data.type === 'end_call') { 
+                isRemoteEndingCall = true; 
+                if (currentCall) { currentCall.close(); currentCall = null; } 
+                if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; } 
+                // Tutup modal incoming call jika ada
+                document.getElementById('incoming-call-overlay').classList.remove('show');
+                stopRingtone();
+                if(incomingCallTimeout) { clearTimeout(incomingCallTimeout); incomingCallTimeout = null; }
+                endCallUI(); 
+                addSystemMessage(' Panggilan dibatalkan oleh pasien'); 
+                isRemoteEndingCall = false; 
+                return; 
+            }
+            
             if (data && data.type === 'exit') { const patientName = conn.patientData.name || 'Anak Madam'; addSystemMessage('❌ ' + patientName + ' mengakhiri konsultasi'); if (activePeerId === conn.peer && currentCall) { currentCall.close(); if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; } } conn.close(); return; }
             const messageText = getMessageText(data); const messageType = data && data.type ? data.type : 'text';
             saveMessageToHistory(conn.peer, conn.patientData.name, { type: messageType, text: messageText, data: data.data, fileType: data.fileType, name: data.name }, 'in');
@@ -303,25 +348,25 @@
     function getHistory() { const history = localStorage.getItem('madamTi_history'); return history ? JSON.parse(history) : {}; }
     function saveMessageToHistory(peerId, patientName, data, direction) { const history = getHistory(); if (!history[peerId]) { history[peerId] = { name: patientName, messages: [], lastUpdate: new Date().toISOString() }; } history[peerId].name = patientName; history[peerId].lastUpdate = new Date().toISOString(); history[peerId].messages.push({ type: data.type, text: data.text, data: data.data, fileType: data.fileType, fileName: data.name, direction: direction, timestamp: new Date().toISOString() }); if (history[peerId].messages.length > 100) history[peerId].messages.shift(); localStorage.setItem('madamTi_history', JSON.stringify(history)); if (currentTab === 'history') renderHistoryList(); }
     function renderHistoryList() { const listEl = document.getElementById('history-list'); listEl.innerHTML = ''; const history = getHistory(); const peers = Object.keys(history).sort((a, b) => new Date(history[b].lastUpdate) - new Date(history[a].lastUpdate)); if (peers.length === 0) { listEl.innerHTML = '<li style="padding:20px; text-align:center; color:#666;">Belum ada history</li>'; return; } peers.forEach(pid => { const record = history[pid]; const li = document.createElement('li'); li.className = 'patient-item'; li.onclick = () => loadHistoryChat(pid); const lastMsg = record.messages.length > 0 ? (record.messages[record.messages.length - 1].type === 'file' ? '📷 Foto' : record.messages[record.messages.length - 1].text) : 'Tidak ada pesan'; const date = new Date(record.lastUpdate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit' }); li.innerHTML = `<div class="avatar">🔮</div><div class="patient-info"><div class="patient-name">${record.name}</div><div class="last-msg">${lastMsg}</div><div class="history-date">📅 ${date}</div></div>`; listEl.appendChild(li); }); }
-    function loadHistoryChat(peerId) { const history = getHistory(); const record = history[peerId]; if (!record) return; activePeerId = peerId; document.getElementById('empty-state').classList.add('hidden'); document.getElementById('chat-interface').classList.remove('hidden'); document.getElementById('chat-interface').style.display = 'flex'; document.getElementById('current-patient-name').innerText = record.name; document.getElementById('current-patient-realname').innerText = '📜 History'; document.getElementById('chat-window').innerHTML = ''; if(window.innerWidth <= 768) document.getElementById('sidebar').classList.add('hidden'); record.messages.forEach(msg => { if (msg.type === 'file') addFileToWindow({ type: 'file', data: msg.data, fileType: msg.fileType, name: msg.fileName, size: 0 }, msg.direction); else addMessageToWindow(msg.text, msg.direction); }); addSystemMessage('--- History dengan ' + record.name + ' ---'); }
+    function loadHistoryChat(peerId) { const history = getHistory(); const record = history[peerId]; if (!record) return; activePeerId = peerId; document.getElementById('empty-state').classList.add('hidden'); document.getElementById('chat-interface').classList.remove('hidden'); document.getElementById('chat-interface').style.display = 'flex'; document.getElementById('current-patient-name').innerText = record.name; document.getElementById('current-patient-realname').innerText = ' History'; document.getElementById('chat-window').innerHTML = ''; if(window.innerWidth <= 768) document.getElementById('sidebar').classList.add('hidden'); record.messages.forEach(msg => { if (msg.type === 'file') addFileToWindow({ type: 'file', data: msg.data, fileType: msg.fileType, name: msg.fileName, size: 0 }, msg.direction); else addMessageToWindow(msg.text, msg.direction); }); addSystemMessage('--- History dengan ' + record.name + ' ---'); }
     function clearHistory() { if(confirm('Yakin ingin menghapus semua history?')) { localStorage.removeItem('madamTi_history'); renderHistoryList(); alert('History dihapus.'); } }
     function switchTab(tab) { currentTab = tab; document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active')); event.target.classList.add('active'); if (tab === 'active') { document.getElementById('patient-list').classList.remove('hidden'); document.getElementById('history-list').classList.add('hidden'); updatePatientList(); } else { document.getElementById('patient-list').classList.add('hidden'); document.getElementById('history-list').classList.remove('hidden'); renderHistoryList(); } }
     function enableLoudspeaker() { document.getElementById('remote-audio').volume = 1.0; isSpeakerOn = true; updateSpeakerButton(); }
     function toggleSpeaker() { isSpeakerOn = !isSpeakerOn; document.getElementById('remote-audio').volume = isSpeakerOn ? 1.0 : 0.5; updateSpeakerButton(); }
-    function updateSpeakerButton() { const btn = document.getElementById('btn-speaker'); btn.style.display = isSpeakerOn ? 'flex' : 'none'; btn.innerHTML = isSpeakerOn ? '🔊' : ''; btn.style.background = isSpeakerOn ? '#1a4d2e' : '#2d1b4e'; }
+    function updateSpeakerButton() { const btn = document.getElementById('btn-speaker'); btn.style.display = isSpeakerOn ? 'flex' : 'none'; btn.innerHTML = isSpeakerOn ? '🔊' : '🔇'; btn.style.background = isSpeakerOn ? '#1a4d2e' : '#2d1b4e'; }
     function finishSession() { if(!activePeerId || !connections[activePeerId]) { alert('Tidak ada pasien yang terhubung'); return; } if(confirm('✓ Akhiri Sesi Konsultasi?\n\nPasien akan diberitahu bahwa Anda telah keluar.\n\nLanjutkan?')) { const patientName = connections[activePeerId].patientData.name || 'Anak Madam'; connections[activePeerId].send({ type: 'exit', reason: 'madam_finished', message: 'Madam Ti\' telah mengakhiri sesi konsultasi' }); if (currentCall) { currentCall.close(); currentCall = null; } if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; } connections[activePeerId].close(); addSystemMessage('✓ Sesi dengan ' + patientName + ' diakhiri'); setTimeout(() => { backToSidebar(); }, 1000); } }
-    function handleFileSelect(event) { const file = event.target.files[0]; if (!file || !activePeerId) return; if (file.size > MAX_FILE_SIZE) { alert('File terlalu besar! Maksimal 3MB.'); event.target.value = ''; return; } const statusDiv = document.createElement('div'); statusDiv.className = 'msg-sys'; statusDiv.innerText = ' Mengirim...'; document.getElementById('chat-window').appendChild(statusDiv); const reader = new FileReader(); reader.onload = function(e) { const fileData = { type: 'file', name: file.name, size: file.size, fileType: file.type, data: e.target.result }; if (connections[activePeerId]) { connections[activePeerId].send(fileData); saveMessageToHistory(activePeerId, connections[activePeerId].patientData.name, fileData, 'out'); addFileToWindow(fileData, 'out'); connections[activePeerId].lastMessage = '📷 Foto'; updatePatientList(); } statusDiv.remove(); event.target.value = ''; }; reader.readAsDataURL(file); }
+    function handleFileSelect(event) { const file = event.target.files[0]; if (!file || !activePeerId) return; if (file.size > MAX_FILE_SIZE) { alert('File terlalu besar! Maksimal 3MB.'); event.target.value = ''; return; } const statusDiv = document.createElement('div'); statusDiv.className = 'msg-sys'; statusDiv.innerText = '⏳ Mengirim...'; document.getElementById('chat-window').appendChild(statusDiv); const reader = new FileReader(); reader.onload = function(e) { const fileData = { type: 'file', name: file.name, size: file.size, fileType: file.type, data: e.target.result }; if (connections[activePeerId]) { connections[activePeerId].send(fileData); saveMessageToHistory(activePeerId, connections[activePeerId].patientData.name, fileData, 'out'); addFileToWindow(fileData, 'out'); connections[activePeerId].lastMessage = '📷 Foto'; updatePatientList(); } statusDiv.remove(); event.target.value = ''; }; reader.readAsDataURL(file); }
     function sendMessage() { if(!activePeerId) return; const input = document.getElementById('msg-input'); const msg = input.value.trim(); if(msg) { if (connections[activePeerId]) { connections[activePeerId].send({ type: 'text', text: msg }); saveMessageToHistory(activePeerId, connections[activePeerId].patientData.name, { type: 'text', text: msg }, 'out'); addMessageToWindow(msg, 'out'); connections[activePeerId].lastMessage = msg; } else { addMessageToWindow(msg, 'out'); const history = getHistory(); if(history[activePeerId]) saveMessageToHistory(activePeerId, history[activePeerId].name, { type: 'text', text: msg }, 'out'); } input.value = ''; updatePatientList(); } }
     function handleEnter(e) { if(e.key === 'Enter') sendMessage(); }
     function addMessageToWindow(text, type) { const div = document.createElement('div'); div.className = 'message msg-' + type; div.innerHTML = text + '<span class="msg-time">' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + '</span>'; const win = document.getElementById('chat-window'); win.appendChild(div); win.scrollTop = win.scrollHeight; }
     function addFileToWindow(fileData, type) { const div = document.createElement('div'); div.className = 'message msg-' + type; const isImage = fileData.fileType && fileData.fileType.startsWith('image/'); const fileSizeKB = fileData.size ? (fileData.size / 1024).toFixed(1) : '0'; let content = ''; if (isImage) { content = '<div class="file-attachment"><img src="' + fileData.data + '" onclick="viewImage(this.src)"></div>'; } else { content = `<div class="file-attachment"><div class="file-info"><span style="font-size:1.3em">📄</span><div style="flex:1"><div style="font-weight:600; font-size:0.8em">${fileData.name || 'File'}</div><div style="font-size:0.7em; color:#aaa">${fileSizeKB} KB</div></div>${fileData.data ? '<a href="' + fileData.data + '" download="' + fileData.name + '" class="download-btn">⬇</a>' : ''}</div></div>`; } div.innerHTML = content + '<span class="msg-time">' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + '</span>'; const win = document.getElementById('chat-window'); win.appendChild(div); win.scrollTop = win.scrollHeight; }
     function viewImage(src) { const win = window.open(); win.document.write('<body style="background:#000; margin:0; display:flex; justify-content:center; align-items:center; height:100vh;"><img src="' + src + '" style="max-width:100%; max-height:100%;"></body>'); }
-    function updatePatientList() { if (currentTab !== 'active') return; const listEl = document.getElementById('patient-list'); listEl.innerHTML = ''; const peers = Object.keys(connections); if (peers.length === 0) { listEl.innerHTML = '<li style="padding:20px; text-align:center; color:#666;">Belum ada Anak Madam</li>'; return; } peers.forEach(pid => { const conn = connections[pid]; const patientData = conn.patientData || { name: 'Anonim', id: pid }; const li = document.createElement('li'); li.className = 'patient-item ' + (activePeerId === pid ? 'active' : ''); li.onclick = () => selectPatient(pid); const badgeCount = unreadCounts[pid] || 0; li.innerHTML = `<div class="avatar"></div><div class="patient-info"><div class="patient-name">${patientData.name}</div><div class="last-msg">${conn.lastMessage || 'Menunggu...'}</div></div>${badgeCount > 0 ? '<span class="badge">' + badgeCount + '</span>' : ''}`; listEl.appendChild(li); }); }
+    function updatePatientList() { if (currentTab !== 'active') return; const listEl = document.getElementById('patient-list'); listEl.innerHTML = ''; const peers = Object.keys(connections); if (peers.length === 0) { listEl.innerHTML = '<li style="padding:20px; text-align:center; color:#666;">Belum ada Anak Madam</li>'; return; } peers.forEach(pid => { const conn = connections[pid]; const patientData = conn.patientData || { name: 'Anonim', id: pid }; const li = document.createElement('li'); li.className = 'patient-item ' + (activePeerId === pid ? 'active' : ''); li.onclick = () => selectPatient(pid); const badgeCount = unreadCounts[pid] || 0; li.innerHTML = `<div class="avatar">🔮</div><div class="patient-info"><div class="patient-name">${patientData.name}</div><div class="last-msg">${conn.lastMessage || 'Menunggu...'}</div></div>${badgeCount > 0 ? '<span class="badge">' + badgeCount + '</span>' : ''}`; listEl.appendChild(li); }); }
     function selectPatient(pid) { activePeerId = pid; unreadCounts[pid] = 0; const patientData = connections[pid].patientData || { name: 'Anonim' }; document.getElementById('empty-state').classList.add('hidden'); document.getElementById('chat-interface').classList.remove('hidden'); document.getElementById('chat-interface').style.display = 'flex'; document.getElementById('current-patient-name').innerText = patientData.name; document.getElementById('current-patient-realname').innerText = '● Terhubung'; document.getElementById('chat-window').innerHTML = ''; if(window.innerWidth <= 768) document.getElementById('sidebar').classList.add('hidden'); const history = getHistory(); if (history[pid]) { addSystemMessage('📜 Memuat history...'); history[pid].messages.forEach(msg => { if (msg.type === 'file') addFileToWindow({ type: 'file', data: msg.data, fileType: msg.fileType, name: msg.fileName, size: 0 }, msg.direction); else addMessageToWindow(msg.text, msg.direction); }); } addSystemMessage('Sesi dengan ' + patientData.name + ' Dimulai'); updatePatientList(); }
     function backToSidebar() { activePeerId = null; document.getElementById('chat-interface').classList.add('hidden'); document.getElementById('empty-state').classList.remove('hidden'); document.getElementById('sidebar').classList.remove('hidden'); updatePatientList(); }
     function addSystemMessage(text) { const div = document.createElement('div'); div.className = 'message msg-sys'; div.innerText = text; document.getElementById('chat-window').appendChild(div); }
     function startCall() { if(!activePeerId || !connections[activePeerId]) { alert('Tidak ada pasien yang terhubung'); return; } navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }).then((stream) => { localStream = stream; const call = peer.call(activePeerId, stream); handleCall(call); enableLoudspeaker(); incomingCallTimeout = setTimeout(() => { if (currentCall) { addSystemMessage('⏰ Panggilan tidak dijawab, diakhiri otomatis'); endCall(); } }, 60000); }).catch(err => { alert('❌ Gagal akses mikrofon: ' + err.message); }); }
-    function handleCall(call) { currentCall = call; document.getElementById('btn-call').style.display = 'none'; document.getElementById('btn-end').style.display = 'flex'; document.getElementById('btn-speaker').style.display = 'flex'; call.on('stream', (remoteStream) => { document.getElementById('remote-audio').srcObject = remoteStream; document.getElementById('remote-audio').volume = 1.0; document.getElementById('remote-audio').play(); addSystemMessage(' Suara Terbuka'); }); call.on('close', () => { if (!isRemoteEndingCall) endCallUI(); }); }
+    function handleCall(call) { currentCall = call; document.getElementById('btn-call').style.display = 'none'; document.getElementById('btn-end').style.display = 'flex'; document.getElementById('btn-speaker').style.display = 'flex'; call.on('stream', (remoteStream) => { document.getElementById('remote-audio').srcObject = remoteStream; document.getElementById('remote-audio').volume = 1.0; document.getElementById('remote-audio').play(); addSystemMessage('🔊 Suara Terbuka'); }); call.on('close', () => { if (!isRemoteEndingCall) endCallUI(); }); }
     function endCall() { if (incomingCallTimeout) { clearTimeout(incomingCallTimeout); incomingCallTimeout = null; } if (!isRemoteEndingCall && activePeerId && connections[activePeerId] && connections[activePeerId].open) { connections[activePeerId].send({ type: 'end_call' }); } if(currentCall) { currentCall.close(); currentCall = null; } if(localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; } endCallUI(); }
     function endCallUI() { document.getElementById('btn-call').style.display = 'flex'; document.getElementById('btn-end').style.display = 'none'; document.getElementById('btn-speaker').style.display = 'none'; isSpeakerOn = false; currentCall = null; stopRingtone(); addSystemMessage('📴 Panggilan Diakhiri'); }
     function copyId() { const idText = document.getElementById('my-id').innerText; navigator.clipboard.writeText(idText).then(() => { alert('ID Disalin: ' + idText); }).catch(() => { const textArea = document.createElement('textarea'); textArea.value = idText; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); alert('ID Disalin: ' + idText); }); }
