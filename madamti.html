@@ -269,6 +269,7 @@
             border-top: 1px solid rgba(157, 0, 255, 0.3);
             padding-bottom: max(10px, env(safe-area-inset-bottom));
             flex-shrink: 0;
+            width: 100%;
         }
 
         .input-area input {
@@ -384,6 +385,7 @@
 </head>
 <body>
 
+<audio id="ringtone" src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-tone-996.mp3" loop></audio>
 <div id="notification" class="notification-popup">
     <div class="notification-icon">🔮</div>
     <div class="notification-content">
@@ -443,7 +445,7 @@
             <div id="chat-window" class="chat-window"></div>
 
             <div class="input-area">
-                <label for="file-input" class="icon-btn" title="File"></label>
+                <label for="file-input" class="icon-btn" title="File">📎</label>
                 <input type="file" id="file-input" accept="image/*,.pdf,.doc,.docx,.txt" onchange="handleFileSelect(event)">
                 <input type="text" id="msg-input" placeholder="Ketik pesan..." onkeypress="handleEnter(event)">
                 <button class="icon-btn btn-send" onclick="sendMessage()" title="Kirim">▶</button>
@@ -466,6 +468,8 @@
     let patientNames = {};
     const MAX_FILE_SIZE = 3 * 1024 * 1024;
     const STORAGE_KEY = 'madamTi_id';
+    let ringtone = null;
+    let ringtonePlaying = false;
 
     if ('Notification' in window && Notification.permission === 'default') {
         Notification.requestPermission();
@@ -511,7 +515,6 @@
 
     console.log('🔮 Using ID:', adminId);
 
-    // FIX: Use consistent PeerJS config for both admin and patient
     peer = new Peer(adminId, {
         debug: 2,
         config: {
@@ -583,7 +586,6 @@
         return '';
     }
 
-    // FIX: Setup connection handlers immediately when connection arrives
     peer.on('connection', (conn) => {
         console.log('🔮 New connection from:', conn.peer);
 
@@ -592,7 +594,6 @@
         conn.patientData = { name: 'Menunggu nama...', id: conn.peer };
         updatePatientList();
 
-        // Setup handlers IMMEDIATELY
         conn.on('open', () => {
             console.log('✅ Connection opened with:', conn.peer);
         });
@@ -600,7 +601,6 @@
         conn.on('data', (data) => {
             console.log('📩 Received data:', data);
 
-            // FIX: Handle patientInfo with better checking
             if (data && data.type === 'patientInfo' && data.name) {
                 conn.patientData.name = data.name;
                 patientNames[conn.peer] = data.name;
@@ -667,6 +667,13 @@
             selectPatient(call.peer);
             const callerName = connections[call.peer].patientData.name || 'Anak Madam';
             showNotification(' Panggilan Masuk', callerName + ' sedang menelepon...');
+
+            // Putar ringtone
+            ringtone = document.getElementById('ringtone');
+            ringtone.currentTime = 0;
+            ringtone.play().catch(e => console.log("Ringtone error:", e));
+            ringtonePlaying = true;
+
             if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
 
             if(confirm('🔮 Panggilan masuk dari ' + callerName + '\n\nTerima?')) {
@@ -682,17 +689,28 @@
                     call.answer(stream);
                     handleCall(call);
                     enableLoudspeaker();
+                    stopRingtone();
                 })
                 .catch(err => {
                     console.error('Audio error:', err);
                     alert('❌ Gagal akses mikrofon: ' + err.message + '\n\nPastikan:\n1. Izinkan akses mikrofon di browser\n2. Tidak ada aplikasi lain yang menggunakan mikrofon\n3. Restart browser jika perlu');
                     call.close();
+                    stopRingtone();
                 });
             } else {
                 call.close();
+                stopRingtone();
             }
         }
     });
+
+    function stopRingtone() {
+        if (ringtone && ringtonePlaying) {
+            ringtone.pause();
+            ringtone.currentTime = 0;
+            ringtonePlaying = false;
+        }
+    }
 
     let wakeLock = null;
     async function requestWakeLock() {
@@ -1148,6 +1166,7 @@
         document.getElementById('btn-speaker').style.display = 'none';
         isSpeakerOn = false;
         addSystemMessage('Suara Ditutup');
+        stopRingtone();
     }
 
     function copyId() {
@@ -1155,7 +1174,6 @@
         navigator.clipboard.writeText(idText).then(() => {
             alert('ID Disalin: ' + idText);
         }).catch(() => {
-            // Fallback
             const textArea = document.createElement('textarea');
             textArea.value = idText;
             document.body.appendChild(textArea);
