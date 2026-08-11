@@ -19,28 +19,20 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
 
         html, body {
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
+            height: 100%; width: 100%; overflow: hidden;
             font-family: 'Lato', sans-serif;
             background: radial-gradient(circle at center, #2e004f 0%, #000000 100%);
-            color: #e0e0e0;
-            display: flex;
-            flex-direction: column;
+            color: #e0e0e0; display: flex; flex-direction: column;
         }
 
         h1, h2 { font-family: 'Cinzel', serif; }
 
         .header {
             background: linear-gradient(135deg, #4b0082, #000);
-            color: white;
-            padding: 12px;
-            border-bottom: 2px solid var(--accent);
-            flex-shrink: 0;
+            color: white; padding: 12px;
+            border-bottom: 2px solid var(--accent); flex-shrink: 0;
             padding-top: max(12px, env(safe-area-inset-top));
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            display: flex; flex-direction: column; gap: 10px;
         }
 
         .header-top { display: flex; justify-content: space-between; align-items: center; }
@@ -115,7 +107,6 @@
         .msg-in { background: var(--bubble-in); color: white; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid rgba(157, 0, 255, 0.2); }
         .msg-out { background: linear-gradient(135deg, var(--accent), #9d00ff); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
 
-        /* FIX: Semua icon dalam SATU BARIS sejajar */
         .footer-controls {
             flex-shrink: 0; background: rgba(26, 11, 46, 0.95);
             border-top: 1px solid rgba(157, 0, 255, 0.3); padding: 10px;
@@ -231,7 +222,7 @@
         <button class="btn-exit-header" onclick="exitSession()" id="exit-btn" style="display: none;">🚪 Akhiri Sesi</button>
     </div>
     <div class="patient-info" id="patient-info" style="display: none;">
-        <span id="display-patient-name"> Nama Pasien</span>
+        <span id="display-patient-name">👤 Nama Pasien</span>
         <span class="connection-status" id="connection-status">● Online</span>
     </div>
 </div>
@@ -250,8 +241,6 @@
 
 <div id="chat-area">
     <div id="chat-box"></div>
-
-    <!-- FIX: Semua icon sejajar dalam 1 baris -->
     <div class="footer-controls">
         <div class="input-row">
             <label for="file-input" class="icon-btn" title="Upload File">📎</label>
@@ -278,7 +267,7 @@
     let call = null;
     let localStream = null;
     let isCalling = false;
-    let isRemoteEndingCall = false; // Mencegah loop sinyal end_call
+    let isRemoteEndingCall = false;
     let patientName = '';
     let adminId = '';
     let heartbeatInterval = null;
@@ -295,9 +284,8 @@
     let wakeLock = null;
     async function requestWakeLock() {
         if ('wakeLock' in navigator) {
-            try {
-                wakeLock = await navigator.wakeLock.request('screen');
-            } catch (err) { console.log('Wake Lock tidak didukung'); }
+            try { wakeLock = await navigator.wakeLock.request('screen'); }
+            catch (err) { console.log('Wake Lock tidak didukung'); }
         }
     }
 
@@ -356,10 +344,11 @@
         conn.on('data', (data) => {
             if (data && data.type === 'heartbeat') return;
 
-            // FIX: Handle sinyal end_call dari Admin
+            // Handle sinyal end_call dari Admin (hanya tutup call, sesi chat tetap jalan)
             if (data && data.type === 'end_call') {
-                console.log('📴 Menerima sinyal end_call dari Admin');
+                console.log(' Menerima sinyal end_call dari Admin');
                 isRemoteEndingCall = true;
+                if (callTimeout) { clearTimeout(callTimeout); callTimeout = null; }
                 if (call) { call.close(); call = null; }
                 if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
                 resetCallUI();
@@ -368,9 +357,13 @@
                 return;
             }
 
+            // Handle sinyal exit dari Admin (tutup semua: chat, call, sesi)
             if (data && data.type === 'exit') {
                 const message = data.message || 'Madam Ti\' telah mengakhiri sesi konsultasi';
                 addSystemBubble('❌ ' + message);
+                if (callTimeout) { clearTimeout(callTimeout); callTimeout = null; }
+                if (call) { call.close(); call = null; }
+                if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
                 setTimeout(() => { exitSession(message); }, 2000);
                 return;
             }
@@ -445,7 +438,7 @@
             if (err.type === 'peer-unavailable') {
                 alert('❌ ID Madam Ti tidak ditemukan atau sedang offline.');
             } else if (err.type === 'network') {
-                alert('⚠️ Error jaringan.');
+                alert('️ Error jaringan.');
             }
         });
     }
@@ -520,7 +513,7 @@
         if (isImage) {
             content = '<div class="file-attachment"><img src="' + fileData.data + '" onclick="window.open(this.src)"></div>';
         } else {
-            content = `<div class="file-attachment"><div class="file-info"><span>📄</span><div style="flex:1; overflow:hidden;"><div style="font-weight:600; font-size:0.85em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${fileData.name}</div><a href="${fileData.data}" download="${fileData.name}" class="download-link">⬇ Simpan</a></div></div></div>`;
+            content = '<div class="file-attachment"><div class="file-info"><span>📄</span><div style="flex:1; overflow:hidden;"><div style="font-weight:600; font-size:0.85em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + fileData.name + '</div><a href="' + fileData.data + '" download="' + fileData.name + '" class="download-link">⬇ Simpan</a></div></div></div>';
         }
         div.innerHTML = content;
         box.appendChild(div);
@@ -532,6 +525,7 @@
             endCall();
         } else {
             startCall();
+            // Auto hang up setelah 1 menit jika tidak dijawab
             callTimeout = setTimeout(() => {
                 if (isCalling) {
                     addSystemBubble('⏰ Panggilan tidak dijawab, diakhiri otomatis');
@@ -550,7 +544,7 @@
             isCalling = true;
             const btn = document.getElementById('btn-call');
             btn.classList.add('active-call');
-            btn.innerHTML = '';
+            btn.innerHTML = '📴';
             addSystemBubble('📞 Panggilan dimulai...');
             call.on('stream', (remoteStream) => {
                 document.getElementById('remoteAudio').srcObject = remoteStream;
@@ -567,12 +561,10 @@
 
     function endCall() {
         if (callTimeout) { clearTimeout(callTimeout); callTimeout = null; }
-        
-        // FIX: Kirim sinyal ke admin untuk menutup call di sisi mereka
+        // Kirim sinyal ke admin untuk menutup call di sisi mereka (hanya call, bukan sesi)
         if (!isRemoteEndingCall && conn && conn.open) {
             conn.send({ type: 'end_call' });
         }
-
         if (call) { call.close(); call = null; }
         if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; }
         resetCallUI();
@@ -587,17 +579,14 @@
 
     function exitSession(customMessage) {
         if (customMessage) document.getElementById('end-message').innerText = customMessage;
-        
         // Pastikan call ditutup jika sedang aktif
         if (isCalling) endCall();
-
         if (conn && conn.open) {
             conn.send({ type: 'exit', reason: 'patient_left' });
             conn.close();
         }
         if (peer) peer.destroy();
         stopHeartbeat();
-
         document.getElementById('chat-area').style.display = 'none';
         document.getElementById('patient-info').style.display = 'none';
         document.getElementById('exit-btn').style.display = 'none';
