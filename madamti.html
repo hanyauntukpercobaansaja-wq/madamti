@@ -133,7 +133,7 @@
 
 <div class="incoming-call-overlay" id="incoming-call-overlay">
     <div class="incoming-call-modal">
-        <h3>📞 PANGGILAN MASUK</h3>
+        <h3> PANGGILAN MASUK</h3>
         <p id="incoming-caller-name">Anak Madam sedang menelepon...</p>
         <div class="incoming-call-actions">
             <div class="call-action-wrapper">
@@ -173,9 +173,8 @@
         <ul id="patient-list" class="patient-list"></ul>
         <ul id="history-list" class="patient-list hidden"></ul>
         <div style="padding: 10px;">
-            <button class="btn-sidebar primary" onclick="generateNewId()">🔄 Generate ID Baru</button>
+            <button class="btn-sidebar primary" onclick="generateNewId()"> Generate ID Baru</button>
             <button class="btn-sidebar" onclick="clearHistory()">🗑️ Hapus Semua History</button>
-            <!-- FIX 2: Tombol Keluar Aplikasi -->
             <button class="btn-sidebar" onclick="exitApp()" style="margin-top: 10px;">🚪 Keluar Aplikasi</button>
         </div>
     </div>
@@ -204,7 +203,6 @@
             </div>
             <div id="chat-window" class="chat-window"></div>
             <div class="input-area">
-                <!-- FIX 3: Icon ditanam langsung -->
                 <label for="file-input" class="icon-btn" title="File">📎</label>
                 <input type="file" id="file-input" accept="image/*,.pdf,.doc,.docx,.txt" onchange="handleFileSelect(event)">
                 <button class="icon-btn btn-quick" onclick="openQuickChat()" title="Quick Chat">⚡</button>
@@ -238,7 +236,6 @@
         }
     }
 
-    // FIX 2: Fungsi Keluar Aplikasi
     function exitApp() {
         if(confirm('Yakin ingin keluar dari aplikasi?\n\nSemua sesi konsultasi dengan Anak Madam akan diakhiri secara paksa.')) {
             Object.values(connections).forEach(conn => {
@@ -248,7 +245,7 @@
             if(peer) peer.destroy();
             document.body.innerHTML = `
                 <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; background: radial-gradient(circle at center, #2e004f 0%, #000000 100%); color: white; font-family: 'Lato', sans-serif; text-align: center; padding: 20px;">
-                    <div style="font-size: 4em; margin-bottom: 20px;">🔮</div>
+                    <div style="font-size: 4em; margin-bottom: 20px;"></div>
                     <h1 style="font-family: 'Cinzel', serif; color: #ff007f; margin-bottom: 10px;">Sesi Aplikasi Berakhir</h1>
                     <p style="color: #a0a0a0; margin-bottom: 30px;">Anda telah keluar dari aplikasi Madam Ti'.<br>Silakan tutup tab/browser ini.</p>
                     <button onclick="location.reload()" style="padding: 12px 24px; background: #9d00ff; color: white; border: none; border-radius: 20px; font-size: 1em; cursor: pointer;">Masuk Kembali</button>
@@ -272,7 +269,7 @@
         if (currentCall) { incomingCall.close(); return; }
         pendingCall = incomingCall;
 
-        // FIX 1: Jika penelepon membatalkan sebelum dijawab, modal otomatis hilang
+        // FIX: Jika penelepon membatalkan sebelum dijawab, modal otomatis hilang
         pendingCall.on('close', () => {
             if (pendingCall === incomingCall) {
                 document.getElementById('incoming-call-overlay').classList.remove('show');
@@ -318,15 +315,32 @@
         conn.on('data', (data) => {
             if (data && data.type === 'patientInfo' && data.name) { conn.patientData.name = data.name; patientNames[conn.peer] = data.name; updatePatientList(); return; }
             if (data && data.type === 'heartbeat') return;
+            
+            // FIX UTAMA: Handle end_call untuk menutup pendingCall (panggilan masuk yang belum dijawab)
             if (data && data.type === 'end_call') { 
                 isRemoteEndingCall = true; 
+                
+                // 1. Matikan call yang sedang aktif (jika ada)
                 if (currentCall) { currentCall.close(); currentCall = null; } 
-                if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; } 
-                endCallUI(); 
-                addSystemMessage('📴 Panggilan diakhiri oleh pasien'); 
+                
+                // 2. Matikan call yang masih pending/masuk (jika ada) <- INI YANG KURANG SEBELUMNYA
+                if (pendingCall) { pendingCall.close(); pendingCall = null; }
+
+                // 3. Sembunyikan Modal Incoming Call & Reset UI
+                document.getElementById('incoming-call-overlay').classList.remove('show');
+                document.getElementById('btn-call').style.display = 'flex';
+                document.getElementById('btn-end').style.display = 'none';
+                document.getElementById('btn-speaker').style.display = 'none';
+
+                // 4. Stop Ringtone & Timer
+                stopRingtone();
+                clearTimeout(incomingCallTimeout);
+
+                addSystemMessage(' Panggilan dibatalkan/diakhiri oleh pasien'); 
                 isRemoteEndingCall = false; 
                 return; 
             }
+            
             if (data && data.type === 'exit') { const patientName = conn.patientData.name || 'Anak Madam'; addSystemMessage('❌ ' + patientName + ' mengakhiri konsultasi'); if (activePeerId === conn.peer && currentCall) { currentCall.close(); if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; } } conn.close(); return; }
             const messageText = getMessageText(data); const messageType = data && data.type ? data.type : 'text';
             saveMessageToHistory(conn.peer, conn.patientData.name, { type: messageType, text: messageText, data: data.data, fileType: data.fileType, name: data.name }, 'in');
@@ -334,7 +348,7 @@
             conn.lastMessage = messageType === 'file' ? '📷 Foto' : (messageText || 'File');
             if (activePeerId === conn.peer) { if (messageType === 'file') addFileToWindow(data, 'in'); else if (messageText) addMessageToWindow(messageText, 'in'); } else { unreadCounts[conn.peer] = (unreadCounts[conn.peer] || 0) + 1; updatePatientList(); if(navigator.vibrate) navigator.vibrate(200); }
         });
-        conn.on('close', () => { const patientName = conn.patientData ? conn.patientData.name : 'Anak Madam'; delete connections[conn.peer]; delete unreadCounts[conn.peer]; if(activePeerId === conn.peer) { addSystemMessage('👋 ' + patientName + ' telah meninggalkan sesi'); backToSidebar(); } updatePatientList(); });
+        conn.on('close', () => { const patientName = conn.patientData ? conn.patientData.name : 'Anak Madam'; delete connections[conn.peer]; delete unreadCounts[conn.peer]; if(activePeerId === conn.peer) { addSystemMessage(' ' + patientName + ' telah meninggalkan sesi'); backToSidebar(); } updatePatientList(); });
         conn.on('error', (err) => { console.error('Connection error:', err); });
     });
 
@@ -371,7 +385,7 @@
     function saveQuickChatTemplates(templates) { localStorage.setItem('madamTi_quickchat', JSON.stringify(templates)); }
     function openQuickChat() { if (!activePeerId || !connections[activePeerId]) { alert('Pilih pasien terlebih dahulu'); return; } renderQuickChatList(); document.getElementById('quick-chat-overlay').classList.add('show'); }
     function closeQuickChat() { document.getElementById('quick-chat-overlay').classList.remove('show'); }
-    function renderQuickChatList() { const list = document.getElementById('quick-chat-list'); const templates = getQuickChatTemplates(); list.innerHTML = ''; templates.forEach((text, index) => { const item = document.createElement('div'); item.className = 'quick-chat-item'; item.innerHTML = `<textarea class="quick-chat-text" id="qc-text-${index}" rows="2">${text}</textarea><div class="quick-chat-actions"><button class="qc-btn qc-send" onclick="sendQuickChat(${index})">Kirim</button><button class="qc-btn qc-save" onclick="saveQuickChatItem(${index})">💾</button><button class="qc-btn qc-delete" onclick="deleteQuickChatItem(${index})">️</button></div>`; list.appendChild(item); }); }
+    function renderQuickChatList() { const list = document.getElementById('quick-chat-list'); const templates = getQuickChatTemplates(); list.innerHTML = ''; templates.forEach((text, index) => { const item = document.createElement('div'); item.className = 'quick-chat-item'; item.innerHTML = `<textarea class="quick-chat-text" id="qc-text-${index}" rows="2">${text}</textarea><div class="quick-chat-actions"><button class="qc-btn qc-send" onclick="sendQuickChat(${index})">Kirim</button><button class="qc-btn qc-save" onclick="saveQuickChatItem(${index})">💾</button><button class="qc-btn qc-delete" onclick="deleteQuickChatItem(${index})">🗑️</button></div>`; list.appendChild(item); }); }
     function sendQuickChat(index) { const textarea = document.getElementById('qc-text-' + index); const msg = textarea.value.trim(); if (!msg) { alert('Pesan kosong'); return; } if (activePeerId && connections[activePeerId] && connections[activePeerId].open) { connections[activePeerId].send({ type: 'text', text: msg }); saveMessageToHistory(activePeerId, connections[activePeerId].patientData.name, { type: 'text', text: msg }, 'out'); addMessageToWindow(msg, 'out'); connections[activePeerId].lastMessage = msg; updatePatientList(); closeQuickChat(); } }
     function saveQuickChatItem(index) { const textarea = document.getElementById('qc-text-' + index); const templates = getQuickChatTemplates(); templates[index] = textarea.value.trim(); saveQuickChatTemplates(templates); alert('✅ Template disimpan'); }
     function deleteQuickChatItem(index) { if (!confirm('Hapus template ini?')) return; const templates = getQuickChatTemplates(); templates.splice(index, 1); saveQuickChatTemplates(templates); renderQuickChatList(); }
