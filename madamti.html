@@ -387,7 +387,7 @@
 
 <audio id="ringtone" src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-tone-996.mp3" loop></audio>
 <div id="notification" class="notification-popup">
-    <div class="notification-icon">🔮</div>
+    <div class="notification-icon"></div>
     <div class="notification-content">
         <div class="notification-title" id="notif-title">Pesan Baru</div>
         <div class="notification-message" id="notif-message">...</div>
@@ -551,7 +551,7 @@
                 if (peer.disconnected) peer.reconnect();
             }, 3000);
         } else if (err.type === 'network') {
-            console.log('🌐 Network error, will retry...');
+            console.log(' Network error, will retry...');
             setTimeout(() => {
                 if (peer.disconnected) peer.reconnect();
             }, 5000);
@@ -613,8 +613,34 @@
                 return;
             }
 
+            // FIX: Handle end_call signal dari pasien
+            if (data && data.type === 'end_call') {
+                console.log('📴 Pasien mengakhiri panggilan');
+                if (currentCall) {
+                    currentCall.close();
+                }
+                if (localStream) {
+                    localStream.getTracks().forEach(t => t.stop());
+                    localStream = null;
+                }
+                endCallUI();
+                addSystemMessage('📴 Panggilan diakhiri oleh pasien');
+                return;
+            }
+
             if (data && data.type === 'exit') {
-                addSystemMessage('❌ ' + (conn.patientData.name || 'Anak Madam') + ' keluar dari sesi');
+                const patientName = conn.patientData.name || 'Anak Madam';
+                addSystemMessage('❌ ' + patientName + ' mengakhiri konsultasi');
+                
+                // Tutup call jika sedang aktif dengan pasien ini
+                if (activePeerId === conn.peer && currentCall) {
+                    currentCall.close();
+                    if (localStream) {
+                        localStream.getTracks().forEach(t => t.stop());
+                        localStream = null;
+                    }
+                }
+                
                 conn.close();
                 return;
             }
@@ -651,9 +677,15 @@
 
         conn.on('close', () => {
             console.log('❌ Connection closed:', conn.peer);
+            const patientName = conn.patientData ? conn.patientData.name : 'Anak Madam';
             delete connections[conn.peer];
             delete unreadCounts[conn.peer];
-            if(activePeerId === conn.peer) backToSidebar();
+            
+            // Jika pasien yang sedang aktif keluar, kembali ke sidebar
+            if(activePeerId === conn.peer) {
+                addSystemMessage('👋 ' + patientName + ' telah meninggalkan sesi');
+                backToSidebar();
+            }
             updatePatientList();
         });
 
@@ -666,7 +698,7 @@
         if(connections[call.peer]) {
             selectPatient(call.peer);
             const callerName = connections[call.peer].patientData.name || 'Anak Madam';
-            showNotification(' Panggilan Masuk', callerName + ' sedang menelepon...');
+            showNotification('📞 Panggilan Masuk', callerName + ' sedang menelepon...');
 
             // Putar ringtone
             ringtone = document.getElementById('ringtone');
@@ -693,7 +725,7 @@
                 })
                 .catch(err => {
                     console.error('Audio error:', err);
-                    alert('❌ Gagal akses mikrofon: ' + err.message + '\n\nPastikan:\n1. Izinkan akses mikrofon di browser\n2. Tidak ada aplikasi lain yang menggunakan mikrofon\n3. Restart browser jika perlu');
+                    alert('❌ Gagal akses mikrofon: ' + err.message);
                     call.close();
                     stopRingtone();
                 });
@@ -896,7 +928,7 @@
     function updateSpeakerButton() {
         const btn = document.getElementById('btn-speaker');
         btn.style.display = isSpeakerOn ? 'flex' : 'none';
-        btn.innerHTML = isSpeakerOn ? '' : '🔇';
+        btn.innerHTML = isSpeakerOn ? '🔊' : '🔇';
         btn.style.background = isSpeakerOn ? '#1a4d2e' : '#2d1b4e';
     }
 
@@ -909,11 +941,21 @@
         if(confirm('✓ Akhiri Sesi Konsultasi?\n\nPasien akan diberitahu bahwa Anda telah keluar.\n\nLanjutkan?')) {
             const patientName = connections[activePeerId].patientData.name || 'Anak Madam';
 
+            // Kirim sinyal exit ke pasien
             connections[activePeerId].send({
                 type: 'exit',
                 reason: 'madam_finished',
                 message: 'Madam Ti\' telah mengakhiri sesi konsultasi'
             });
+
+            // Tutup call jika sedang aktif
+            if (currentCall) {
+                currentCall.close();
+            }
+            if (localStream) {
+                localStream.getTracks().forEach(t => t.stop());
+                localStream = null;
+            }
 
             connections[activePeerId].close();
 
@@ -1054,7 +1096,7 @@
             const badgeCount = unreadCounts[pid] || 0;
 
             li.innerHTML = `
-                <div class="avatar">🔮</div>
+                <div class="avatar"></div>
                 <div class="patient-info">
                     <div class="patient-name">${patientData.name}</div>
                     <div class="last-msg">${conn.lastMessage || 'Menunggu...'}</div>
@@ -1134,7 +1176,7 @@
         })
         .catch(err => {
             console.error('Audio error:', err);
-            alert(' Gagal akses mikrofon: ' + err.message + '\n\nPastikan:\n1. Izinkan akses mikrofon di browser\n2. Tidak ada aplikasi lain yang menggunakan mikrofon\n3. Restart browser jika perlu');
+            alert('❌ Gagal akses mikrofon: ' + err.message);
         });
     }
 
@@ -1151,12 +1193,26 @@
             addSystemMessage('🔊 Suara Terbuka');
         });
 
-        call.on('close', endCallUI);
+        call.on('close', () => {
+            console.log('📴 Call closed from remote');
+            endCallUI();
+        });
     }
 
     function endCall() {
-        if(currentCall) currentCall.close();
-        if(localStream) localStream.getTracks().forEach(t => t.stop());
+        // Kirim sinyal ke pasien bahwa call diakhiri
+        if (activePeerId && connections[activePeerId] && connections[activePeerId].open) {
+            connections[activePeerId].send({ type: 'end_call' });
+        }
+        
+        if(currentCall) {
+            currentCall.close();
+            currentCall = null;
+        }
+        if(localStream) {
+            localStream.getTracks().forEach(t => t.stop());
+            localStream = null;
+        }
         endCallUI();
     }
 
@@ -1165,8 +1221,9 @@
         document.getElementById('btn-end').style.display = 'none';
         document.getElementById('btn-speaker').style.display = 'none';
         isSpeakerOn = false;
-        addSystemMessage('Suara Ditutup');
+        currentCall = null;
         stopRingtone();
+        addSystemMessage('📴 Panggilan Diakhiri');
     }
 
     function copyId() {
