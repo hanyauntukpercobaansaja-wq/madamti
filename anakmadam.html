@@ -7,234 +7,68 @@
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg-dark: #0f0518;
-            --primary: #9d00ff;
-            --accent: #ff007f;
-            --bubble-in: #2d1b4e;
-            --bubble-out: #ff007f;
-            --text-dim: #a0a0a0;
-        }
-
+        :root { --bg-dark: #0f0518; --primary: #9d00ff; --accent: #ff007f; --bubble-in: #2d1b4e; --bubble-out: #ff007f; --text-dim: #a0a0a0; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-
-        html, body {
-            height: 100%; width: 100%; overflow: hidden;
-            font-family: 'Lato', sans-serif;
-            background: radial-gradient(circle at center, #2e004f 0%, #000000 100%);
-            color: #e0e0e0; display: flex; flex-direction: column;
-        }
-
+        html, body { height: 100%; width: 100%; overflow: hidden; font-family: 'Lato', sans-serif; background: radial-gradient(circle at center, #2e004f 0%, #000000 100%); color: #e0e0e0; display: flex; flex-direction: column; }
         h1, h2 { font-family: 'Cinzel', serif; }
-
-        .header {
-            background: linear-gradient(135deg, #4b0082, #000);
-            color: white; padding: 12px;
-            border-bottom: 2px solid var(--accent); flex-shrink: 0;
-            padding-top: max(12px, env(safe-area-inset-top));
-            display: flex; flex-direction: column; gap: 10px;
-        }
-
+        .header { background: linear-gradient(135deg, #4b0082, #000); color: white; padding: 12px; border-bottom: 2px solid var(--accent); flex-shrink: 0; padding-top: max(12px, env(safe-area-inset-top)); display: flex; flex-direction: column; gap: 10px; }
         .header-top { display: flex; justify-content: space-between; align-items: center; }
         .header h2 { font-size: 1.1em; text-shadow: 0 0 10px var(--primary); }
-
-        .header .patient-info {
-            font-size: 0.75em; color: #00ff88; margin-top: 5px;
-            display: flex; justify-content: center; align-items: center; gap: 10px;
-        }
-
-        .header .connection-status {
-            font-size: 0.7em; padding: 3px 10px; border-radius: 10px;
-            background: rgba(0, 255, 136, 0.2);
-        }
-
-        .btn-exit-header {
-            background: #500000; color: #ff4444; border: 1px solid #ff4444;
-            padding: 8px 15px; border-radius: 20px; font-size: 0.8em;
-            font-weight: 600; cursor: pointer; flex-shrink: 0;
-        }
-
-        #login-container {
-            flex: 1; display: flex; justify-content: center; align-items: center;
-            padding: 20px; min-height: 0;
-        }
-
-        .card {
-            background: rgba(26, 11, 46, 0.9); width: 100%; max-width: 350px;
-            padding: 25px; border-radius: 15px;
-            box-shadow: 0 0 20px rgba(157, 0, 255, 0.2);
-            border: 1px solid rgba(157, 0, 255, 0.3);
-        }
-
-        .card input {
-            width: 100%; padding: 14px; border: 1px solid #4b0082;
-            border-radius: 12px; font-size: 16px; margin-bottom: 10px;
-            background: #0f0518; color: white;
-        }
+        .header .patient-info { font-size: 0.75em; color: #00ff88; margin-top: 5px; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .header .connection-status { font-size: 0.7em; padding: 3px 10px; border-radius: 10px; background: rgba(0, 255, 136, 0.2); }
+        .btn-exit-header { background: #500000; color: #ff4444; border: 1px solid #ff4444; padding: 8px 15px; border-radius: 20px; font-size: 0.8em; font-weight: 600; cursor: pointer; flex-shrink: 0; }
+        #login-container { flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px; min-height: 0; }
+        .card { background: rgba(26, 11, 46, 0.9); width: 100%; max-width: 350px; padding: 25px; border-radius: 15px; box-shadow: 0 0 20px rgba(157, 0, 255, 0.2); border: 1px solid rgba(157, 0, 255, 0.3); }
+        .card input { width: 100%; padding: 14px; border: 1px solid #4b0082; border-radius: 12px; font-size: 16px; margin-bottom: 10px; background: #0f0518; color: white; }
         .card input:focus { border-color: var(--accent); outline: none; }
         .card input::placeholder { color: #666; }
-        .card label {
-            display: block; margin-top: 10px; color: var(--primary);
-            font-size: 0.85em; margin-bottom: 5px; font-family: 'Cinzel', serif;
-        }
-
-        .btn-connect {
-            width: 100%; padding: 15px; border: none; border-radius: 12px;
-            font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-            color: white; box-shadow: 0 0 15px rgba(255, 0, 127, 0.4);
-        }
+        .card label { display: block; margin-top: 10px; color: var(--primary); font-size: 0.85em; margin-bottom: 5px; font-family: 'Cinzel', serif; }
+        .btn-connect { width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; background: linear-gradient(90deg, var(--primary), var(--accent)); color: white; box-shadow: 0 0 15px rgba(255, 0, 127, 0.4); }
         .btn-connect:disabled { opacity: 0.5; cursor: not-allowed; }
         .status { text-align: center; padding-top: 15px; color: var(--primary); font-size: 0.85em; font-family: 'Cinzel'; }
-
-        #chat-area {
-            display: none; flex: 1; flex-direction: column;
-            min-height: 0; overflow: hidden;
-        }
-
-        #chat-box {
-            flex: 1; overflow-y: auto; overflow-x: hidden; padding: 15px;
-            display: flex; flex-direction: column; gap: 10px;
-            min-height: 0; -webkit-overflow-scrolling: touch;
-        }
-
-        .msg {
-            padding: 10px 15px; border-radius: 18px; max-width: 80%;
-            font-size: 0.95em; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            line-height: 1.4; word-wrap: break-word; flex-shrink: 0;
-        }
-
+        #chat-area { display: none; flex: 1; flex-direction: column; min-height: 0; overflow: hidden; }
+        #chat-box { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 15px; display: flex; flex-direction: column; gap: 10px; min-height: 0; -webkit-overflow-scrolling: touch; }
+        .msg { padding: 10px 15px; border-radius: 18px; max-width: 80%; font-size: 0.95em; box-shadow: 0 2px 5px rgba(0,0,0,0.3); line-height: 1.4; word-wrap: break-word; flex-shrink: 0; }
         .msg-in { background: var(--bubble-in); color: white; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid rgba(157, 0, 255, 0.2); }
         .msg-out { background: linear-gradient(135deg, var(--accent), #9d00ff); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
-
-        .footer-controls {
-            flex-shrink: 0; background: rgba(26, 11, 46, 0.95);
-            border-top: 1px solid rgba(157, 0, 255, 0.3); padding: 10px;
-            padding-bottom: max(10px, env(safe-area-inset-bottom));
-            backdrop-filter: blur(5px); width: 100%; z-index: 100;
-        }
-
-        .input-row {
-            display: flex; gap: 8px; align-items: center;
-            width: 100%; flex-wrap: nowrap;
-        }
-
-        .input-row input[type="text"] {
-            flex: 1; padding: 12px 15px; border: 1px solid #4b0082;
-            border-radius: 25px; font-size: 16px; background: #0f0518;
-            color: white; outline: none; min-width: 0;
-        }
-
-        .icon-btn {
-            width: 44px; height: 44px; min-width: 44px; max-width: 44px;
-            border-radius: 50%; border: none; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.3em; background: #2d1b4e; color: white;
-            transition: 0.2s; flex-shrink: 0;
-        }
+        .footer-controls { flex-shrink: 0; background: rgba(26, 11, 46, 0.95); border-top: 1px solid rgba(157, 0, 255, 0.3); padding: 10px; padding-bottom: max(10px, env(safe-area-inset-bottom)); backdrop-filter: blur(5px); width: 100%; z-index: 100; }
+        .input-row { display: flex; gap: 8px; align-items: center; width: 100%; flex-wrap: nowrap; }
+        .input-row input[type="text"] { flex: 1; padding: 12px 15px; border: 1px solid #4b0082; border-radius: 25px; font-size: 16px; background: #0f0518; color: white; outline: none; min-width: 0; }
+        .icon-btn { width: 44px; height: 44px; min-width: 44px; max-width: 44px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.3em; background: #2d1b4e; color: white; transition: 0.2s; flex-shrink: 0; }
         .icon-btn:active { transform: scale(0.9); }
         .btn-send { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
         .btn-call { background: #1a4d2e; color: #00ff88; border: 1px solid #00ff88; }
-        .btn-call.active-call {
-            background: #500000; color: #ff4444; border-color: #ff4444;
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(255, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); }
-        }
-
-        .file-attachment {
-            background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden;
-            margin-top: 5px; border: 1px solid rgba(255,255,255,0.1); max-width: 100%;
-        }
-        .file-attachment img {
-            max-width: 100%; max-height: 250px; width: auto; height: auto;
-            display: block; object-fit: contain; margin: 0 auto;
-        }
+        .btn-call.active-call { background: #500000; color: #ff4444; border-color: #ff4444; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 68, 68, 0); } }
+        .file-attachment { background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; margin-top: 5px; border: 1px solid rgba(255,255,255,0.1); max-width: 100%; }
+        .file-attachment img { max-width: 100%; max-height: 250px; width: auto; height: auto; display: block; object-fit: contain; margin: 0 auto; }
         .file-info { padding: 8px; background: rgba(0,0,0,0.5); display: flex; align-items: center; gap: 8px; }
         .download-link { color: var(--accent); text-decoration: none; font-weight: 600; font-size: 0.85em; }
-
         #file-input { display: none; }
         .loading-status { text-align: center; color: var(--primary); font-size: 0.8em; padding: 5px; }
-
-        .notification-popup {
-            position: fixed; top: 20px; left: 50%;
-            transform: translateX(-50%) translateY(-100px);
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            color: white; padding: 15px 20px; border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5); z-index: 1000;
-            display: flex; align-items: center; gap: 10px;
-            transition: transform 0.3s ease; max-width: 90%; width: 350px;
-        }
+        .notification-popup { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; padding: 15px 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; gap: 10px; transition: transform 0.3s ease; max-width: 90%; width: 350px; }
         .notification-popup.show { transform: translateX(-50%) translateY(0); }
         .notification-icon { font-size: 1.5em; }
         .notification-content { flex: 1; min-width: 0; }
         .notification-title { font-weight: bold; font-size: 0.9em; margin-bottom: 3px; }
         .notification-message { font-size: 0.85em; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-        #ended-screen {
-            display: none; flex: 1; flex-direction: column;
-            justify-content: center; align-items: center; padding: 20px;
-            text-align: center; min-height: 0;
-            background: radial-gradient(circle at center, #2e004f 0%, #000000 100%);
-        }
+        #ended-screen { display: none; flex: 1; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center; min-height: 0; background: radial-gradient(circle at center, #2e004f 0%, #000000 100%); }
         #ended-screen h2 { color: var(--accent); margin-bottom: 10px; font-family: 'Cinzel', serif; }
         #ended-screen p { color: var(--text-dim); margin-bottom: 20px; }
-        .btn-reconnect {
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-            color: white; padding: 15px 30px; border: none; border-radius: 25px;
-            font-size: 1em; font-weight: 700; cursor: pointer; margin-top: 10px;
-        }
-
-        /* Incoming Call Modal */
-        .incoming-call-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.85); z-index: 2000;
-            display: none; justify-content: center; align-items: center;
-            flex-direction: column; padding: 20px;
-        }
+        .btn-reconnect { background: linear-gradient(90deg, var(--primary), var(--accent)); color: white; padding: 15px 30px; border: none; border-radius: 25px; font-size: 1em; font-weight: 700; cursor: pointer; margin-top: 10px; }
+        .incoming-call-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 2000; display: none; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
         .incoming-call-overlay.show { display: flex; }
-        .incoming-call-modal {
-            background: linear-gradient(135deg, #4b0082, #1a0b2e);
-            border: 2px solid var(--accent);
-            border-radius: 20px; padding: 30px; width: 100%; max-width: 320px;
-            text-align: center;
-            box-shadow: 0 0 40px rgba(255, 0, 127, 0.5);
-            animation: callPulse 2s ease-in-out infinite;
-        }
-        @keyframes callPulse {
-            0%, 100% { box-shadow: 0 0 40px rgba(255, 0, 127, 0.5); }
-            50% { box-shadow: 0 0 60px rgba(255, 0, 127, 0.8); }
-        }
-        .incoming-call-modal h3 {
-            color: var(--accent); font-family: 'Cinzel', serif;
-            font-size: 1.3em; margin-bottom: 10px;
-        }
-        .incoming-call-modal p {
-            color: #fff; margin-bottom: 25px; font-size: 0.95em;
-        }
-        .incoming-call-actions {
-            display: flex; gap: 15px; justify-content: center;
-        }
-        .call-action-btn {
-            width: 70px; height: 70px; border-radius: 50%;
-            border: none; cursor: pointer; font-size: 1.8em;
-            display: flex; align-items: center; justify-content: center;
-            transition: transform 0.2s;
-        }
+        .incoming-call-modal { background: linear-gradient(135deg, #4b0082, #1a0b2e); border: 2px solid var(--accent); border-radius: 20px; padding: 30px; width: 100%; max-width: 320px; text-align: center; box-shadow: 0 0 40px rgba(255, 0, 127, 0.5); animation: callPulse 2s ease-in-out infinite; }
+        @keyframes callPulse { 0%, 100% { box-shadow: 0 0 40px rgba(255, 0, 127, 0.5); } 50% { box-shadow: 0 0 60px rgba(255, 0, 127, 0.8); } }
+        .incoming-call-modal h3 { color: var(--accent); font-family: 'Cinzel', serif; font-size: 1.3em; margin-bottom: 10px; }
+        .incoming-call-modal p { color: #fff; margin-bottom: 25px; font-size: 0.95em; }
+        .incoming-call-actions { display: flex; gap: 15px; justify-content: center; }
+        .call-action-btn { width: 70px; height: 70px; border-radius: 50%; border: none; cursor: pointer; font-size: 1.8em; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
         .call-action-btn:active { transform: scale(0.9); }
         .btn-answer { background: #1a4d2e; color: #00ff88; border: 2px solid #00ff88; }
         .btn-reject { background: #500000; color: #ff4444; border: 2px solid #ff4444; }
-        .call-action-label {
-            font-size: 0.75em; color: #fff; margin-top: 8px;
-            font-family: 'Lato', sans-serif;
-        }
-        .call-action-wrapper {
-            display: flex; flex-direction: column; align-items: center;
-        }
-
+        .call-action-label { font-size: 0.75em; color: #fff; margin-top: 8px; font-family: 'Lato', sans-serif; }
+        .call-action-wrapper { display: flex; flex-direction: column; align-items: center; }
         @media (max-width: 768px) {
             .file-attachment img { max-height: 200px; }
             .msg { max-width: 85%; }
@@ -244,7 +78,6 @@
             .input-row input[type="text"] { font-size: 14px; padding: 10px 12px; }
             .header h2 { font-size: 1em; }
         }
-
         @media (max-height: 500px) and (orientation: landscape) {
             .header { padding: 6px 12px; gap: 4px; }
             .header h2 { font-size: 0.9em; }
@@ -284,11 +117,11 @@
 
 <div class="header" id="main-header">
     <div class="header-top">
-        <h2>🔮 Konsultasi Madam Ti'</h2>
-        <button class="btn-exit-header" onclick="exitSession()" id="exit-btn" style="display: none;"> Akhiri Sesi</button>
+        <h2> Konsultasi Madam Ti'</h2>
+        <button class="btn-exit-header" onclick="exitSession()" id="exit-btn" style="display: none;">🚪 Akhiri Sesi</button>
     </div>
     <div class="patient-info" id="patient-info" style="display: none;">
-        <span id="display-patient-name">👤 Nama Pasien</span>
+        <span id="display-patient-name"> Nama Pasien</span>
         <span class="connection-status" id="connection-status">● Online</span>
     </div>
 </div>
@@ -296,10 +129,10 @@
 <div id="login-container">
     <div class="card">
         <p style="color:#aaa; text-align: center; margin-bottom: 15px; font-size: 0.9em;">Isi data untuk memulai terawang</p>
-        <label> Nama Anda</label>
+        <label>✦ Nama Anda</label>
         <input type="text" id="patientName" placeholder="Masukkan nama Anda">
         <label>✦ ID Spiritual Madam Ti' (4 Digit)</label>
-        <input type="text" id="adminId" placeholder="Contoh: 8392" maxlength="4" inputmode="numeric" pattern="[0-9]*">
+        <input type="text" id="adminId" placeholder="Minta ID sama Madam Ti'" maxlength="4" inputmode="numeric" pattern="[0-9]*">
         <button class="btn-connect" id="btn-connect" onclick="connect()">Hubungkan Energi</button>
         <div id="status" class="status">Menunggu koneksi spiritual...</div>
     </div>
@@ -309,11 +142,14 @@
     <div id="chat-box"></div>
     <div class="footer-controls">
         <div class="input-row">
+            <!-- FIX: Emoji 📎 ditanam langsung agar muncul di HP -->
             <label for="file-input" class="icon-btn" title="Upload File"></label>
             <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif" onchange="handleFileSelect(event)">
             <input type="text" id="msgInput" placeholder="Ketik pesan..." onkeypress="if(event.key==='Enter') sendMsg()">
+            <!-- FIX: Emoji ▶ ditanam langsung -->
             <button class="icon-btn btn-send" onclick="sendMsg()" title="Kirim">▶</button>
-            <button id="btn-call" class="icon-btn btn-call" onclick="toggleCall()" title="Telepon Madam">📞</button>
+            <!-- FIX: Emoji  ditanam langsung -->
+            <button id="btn-call" class="icon-btn btn-call" onclick="toggleCall()" title="Telepon Madam"></button>
         </div>
     </div>
 </div>
@@ -329,120 +165,77 @@
 <audio id="ringtone" src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-tone-996.mp3" loop></audio>
 
 <script>
-    let peer = null;
-    let conn = null;
-    let call = null;
-    let localStream = null;
-    let isCalling = false;
-    let isRemoteEndingCall = false;
-    let patientName = '';
-    let adminId = '';
-    let heartbeatInterval = null;
-    let reconnectAttempts = 0;
-    let isConnected = false;
-    let callTimeout = null;
-    let incomingCallTimeout = null;
-    let ringtonePlaying = false;
-    let isSessionEnded = false;
-    const MAX_FILE_SIZE = 3 * 1024 * 1024;
-    const MAX_RECONNECT = 5;
+    let peer = null, conn = null, call = null, localStream = null;
+    let isCalling = false, isRemoteEndingCall = false, patientName = '', adminId = '';
+    let heartbeatInterval = null, reconnectAttempts = 0, isConnected = false;
+    let callTimeout = null, incomingCallTimeout = null, ringtonePlaying = false, isSessionEnded = false;
+    const MAX_FILE_SIZE = 3 * 1024 * 1024, MAX_RECONNECT = 5;
 
-    if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission();
-    }
+    if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
 
     let wakeLock = null;
-    async function requestWakeLock() {
-        if ('wakeLock' in navigator) {
-            try { wakeLock = await navigator.wakeLock.request('screen'); }
-            catch (err) { console.log('Wake Lock tidak didukung'); }
-        }
-    }
+    async function requestWakeLock() { if ('wakeLock' in navigator) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} } }
 
     function startHeartbeat() {
         if (heartbeatInterval) clearInterval(heartbeatInterval);
         heartbeatInterval = setInterval(() => {
-            if (conn && conn.open) {
-                conn.send({ type: 'heartbeat', timestamp: Date.now() });
-            } else if (conn && !conn.open && reconnectAttempts < MAX_RECONNECT && !isSessionEnded) {
-                reconnectAttempts++;
-                reconnect();
-            }
+            if (conn && conn.open) { conn.send({ type: 'heartbeat', timestamp: Date.now() }); } 
+            else if (conn && !conn.open && reconnectAttempts < MAX_RECONNECT && !isSessionEnded) { reconnectAttempts++; reconnect(); }
         }, 5000);
     }
 
-    function stopHeartbeat() {
-        if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; }
-    }
+    function stopHeartbeat() { if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; } }
 
     function reconnect() {
         if (!adminId || isSessionEnded) return;
         document.getElementById('connection-status').innerText = '🔄 Reconnecting...';
         document.getElementById('connection-status').style.background = 'rgba(255, 165, 0, 0.2)';
         peer = new Peer({ debug: 2, config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } });
-        peer.on('open', () => {
-            conn = peer.connect(adminId, { reliable: true, serialization: 'json' });
-            setupConnectionHandlers();
-        });
+        peer.on('open', () => { conn = peer.connect(adminId, { reliable: true, serialization: 'json' }); setupConnectionHandlers(); });
         setupPeerCallHandler();
     }
 
-    function getMessageText(data) {
-        if (typeof data === 'string') return data;
-        if (data && typeof data === 'object') {
-            if (data.text) return data.text;
-            if (data.message) return data.message;
-        }
-        return '...';
-    }
+    function getMessageText(data) { if (typeof data === 'string') return data; if (data && typeof data === 'object') { if (data.text) return data.text; if (data.message) return data.message; } return '...'; }
 
     function setupConnectionHandlers() {
         if (!conn) return;
-
         conn.on('open', () => {
             if (isSessionEnded) return;
-            reconnectAttempts = 0;
-            isConnected = true;
+            reconnectAttempts = 0; isConnected = true;
             document.getElementById('connection-status').innerText = '● Online';
             document.getElementById('connection-status').style.background = 'rgba(0, 255, 136, 0.2)';
             document.getElementById('patient-info').style.display = 'flex';
             document.getElementById('display-patient-name').innerText = '👤 ' + patientName;
             document.getElementById('exit-btn').style.display = 'block';
             conn.send({ type: 'patientInfo', name: patientName });
-            transitionToChat();
-            startHeartbeat();
+            transitionToChat(); startHeartbeat();
         });
 
         conn.on('data', (data) => {
             if (data && data.type === 'heartbeat') return;
 
-            // FIX: Handle sinyal call_rejected dari Admin
+            // FIX 1: Handle sinyal call_rejected (Madam Ti membatalkan call)
             if (data && data.type === 'call_rejected') {
-                console.log(' Panggilan ditolak oleh Madam Ti');
-                handleCallRejected();
-                addSystemBubble('📴 Panggilan ditolak oleh Madam Ti');
+                console.log('📴 Panggilan dibatalkan oleh Madam Ti');
+                handleCallRejected(); // Tutup modal, stop ringtone, reset UI
+                addSystemBubble('📴 Panggilan dibatalkan oleh Madam Ti');
                 return;
             }
 
+            // Handle sinyal end_call (Madam Ti mengakhiri call yang sedang aktif)
             if (data && data.type === 'end_call') {
-                console.log('📴 Menerima sinyal end_call dari Admin');
+                console.log(' Call diakhiri oleh Madam Ti');
                 isRemoteEndingCall = true;
-                if (callTimeout) { clearTimeout(callTimeout); callTimeout = null; }
-                if (call) { call.close(); call = null; }
-                if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
-                resetCallUI();
-                addSystemBubble(' Panggilan diakhiri oleh Madam Ti');
+                handleCallRejected(); 
+                addSystemBubble('📴 Panggilan diakhiri oleh Madam Ti');
                 isRemoteEndingCall = false;
                 return;
             }
 
+            // Handle sinyal exit (Sesi konsultasi berakhir total)
             if (data && data.type === 'exit') {
                 const message = data.message || 'Madam Ti\' telah mengakhiri sesi konsultasi';
-                console.log('🚪 Menerima sinyal exit:', message);
-                addSystemBubble(' ' + message);
-                if (callTimeout) { clearTimeout(callTimeout); callTimeout = null; }
-                if (call) { call.close(); call = null; }
-                if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
+                addSystemBubble('❌ ' + message);
                 isSessionEnded = true;
                 hideAllUI();
                 setTimeout(() => { showEndedScreen(message); }, 1000);
@@ -450,15 +243,13 @@
             }
 
             const box = document.getElementById('chat-box');
-            if (data && data.type === 'file') {
-                addFileToBox(data, 'in');
-            } else {
+            if (data && data.type === 'file') { addFileToBox(data, 'in'); } 
+            else {
                 const messageText = getMessageText(data);
                 const div = document.createElement('div');
                 div.className = 'msg msg-in';
                 div.innerHTML = '<b style="color:var(--accent); font-size:0.8em;">Madam Ti\'</b><br>' + messageText;
-                box.appendChild(div);
-                box.scrollTop = box.scrollHeight;
+                box.appendChild(div); box.scrollTop = box.scrollHeight;
                 showNotification('Madam Ti\'', messageText);
             }
             if(navigator.vibrate) navigator.vibrate(100);
@@ -466,7 +257,7 @@
 
         conn.on('error', (err) => {
             if (isSessionEnded) return;
-            document.getElementById('connection-status').innerText = '⚠️ Error';
+            document.getElementById('connection-status').innerText = '️ Error';
             document.getElementById('connection-status').style.background = 'rgba(255, 68, 68, 0.2)';
             document.getElementById('status').innerText = 'Error: ' + err.type;
             document.getElementById('btn-connect').disabled = false;
@@ -474,19 +265,11 @@
         });
 
         conn.on('close', () => {
-            console.log('❌ Connection closed. isSessionEnded:', isSessionEnded);
-            stopHeartbeat();
-            isConnected = false;
+            stopHeartbeat(); isConnected = false;
             document.getElementById('exit-btn').style.display = 'none';
-            
-            if (isSessionEnded) {
-                console.log('Sesi sudah berakhir, tidak reconnect');
-                return;
-            }
-            
-            if (reconnectAttempts < MAX_RECONNECT) {
-                setTimeout(() => { reconnect(); }, 3000);
-            } else {
+            if (isSessionEnded) return;
+            if (reconnectAttempts < MAX_RECONNECT) { setTimeout(() => { reconnect(); }, 3000); } 
+            else {
                 document.getElementById('connection-status').innerText = '❌ Terputus';
                 document.getElementById('connection-status').style.background = 'rgba(255, 68, 68, 0.2)';
                 addSystemBubble('❌ Koneksi terputus. Silakan hubungkan lagi.');
@@ -496,108 +279,73 @@
 
     function setupPeerCallHandler() {
         if (!peer) return;
-        
         peer.on('call', (incomingCall) => {
-            if (isSessionEnded) {
-                console.log('Sesi sudah berakhir, tolak call');
-                incomingCall.close();
-                return;
-            }
-            
+            if (isSessionEnded) { incomingCall.close(); return; }
             console.log('📞 Incoming call dari Madam Ti');
             call = incomingCall;
-            
             document.getElementById('incoming-caller-name').innerText = 'Madam Ti\' sedang menelepon...';
             document.getElementById('incoming-call-overlay').classList.add('show');
-            
             const ringtone = document.getElementById('ringtone');
-            ringtone.currentTime = 0;
-            ringtone.play().catch(e => console.log('Ringtone error:', e));
+            ringtone.currentTime = 0; ringtone.play().catch(e => console.log('Ringtone error:', e));
             ringtonePlaying = true;
-            
             if(navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
-            
-            showNotification(' Panggilan Masuk', 'Madam Ti\' sedang menelepon...');
-            
+            showNotification('📞 Panggilan Masuk', 'Madam Ti\' sedang menelepon...');
             incomingCallTimeout = setTimeout(() => {
                 console.log('⏰ Panggilan tidak dijawab dalam 1 menit');
                 rejectIncomingCall();
-                addSystemBubble(' Panggilan tidak dijawab, diakhiri otomatis');
+                addSystemBubble('⏰ Panggilan tidak dijawab, diakhiri otomatis');
             }, 60000);
         });
     }
 
     function answerIncomingCall() {
-        console.log('✅ Menjawab panggilan');
-        clearTimeout(incomingCallTimeout);
-        stopRingtone();
+        clearTimeout(incomingCallTimeout); stopRingtone();
         document.getElementById('incoming-call-overlay').classList.remove('show');
-        
         navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } })
         .then((stream) => {
-            localStream = stream;
-            call.answer(stream);
-            isCalling = true;
+            localStream = stream; call.answer(stream); isCalling = true;
             const btn = document.getElementById('btn-call');
-            btn.classList.add('active-call');
-            btn.innerHTML = '';
+            btn.classList.add('active-call'); btn.innerHTML = '📴';
             addSystemBubble('📞 Panggilan dengan Madam Ti dimulai...');
-            
             call.on('stream', (remoteStream) => {
-                document.getElementById('remoteAudio').srcObject = remoteStream;
-                document.getElementById('remoteAudio').play();
+                const audio = document.getElementById('remoteAudio');
+                audio.srcObject = remoteStream; audio.volume = 1.0; audio.play().catch(e => console.log(e));
             });
-            
-            call.on('close', () => {
-                if (!isRemoteEndingCall) resetCallUI();
-            });
+            call.on('close', () => { if (!isRemoteEndingCall) handleCallRejected(); });
+            enableLoudspeaker();
         })
-        .catch(err => {
-            alert('❌ Gagal akses mikrofon: ' + err.message);
-            rejectIncomingCall();
-        });
+        .catch(err => { alert(' Gagal akses mikrofon: ' + err.message); rejectIncomingCall(); });
     }
 
     function rejectIncomingCall() {
-        console.log(' Menolak panggilan');
-        clearTimeout(incomingCallTimeout);
-        stopRingtone();
+        clearTimeout(incomingCallTimeout); stopRingtone();
         document.getElementById('incoming-call-overlay').classList.remove('show');
-        
         if (call) { call.close(); call = null; }
         if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
-        
-        if (conn && conn.open) {
-            conn.send({ type: 'end_call' });
-        }
-        
-        addSystemBubble(' Panggilan ditolak');
+        if (conn && conn.open) { conn.send({ type: 'end_call' }); }
+        addSystemBubble('📴 Panggilan ditolak');
     }
 
     function stopRingtone() {
         const ringtone = document.getElementById('ringtone');
-        if (ringtonePlaying) {
-            ringtone.pause();
-            ringtone.currentTime = 0;
-            ringtonePlaying = false;
-        }
+        if (ringtonePlaying) { ringtone.pause(); ringtone.currentTime = 0; ringtonePlaying = false; }
     }
 
-    // FIX: Fungsi cleanup call yang robust (termasuk mematikan mikrofon)
+    // FIX: Fungsi cleanup total (tutup modal, stop mic, reset tombol)
     function handleCallRejected() {
         console.log('🧹 Cleaning up call UI...');
         if (callTimeout) { clearTimeout(callTimeout); callTimeout = null; }
+        if (incomingCallTimeout) { clearTimeout(incomingCallTimeout); incomingCallTimeout = null; }
         if (call) { call.close(); call = null; }
-        if (localStream) {
-            localStream.getTracks().forEach(track => track.stop());
-            localStream = null;
-        }
-        isCalling = false;
-        isRemoteEndingCall = false;
+        if (localStream) { localStream.getTracks().forEach(track => track.stop()); localStream = null; }
+        isCalling = false; isRemoteEndingCall = false;
         const btn = document.getElementById('btn-call');
-        btn.classList.remove('active-call');
-        btn.innerHTML = '📞';
+        btn.classList.remove('active-call'); btn.innerHTML = '📞';
+        document.getElementById('incoming-call-overlay').classList.remove('show');
+        stopRingtone();
     }
+
+    function enableLoudspeaker() { const audio = document.getElementById('remoteAudio'); audio.volume = 1.0; }
 
     function transitionToChat() {
         if (isSessionEnded) return;
@@ -609,41 +357,26 @@
     function connect() {
         adminId = document.getElementById('adminId').value.trim();
         patientName = document.getElementById('patientName').value.trim();
-
         if(!patientName) { alert('Masukkan nama Anda!'); return; }
         if(!adminId) { alert('Masukkan ID Madam Ti\' (4 digit)!'); return; }
         if(adminId.length !== 4 || !/^\d+$/.test(adminId)) { alert('ID harus 4 digit angka!'); return; }
 
         const btn = document.getElementById('btn-connect');
-        btn.disabled = true;
-        btn.innerText = 'Menghubungkan...';
+        btn.disabled = true; btn.innerText = 'Menghubungkan...';
         document.getElementById('status').innerText = 'Menghubungkan...';
-
         peer = new Peer({ debug: 2, config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } });
-
-        peer.on('open', (id) => {
-            conn = peer.connect(adminId, { reliable: true, serialization: 'json' });
-            setupConnectionHandlers();
-            setupPeerCallHandler();
-        });
-
+        peer.on('open', (id) => { conn = peer.connect(adminId, { reliable: true, serialization: 'json' }); setupConnectionHandlers(); setupPeerCallHandler(); });
         peer.on('error', (err) => {
             if (isSessionEnded) return;
             document.getElementById('status').innerText = 'Error: ' + err.type;
-            btn.disabled = false;
-            btn.innerText = 'Hubungkan Energi';
-            if (err.type === 'peer-unavailable') {
-                alert('❌ ID Madam Ti tidak ditemukan atau sedang offline.');
-            } else if (err.type === 'network') {
-                alert('️ Error jaringan.');
-            }
+            btn.disabled = false; btn.innerText = 'Hubungkan Energi';
+            if (err.type === 'peer-unavailable') alert('❌ ID Madam Ti tidak ditemukan atau sedang offline.');
+            else if (err.type === 'network') alert('⚠️ Error jaringan.');
         });
     }
 
     function showNotification(title, message) {
-        if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification(title, { body: message || 'Pesan baru' });
-        }
+        if ('Notification' in window && Notification.permission === 'granted') new Notification(title, { body: message || 'Pesan baru' });
         const popup = document.getElementById('notification');
         document.getElementById('notif-title').innerText = title;
         document.getElementById('notif-message').innerText = message || 'Pesan baru';
@@ -658,14 +391,9 @@
             conn.send({ type: 'text', text: messageText });
             const box = document.getElementById('chat-box');
             const div = document.createElement('div');
-            div.className = 'msg msg-out';
-            div.innerText = messageText;
-            box.appendChild(div);
-            input.value = '';
-            box.scrollTop = box.scrollHeight;
-        } else if (!conn || !conn.open) {
-            alert('Koneksi terputus.');
-        }
+            div.className = 'msg msg-out'; div.innerText = messageText;
+            box.appendChild(div); input.value = ''; box.scrollTop = box.scrollHeight;
+        } else if (!conn || !conn.open) { alert('Koneksi terputus.'); }
     }
 
     function addSystemBubble(text) {
@@ -678,24 +406,16 @@
         const file = event.target.files[0];
         if (!file) return;
         if (file.size > MAX_FILE_SIZE) { alert('File terlalu besar! Maksimal 3MB.'); event.target.value = ''; return; }
-
         const fileSizeMB = (file.size / (1024*1024)).toFixed(1);
         const box = document.getElementById('chat-box');
         const status = document.createElement('div');
-        status.className = 'loading-status';
-        status.innerHTML = ' Mengirim (' + fileSizeMB + ' MB)...';
-        box.appendChild(status);
-        box.scrollTop = box.scrollHeight;
-
+        status.className = 'loading-status'; status.innerHTML = '⏳ Mengirim (' + fileSizeMB + ' MB)...';
+        box.appendChild(status); box.scrollTop = box.scrollHeight;
         const reader = new FileReader();
         reader.onload = function(e) {
             const fileData = { type: 'file', name: file.name, size: file.size, fileType: file.type, data: e.target.result };
-            if(conn && conn.open) {
-                conn.send(fileData);
-                addFileToBox(fileData, 'out');
-            }
-            status.remove();
-            event.target.value = '';
+            if(conn && conn.open) { conn.send(fileData); addFileToBox(fileData, 'out'); }
+            status.remove(); event.target.value = '';
         };
         reader.onerror = function() { status.innerHTML = '❌ Gagal mengirim.'; };
         reader.readAsDataURL(file);
@@ -704,29 +424,19 @@
     function addFileToBox(fileData, type) {
         const box = document.getElementById('chat-box');
         const isImage = fileData.fileType.startsWith('image/');
-        const div = document.createElement('div');
-        div.className = 'msg msg-' + type;
+        const div = document.createElement('div'); div.className = 'msg msg-' + type;
         let content = '';
-        if (isImage) {
-            content = '<div class="file-attachment"><img src="' + fileData.data + '" onclick="window.open(this.src)"></div>';
-        } else {
-            content = '<div class="file-attachment"><div class="file-info"><span>📄</span><div style="flex:1; overflow:hidden;"><div style="font-weight:600; font-size:0.85em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + fileData.name + '</div><a href="' + fileData.data + '" download="' + fileData.name + '" class="download-link">⬇ Simpan</a></div></div></div>';
-        }
-        div.innerHTML = content;
-        box.appendChild(div);
-        box.scrollTop = box.scrollHeight;
+        if (isImage) { content = '<div class="file-attachment"><img src="' + fileData.data + '" onclick="window.open(this.src)"></div>'; } 
+        else { content = '<div class="file-attachment"><div class="file-info"><span></span><div style="flex:1; overflow:hidden;"><div style="font-weight:600; font-size:0.85em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + fileData.name + '</div><a href="' + fileData.data + '" download="' + fileData.name + '" class="download-link">⬇ Simpan</a></div></div></div>'; }
+        div.innerHTML = content; box.appendChild(div); box.scrollTop = box.scrollHeight;
     }
 
     function toggleCall() {
-        if (isCalling) {
-            endCall();
-        } else {
+        if (isCalling) { endCall(); } 
+        else {
             startCall();
             callTimeout = setTimeout(() => {
-                if (isCalling) {
-                    addSystemBubble('⏰ Panggilan tidak dijawab, diakhiri otomatis');
-                    endCall();
-                }
+                if (isCalling) { addSystemBubble('⏰ Panggilan tidak dijawab, diakhiri otomatis'); endCall(); }
             }, 60000);
         }
     }
@@ -735,45 +445,27 @@
         if (!conn || !conn.open) { alert('Koneksi terputus.'); return; }
         navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } })
         .then((stream) => {
-            localStream = stream;
-            call = peer.call(adminId, stream);
-            isCalling = true;
+            localStream = stream; call = peer.call(adminId, stream); isCalling = true;
             const btn = document.getElementById('btn-call');
-            btn.classList.add('active-call');
-            btn.innerHTML = '📴';
+            btn.classList.add('active-call'); btn.innerHTML = '📴';
             addSystemBubble('📞 Panggilan dimulai...');
             call.on('stream', (remoteStream) => {
-                document.getElementById('remoteAudio').srcObject = remoteStream;
-                document.getElementById('remoteAudio').play();
+                const audio = document.getElementById('remoteAudio');
+                audio.srcObject = remoteStream; audio.volume = 1.0; audio.play().catch(e => console.log(e));
             });
-            call.on('close', () => {
-                if (!isRemoteEndingCall && isCalling) {
-                    handleCallRejected();
-                }
-            });
+            call.on('close', () => { if (!isRemoteEndingCall && isCalling) handleCallRejected(); });
+            enableLoudspeaker();
         })
-        .catch(err => {
-            alert('❌ Gagal akses mikrofon: ' + err.message);
-        });
+        .catch(err => { alert('❌ Gagal akses mikrofon: ' + err.message); });
     }
 
     function endCall() {
         if (callTimeout) { clearTimeout(callTimeout); callTimeout = null; }
-        if (!isRemoteEndingCall && conn && conn.open) {
-            conn.send({ type: 'end_call' });
-        }
+        if (!isRemoteEndingCall && conn && conn.open) { conn.send({ type: 'end_call' }); }
         handleCallRejected();
     }
 
-    function resetCallUI() {
-        isCalling = false;
-        const btn = document.getElementById('btn-call');
-        btn.classList.remove('active-call');
-        btn.innerHTML = '📞';
-    }
-
     function hideAllUI() {
-        console.log('🔒 Menyembunyikan semua UI');
         document.getElementById('main-header').style.display = 'none';
         document.getElementById('login-container').style.display = 'none';
         document.getElementById('chat-area').style.display = 'none';
@@ -787,25 +479,16 @@
     function showEndedScreen(message) {
         if (message) document.getElementById('end-message').innerText = message;
         document.getElementById('ended-screen').style.display = 'flex';
-        console.log('✅ Sesi berakhir. Hanya ended-screen yang tampil.');
     }
 
     function exitSession(customMessage) {
         if (isSessionEnded) return;
         isSessionEnded = true;
-        console.log('🚪 exitSession dipanggil');
-
         if (customMessage) document.getElementById('end-message').innerText = customMessage;
-        
         if (isCalling) endCall();
-
-        if (conn && conn.open) {
-            conn.send({ type: 'exit', reason: 'patient_left' });
-            conn.close();
-        }
+        if (conn && conn.open) { conn.send({ type: 'exit', reason: 'patient_left' }); conn.close(); }
         if (peer) peer.destroy();
         stopHeartbeat();
-
         hideAllUI();
         showEndedScreen(customMessage);
     }
@@ -815,10 +498,7 @@
             requestWakeLock();
             if (isSessionEnded) return;
             if (peer && peer.disconnected) peer.reconnect();
-            if (conn && !conn.open && reconnectAttempts < MAX_RECONNECT) {
-                addSystemBubble('🔄 Memulihkan koneksi...');
-                reconnect();
-            }
+            if (conn && !conn.open && reconnectAttempts < MAX_RECONNECT) { addSystemBubble('🔄 Memulihkan koneksi...'); reconnect(); }
         }
     });
 
