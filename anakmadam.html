@@ -89,6 +89,11 @@
 </head>
 <body>
 
+<!-- Audio sunyi untuk menjaga koneksi tetap hidup di background HP -->
+<audio id="keep-alive-audio" loop preload="auto">
+    <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" type="audio/wav">
+</audio>
+
 <div id="notification" class="notification-popup">
     <div class="notification-icon"></div>
     <div class="notification-content">
@@ -97,7 +102,6 @@
     </div>
 </div>
 
-<!-- Incoming Call Modal -->
 <div class="incoming-call-overlay" id="incoming-call-overlay">
     <div class="incoming-call-modal">
         <h3>📞 PANGGILAN MASUK</h3>
@@ -118,10 +122,10 @@
 <div class="header" id="main-header">
     <div class="header-top">
         <h2>🔮 Konsultasi Madam Ti'</h2>
-        <button class="btn-exit-header" onclick="exitSession()" id="exit-btn" style="display: none;"> Akhiri Sesi</button>
+        <button class="btn-exit-header" onclick="exitSession()" id="exit-btn" style="display: none;">🚪 Akhiri Sesi</button>
     </div>
     <div class="patient-info" id="patient-info" style="display: none;">
-        <span id="display-patient-name">👤 Nama Pasien</span>
+        <span id="display-patient-name"> Nama Pasien</span>
         <span class="connection-status" id="connection-status">● Online</span>
     </div>
 </div>
@@ -132,7 +136,7 @@
         <label>✦ Nama Anda</label>
         <input type="text" id="patientName" placeholder="Masukkan nama Anda">
         <label>✦ ID Spiritual Madam Ti' (4 Digit)</label>
-        <input type="text" id="adminId" placeholder="Minta ID sama Madam Ti'" maxlength="4" inputmode="numeric" pattern="[0-9]*">
+        <input type="text" id="adminId" placeholder="Contoh: 8392" maxlength="4" inputmode="numeric" pattern="[0-9]*">
         <button class="btn-connect" id="btn-connect" onclick="connect()">Hubungkan Energi</button>
         <div id="status" class="status">Menunggu koneksi spiritual...</div>
     </div>
@@ -142,12 +146,11 @@
     <div id="chat-box"></div>
     <div class="footer-controls">
         <div class="input-row">
-            <!-- FIX: Emoji ditanam langsung agar muncul di HP -->
             <label for="file-input" class="icon-btn" title="Upload File">📎</label>
             <input type="file" id="file-input" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif" onchange="handleFileSelect(event)">
             <input type="text" id="msgInput" placeholder="Ketik pesan..." onkeypress="if(event.key==='Enter') sendMsg()">
             <button class="icon-btn btn-send" onclick="sendMsg()" title="Kirim">▶</button>
-            <button id="btn-call" class="icon-btn btn-call" onclick="toggleCall()" title="Telepon Madam">📞</button>
+            <button id="btn-call" class="icon-btn btn-call" onclick="toggleCall()" title="Telepon Madam"></button>
         </div>
     </div>
 </div>
@@ -167,12 +170,33 @@
     let isCalling = false, isRemoteEndingCall = false, patientName = '', adminId = '';
     let heartbeatInterval = null, reconnectAttempts = 0, isConnected = false;
     let callTimeout = null, incomingCallTimeout = null, ringtonePlaying = false, isSessionEnded = false;
-    const MAX_FILE_SIZE = 3 * 1024 * 1024, MAX_RECONNECT = 5;
+    const MAX_FILE_SIZE = 3 * 1024 * 1024, MAX_RECONNECT = 10;
 
     if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
 
+    // Konfigurasi TURN Server untuk lintas network
+    const iceConfig = {
+        iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+            { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+            { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
+        ]
+    };
+
     let wakeLock = null;
     async function requestWakeLock() { if ('wakeLock' in navigator) { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} } }
+
+    function startKeepAlive() {
+        const audio = document.getElementById('keep-alive-audio');
+        if (audio) {
+            audio.volume = 0.01;
+            audio.play().catch(e => {});
+        }
+    }
+    document.body.addEventListener('click', startKeepAlive, { once: true });
+    document.body.addEventListener('touchstart', startKeepAlive, { once: true });
 
     function startHeartbeat() {
         if (heartbeatInterval) clearInterval(heartbeatInterval);
@@ -188,7 +212,7 @@
         if (!adminId || isSessionEnded) return;
         document.getElementById('connection-status').innerText = '🔄 Reconnecting...';
         document.getElementById('connection-status').style.background = 'rgba(255, 165, 0, 0.2)';
-        peer = new Peer({ debug: 2, config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } });
+        peer = new Peer({ debug: 2, config: iceConfig });
         peer.on('open', () => { conn = peer.connect(adminId, { reliable: true, serialization: 'json' }); setupConnectionHandlers(); });
         setupPeerCallHandler();
     }
@@ -211,35 +235,17 @@
 
         conn.on('data', (data) => {
             if (data && data.type === 'heartbeat') return;
-
-            // FIX 1: Handle sinyal call_rejected (Madam Ti membatalkan call)
             if (data && data.type === 'call_rejected') {
-                console.log('📴 Panggilan dibatalkan oleh Madam Ti');
-                handleCallRejected(); // Tutup modal, stop ringtone, reset UI
-                addSystemBubble('📴 Panggilan dibatalkan oleh Madam Ti');
-                return;
+                handleCallRejected(); addSystemBubble(' Panggilan dibatalkan oleh Madam Ti'); return;
             }
-
-            // Handle sinyal end_call (Madam Ti mengakhiri call yang sedang aktif)
             if (data && data.type === 'end_call') {
-                console.log(' Call diakhiri oleh Madam Ti');
-                isRemoteEndingCall = true;
-                handleCallRejected(); 
-                addSystemBubble('📴 Panggilan diakhiri oleh Madam Ti');
-                isRemoteEndingCall = false;
-                return;
+                isRemoteEndingCall = true; handleCallRejected(); addSystemBubble('📴 Panggilan diakhiri oleh Madam Ti'); isRemoteEndingCall = false; return;
             }
-
-            // Handle sinyal exit (Sesi konsultasi berakhir total)
             if (data && data.type === 'exit') {
                 const message = data.message || 'Madam Ti\' telah mengakhiri sesi konsultasi';
-                addSystemBubble('❌ ' + message);
-                isSessionEnded = true;
-                hideAllUI();
-                setTimeout(() => { showEndedScreen(message); }, 1000);
-                return;
+                addSystemBubble('❌ ' + message); isSessionEnded = true; hideAllUI();
+                setTimeout(() => { showEndedScreen(message); }, 1000); return;
             }
-
             const box = document.getElementById('chat-box');
             if (data && data.type === 'file') { addFileToBox(data, 'in'); } 
             else {
@@ -255,7 +261,7 @@
 
         conn.on('error', (err) => {
             if (isSessionEnded) return;
-            document.getElementById('connection-status').innerText = '️ Error';
+            document.getElementById('connection-status').innerText = '⚠️ Error';
             document.getElementById('connection-status').style.background = 'rgba(255, 68, 68, 0.2)';
             document.getElementById('status').innerText = 'Error: ' + err.type;
             document.getElementById('btn-connect').disabled = false;
@@ -266,12 +272,9 @@
             stopHeartbeat(); isConnected = false;
             document.getElementById('exit-btn').style.display = 'none';
             if (isSessionEnded) return;
+            addSystemBubble('🔄 Sinyal terputus, mencoba menyambung ulang...');
             if (reconnectAttempts < MAX_RECONNECT) { setTimeout(() => { reconnect(); }, 3000); } 
-            else {
-                document.getElementById('connection-status').innerText = '❌ Terputus';
-                document.getElementById('connection-status').style.background = 'rgba(255, 68, 68, 0.2)';
-                addSystemBubble('❌ Koneksi terputus. Silakan hubungkan lagi.');
-            }
+            else { addSystemBubble(' Koneksi gagal dipulihkan. Silakan refresh halaman.'); }
         });
     }
 
@@ -279,20 +282,14 @@
         if (!peer) return;
         peer.on('call', (incomingCall) => {
             if (isSessionEnded) { incomingCall.close(); return; }
-            console.log('📞 Incoming call dari Madam Ti');
             call = incomingCall;
             document.getElementById('incoming-caller-name').innerText = 'Madam Ti\' sedang menelepon...';
             document.getElementById('incoming-call-overlay').classList.add('show');
             const ringtone = document.getElementById('ringtone');
-            ringtone.currentTime = 0; ringtone.play().catch(e => console.log('Ringtone error:', e));
-            ringtonePlaying = true;
+            ringtone.currentTime = 0; ringtone.play().catch(e => {}); ringtonePlaying = true;
             if(navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
             showNotification('📞 Panggilan Masuk', 'Madam Ti\' sedang menelepon...');
-            incomingCallTimeout = setTimeout(() => {
-                console.log('⏰ Panggilan tidak dijawab dalam 1 menit');
-                rejectIncomingCall();
-                addSystemBubble('⏰ Panggilan tidak dijawab, diakhiri otomatis');
-            }, 60000);
+            incomingCallTimeout = setTimeout(() => { rejectIncomingCall(); addSystemBubble('⏰ Panggilan tidak dijawab, diakhiri otomatis'); }, 60000);
         });
     }
 
@@ -304,10 +301,10 @@
             localStream = stream; call.answer(stream); isCalling = true;
             const btn = document.getElementById('btn-call');
             btn.classList.add('active-call'); btn.innerHTML = '📴';
-            addSystemBubble('📞 Panggilan dengan Madam Ti dimulai...');
+            addSystemBubble(' Panggilan dengan Madam Ti dimulai...');
             call.on('stream', (remoteStream) => {
                 const audio = document.getElementById('remoteAudio');
-                audio.srcObject = remoteStream; audio.volume = 1.0; audio.play().catch(e => console.log(e));
+                audio.srcObject = remoteStream; audio.volume = 1.0; audio.play().catch(e => {});
             });
             call.on('close', () => { if (!isRemoteEndingCall) handleCallRejected(); });
             enableLoudspeaker();
@@ -321,7 +318,7 @@
         if (call) { call.close(); call = null; }
         if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
         if (conn && conn.open) { conn.send({ type: 'end_call' }); }
-        addSystemBubble('📴 Panggilan ditolak');
+        addSystemBubble(' Panggilan ditolak');
     }
 
     function stopRingtone() {
@@ -329,9 +326,7 @@
         if (ringtonePlaying) { ringtone.pause(); ringtone.currentTime = 0; ringtonePlaying = false; }
     }
 
-    // FIX: Fungsi cleanup total (tutup modal, stop mic, reset tombol)
     function handleCallRejected() {
-        console.log('🧹 Cleaning up call UI...');
         if (callTimeout) { clearTimeout(callTimeout); callTimeout = null; }
         if (incomingCallTimeout) { clearTimeout(incomingCallTimeout); incomingCallTimeout = null; }
         if (call) { call.close(); call = null; }
@@ -362,7 +357,7 @@
         const btn = document.getElementById('btn-connect');
         btn.disabled = true; btn.innerText = 'Menghubungkan...';
         document.getElementById('status').innerText = 'Menghubungkan...';
-        peer = new Peer({ debug: 2, config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } });
+        peer = new Peer({ debug: 2, config: iceConfig });
         peer.on('open', (id) => { conn = peer.connect(adminId, { reliable: true, serialization: 'json' }); setupConnectionHandlers(); setupPeerCallHandler(); });
         peer.on('error', (err) => {
             if (isSessionEnded) return;
@@ -449,12 +444,12 @@
             addSystemBubble('📞 Panggilan dimulai...');
             call.on('stream', (remoteStream) => {
                 const audio = document.getElementById('remoteAudio');
-                audio.srcObject = remoteStream; audio.volume = 1.0; audio.play().catch(e => console.log(e));
+                audio.srcObject = remoteStream; audio.volume = 1.0; audio.play().catch(e => {});
             });
             call.on('close', () => { if (!isRemoteEndingCall && isCalling) handleCallRejected(); });
             enableLoudspeaker();
         })
-        .catch(err => { alert(' Gagal akses mikrofon: ' + err.message); });
+        .catch(err => { alert('❌ Gagal akses mikrofon: ' + err.message); });
     }
 
     function endCall() {
@@ -494,9 +489,10 @@
     document.addEventListener('visibilitychange', async () => {
         if (document.visibilityState === 'visible') {
             requestWakeLock();
+            startKeepAlive();
             if (isSessionEnded) return;
             if (peer && peer.disconnected) peer.reconnect();
-            if (conn && !conn.open && reconnectAttempts < MAX_RECONNECT) { addSystemBubble('🔄 Memulihkan koneksi...'); reconnect(); }
+            if (conn && !conn.open && reconnectAttempts < MAX_RECONNECT) { addSystemBubble(' Memulihkan koneksi...'); reconnect(); }
         }
     });
 
