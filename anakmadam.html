@@ -118,7 +118,7 @@
                 <div class="call-action-label">Tolak</div>
             </div>
             <div class="call-action-wrapper">
-                <button class="call-action-btn btn-answer" onclick="answerIncomingCall()"></button>
+                <button class="call-action-btn btn-answer" onclick="answerIncomingCall()">📞</button>
                 <div class="call-action-label">Jawab</div>
             </div>
         </div>
@@ -127,7 +127,7 @@
 
 <div class="header" id="main-header">
     <div class="header-top">
-        <h2>🔮 Konsultasi Madam Ti'</h2>
+        <h2> Konsultasi Madam Ti'</h2>
         <button class="btn-exit-header" onclick="exitSession()" id="exit-btn" style="display: none;">🚪 Akhiri Sesi</button>
     </div>
     <div class="patient-info" id="patient-info" style="display: none;">
@@ -136,7 +136,6 @@
     </div>
 </div>
 
-<!-- Banner notifikasi terputus -->
 <div class="disconnection-banner" id="disconnection-banner">
     ⚠️ Sinyal terputus. Mencoba menyambung ulang...
     <button class="btn-reconnect-manual" id="btn-reconnect-manual" onclick="manualReconnect()" style="display:none;">🔄 Coba Sambung Ulang</button>
@@ -158,7 +157,7 @@
     <div id="chat-box"></div>
     <div class="footer-controls">
         <div class="input-row">
-            <label for="file-input" class="icon-btn" title="Kirim File">📎</label>
+            <label for="file-input" class="icon-btn" title="Kirim File"></label>
             <input type="file" id="file-input" accept="image/*,.pdf,.doc,.docx,.txt" onchange="handleFileSelect(event)">
             <input type="text" id="msgInput" placeholder="Ketik pesan..." onkeypress="if(event.key==='Enter') sendMsg()">
             <button class="icon-btn btn-send" onclick="sendMsg()" title="Kirim">▶</button>
@@ -171,10 +170,10 @@
 </div>
 
 <div id="ended-screen">
-    <h2> Sesi Konsultasi Berakhir</h2>
+    <h2>🔮 Sesi Konsultasi Berakhir</h2>
     <p id="end-message">Terima kasih telah berkonsultasi dengan Madam Ti'</p>
     <p style="font-size: 0.85em; opacity: 0.7;">Semoga energi baik menyertai Anda</p>
-    <button class="btn-reconnect" onclick="location.reload()"> Konsultasi Lagi</button>
+    <button class="btn-reconnect" onclick="location.reload()">🔄 Konsultasi Lagi</button>
 </div>
 
 <audio id="remoteAudio" autoplay playsinline></audio>
@@ -186,9 +185,8 @@
     let heartbeatInterval = null, reconnectAttempts = 0, isConnected = false;
     let callTimeout = null, incomingCallTimeout = null, ringtonePlaying = false, isSessionEnded = false;
     let pendingFileMeta = null;
-    let chatHistory = []; // FIX: Simpan history chat di memory
-    let isReconnecting = false;
-    const MAX_FILE_SIZE = 5 * 1024 * 1024, MAX_RECONNECT = 999; // FIX: Reconnect hampir tak terbatas selama sesi belum diakhiri
+    let chatHistory = [];
+    const MAX_FILE_SIZE = 5 * 1024 * 1024, MAX_RECONNECT = 50;
 
     if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
 
@@ -208,11 +206,9 @@
     document.body.addEventListener('click', startKeepAlive, { once: true });
     document.body.addEventListener('touchstart', startKeepAlive, { once: true });
 
-    // === FIX: LocalStorage untuk history chat ===
     const HISTORY_KEY = 'anakMadam_chatHistory';
     function saveChatHistory() {
         try {
-            // Batasi history max 200 pesan agar tidak penuh
             const toSave = chatHistory.slice(-200);
             localStorage.setItem(HISTORY_KEY, JSON.stringify(toSave));
         } catch(e) { console.log('Gagal simpan history:', e); }
@@ -235,8 +231,7 @@
     function startHeartbeat() {
         if (heartbeatInterval) clearInterval(heartbeatInterval);
         heartbeatInterval = setInterval(() => {
-            if (conn && conn.open) { conn.send({ type: 'heartbeat', timestamp: Date.now() }); } 
-            else if (conn && !conn.open && !isSessionEnded && !isReconnecting) { reconnect(); }
+            if (conn && conn.open) { conn.send({ type: 'heartbeat', timestamp: Date.now() }); }
         }, 5000);
     }
     function stopHeartbeat() { if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; } }
@@ -245,7 +240,6 @@
         document.getElementById('disconnection-banner').classList.add('show');
         document.getElementById('connection-status').innerText = '⚠️ Terputus';
         document.getElementById('connection-status').classList.add('disconnected');
-        // Tampilkan tombol manual setelah 5 detik jika belum reconnect
         setTimeout(() => {
             if (!isConnected && !isSessionEnded) {
                 document.getElementById('btn-reconnect-manual').style.display = 'block';
@@ -260,51 +254,73 @@
         document.getElementById('connection-status').classList.remove('disconnected');
     }
 
-    function reconnect() {
-        if (!adminId || isSessionEnded || isReconnecting) return;
-        isReconnecting = true;
-        showDisconnectedBanner();
+    // FIX: Fungsi reconnect yang lebih sederhana dan robust
+    function doReconnect() {
+        if (!adminId || isSessionEnded) return;
+        
         console.log('Mencoba reconnect... percobaan ke-', reconnectAttempts + 1);
         
-        if (peer) { try { peer.destroy(); } catch(e){} peer = null; }
+        // Hancurkan peer lama jika ada
+        if (peer) { 
+            try { peer.destroy(); } catch(e){} 
+            peer = null; 
+        }
+        if (conn) {
+            try { conn.close(); } catch(e){}
+            conn = null;
+        }
         
-        peer = new Peer({ debug: 2, config: iceConfig });
-        peer.on('open', () => { 
-            conn = peer.connect(adminId, { reliable: true }); 
-            setupConnectionHandlers(); 
+        showDisconnectedBanner();
+        
+        // Buat peer baru
+        peer = new Peer({ debug: 1, config: iceConfig });
+        
+        peer.on('open', () => {
+            console.log('Peer terbuka saat reconnect');
+            conn = peer.connect(adminId, { reliable: true });
+            setupConnectionHandlers();
+            setupPeerCallHandler();
         });
+        
         peer.on('error', (err) => {
             console.log('Reconnect error:', err.type);
-            isReconnecting = false;
             if (err.type === 'peer-unavailable') {
-                // Madam Ti mungkin offline, tetap coba lagi nanti
-                setTimeout(() => { if (!isSessionEnded) reconnect(); }, 10000);
+                // Madam Ti offline, coba lagi nanti
+                if (reconnectAttempts < MAX_RECONNECT) {
+                    reconnectAttempts++;
+                    setTimeout(() => doReconnect(), 5000);
+                }
+            } else if (err.type === 'network') {
+                if (reconnectAttempts < MAX_RECONNECT) {
+                    reconnectAttempts++;
+                    setTimeout(() => doReconnect(), 5000);
+                }
             }
         });
-        setupPeerCallHandler();
     }
 
     function manualReconnect() {
         reconnectAttempts = 0;
-        reconnect();
+        document.getElementById('btn-reconnect-manual').style.display = 'none';
+        doReconnect();
     }
 
     function getMessageText(data) { if (typeof data === 'string') return data; if (data && typeof data === 'object') { if (data.text) return data.text; if (data.message) return data.message; } return '...'; }
 
     function setupConnectionHandlers() {
         if (!conn) return;
+        
         conn.on('open', () => {
             if (isSessionEnded) return;
-            reconnectAttempts = 0; isConnected = true; isReconnecting = false;
+            reconnectAttempts = 0; 
+            isConnected = true;
             hideDisconnectedBanner();
             document.getElementById('patient-info').style.display = 'flex';
-            document.getElementById('display-patient-name').innerText = ' ' + patientName;
+            document.getElementById('display-patient-name').innerText = '👤 ' + patientName;
             document.getElementById('exit-btn').style.display = 'block';
-            // Kirim info nama untuk session resumption
             conn.send({ type: 'patientInfo', name: patientName });
             startHeartbeat();
             
-            // FIX: Muat ulang history chat jika ada
             if (chatHistory.length > 0) {
                 renderChatHistory();
                 addSystemBubble('✅ Koneksi dipulihkan. Sesi dilanjutkan.');
@@ -332,12 +348,11 @@
             if (data && data.type === 'call_rejected') { handleCallRejected(); addSystemBubble('📴 Panggilan dibatalkan oleh Madam Ti'); return; }
             if (data && data.type === 'end_call') { isRemoteEndingCall = true; handleCallRejected(); addSystemBubble('📴 Panggilan diakhiri oleh Madam Ti'); isRemoteEndingCall = false; return; }
             
-            // FIX: Hanya akhiri sesi jika benar-benar dapat sinyal exit dari Madam Ti
             if (data && data.type === 'exit') {
                 const message = data.message || 'Madam Ti\' telah mengakhiri sesi konsultasi';
                 addSystemBubble('❌ ' + message);
                 isSessionEnded = true;
-                clearChatHistory(); // Hanya clear history jika sesi benar-benar berakhir
+                clearChatHistory();
                 hideAllUI();
                 setTimeout(() => { showEndedScreen(message); }, 1000);
                 return;
@@ -366,18 +381,17 @@
             console.log('Connection error:', err.type);
         });
 
-        // FIX: Saat close, JANGAN langsung akhiri sesi. Coba reconnect.
         conn.on('close', () => {
             if (isSessionEnded) return;
-            stopHeartbeat(); isConnected = false;
+            stopHeartbeat(); 
+            isConnected = false;
             document.getElementById('exit-btn').style.display = 'none';
             showDisconnectedBanner();
-            addSystemBubble('⚠️ Sinyal terputus. Mencoba menyambung ulang...');
+            addSystemBubble('️ Sinyal terputus. Mencoba menyambung ulang...');
             
-            // Coba reconnect dengan delay
             if (reconnectAttempts < MAX_RECONNECT) { 
                 reconnectAttempts++;
-                setTimeout(() => { if (!isSessionEnded) reconnect(); }, 3000); 
+                setTimeout(() => doReconnect(), 3000); 
             } else {
                 addSystemBubble('❌ Koneksi gagal dipulihkan. Silakan klik tombol di atas untuk coba lagi.');
             }
@@ -423,7 +437,7 @@
         if (call) { call.close(); call = null; }
         if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
         if (conn && conn.open) { conn.send({ type: 'end_call' }); }
-        addSystemBubble('📴 Panggilan ditolak');
+        addSystemBubble(' Panggilan ditolak');
     }
 
     function stopRingtone() { const ringtone = document.getElementById('ringtone'); if (ringtonePlaying) { ringtone.pause(); ringtone.currentTime = 0; ringtonePlaying = false; } }
@@ -461,6 +475,7 @@
         box.scrollTop = box.scrollHeight;
     }
 
+    // FIX: Fungsi connect yang disederhanakan
     function connect() {
         adminId = document.getElementById('adminId').value.trim();
         patientName = document.getElementById('patientName').value.trim();
@@ -472,17 +487,35 @@
         btn.disabled = true; btn.innerText = 'Menghubungkan...';
         document.getElementById('status').innerText = 'Menghubungkan...';
         
-        // FIX: Muat history chat yang tersimpan
+        // Muat history chat yang tersimpan
         chatHistory = loadChatHistory();
         
-        peer = new Peer({ debug: 2, config: iceConfig });
-        peer.on('open', (id) => { conn = peer.connect(adminId, { reliable: true }); setupConnectionHandlers(); setupPeerCallHandler(); });
+        // Reset state
+        reconnectAttempts = 0;
+        isConnected = false;
+        
+        // Buat peer baru
+        peer = new Peer({ debug: 1, config: iceConfig });
+        
+        peer.on('open', (id) => {
+            console.log('Peer terbuka:', id);
+            conn = peer.connect(adminId, { reliable: true });
+            setupConnectionHandlers();
+            setupPeerCallHandler();
+        });
+        
         peer.on('error', (err) => {
+            console.log('Peer error:', err.type);
             if (isSessionEnded) return;
-            document.getElementById('status').innerText = 'Error: ' + err.type;
             btn.disabled = false; btn.innerText = 'Hubungkan Energi';
-            if (err.type === 'peer-unavailable') alert('❌ ID Madam Ti tidak ditemukan atau sedang offline.');
-            else if (err.type === 'network') alert('⚠️ Error jaringan.');
+            document.getElementById('status').innerText = 'Gagal terhubung';
+            if (err.type === 'peer-unavailable') {
+                alert('❌ ID Madam Ti tidak ditemukan atau sedang offline.\n\nPastikan:\n1. ID yang dimasukkan benar (4 digit)\n2. Madam Ti sedang online di madamti.html\n3. Coba refresh halaman Madam Ti dan coba lagi');
+            } else if (err.type === 'network') {
+                alert('⚠️ Error jaringan. Periksa koneksi internet Anda.');
+            } else if (err.type === 'unavailable-id') {
+                alert('❌ ID tidak tersedia. Coba ID lain.');
+            }
         });
     }
 
@@ -610,7 +643,6 @@
         document.getElementById('ended-screen').style.display = 'flex';
     }
 
-    // FIX: exitSession hanya dipanggil jika anak madam KLIK tombol "Akhiri Sesi"
     function exitSession(customMessage) {
         if(confirm('Yakin ingin mengakhiri sesi konsultasi?\n\nSesi akan benar-benar ditutup dan history chat akan dihapus.')) {
             isSessionEnded = true;
@@ -619,25 +651,23 @@
             if (conn && conn.open) { conn.send({ type: 'exit', reason: 'patient_left' }); conn.close(); }
             if (peer) peer.destroy();
             stopHeartbeat();
-            clearChatHistory(); // Hapus history hanya saat benar-benar exit
+            clearChatHistory();
             hideAllUI();
             showEndedScreen(customMessage || 'Anda telah mengakhiri sesi konsultasi.');
         }
     }
 
-    // FIX: Saat kembali ke aplikasi, otomatis coba reconnect jika terputus
     document.addEventListener('visibilitychange', async () => {
         if (document.visibilityState === 'visible') {
             requestWakeLock(); startKeepAlive();
             if (isSessionEnded) return;
             if (peer && peer.disconnected) { peer.reconnect(); }
-            if (!isConnected && !isReconnecting) { 
+            if (!isConnected) { 
                 console.log('Halaman aktif kembali, mencoba reconnect...');
                 reconnectAttempts = 0;
-                reconnect(); 
+                doReconnect(); 
             }
         } else {
-            // Saat pergi ke background, stop heartbeat tapi JANGAN akhiri sesi
             stopHeartbeat();
         }
     });
