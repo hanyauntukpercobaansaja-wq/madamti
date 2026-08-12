@@ -9,12 +9,17 @@
     <style>
         :root { --bg-dark: #0f0518; --bg-panel: #1a0b2e; --primary: #9d00ff; --accent: #ff007f; --text-main: #e0e0e0; --text-dim: #a0a0a0; --bubble-in: #2d1b4e; --bubble-out: #ff007f; --glass: rgba(26, 11, 46, 0.85); --success: #00ff88; --danger: #ff4444; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; outline: none; }
-        html, body { height: 100%; overflow: hidden; font-family: 'Lato', sans-serif; background: radial-gradient(circle at center, #2e004f 0%, #000000 100%); color: var(--text-main); }
+        /* FIX MOBILE: Gunakan dvh untuk tinggi dinamis */
+        html, body { height: 100dvh; overflow: hidden; font-family: 'Lato', sans-serif; background: radial-gradient(circle at center, #2e004f 0%, #000000 100%); color: var(--text-main); }
         h1, h2, h3, .mystic-font { font-family: 'Cinzel', serif; }
         
-        /* Layout */
+        /* Layout Utama */
         .app-container { display: flex; height: 100%; width: 100%; overflow: hidden; }
+        
+        /* Sidebar */
         .sidebar { width: 320px; background: var(--bg-panel); border-right: 1px solid #4b0082; display: flex; flex-direction: column; z-index: 100; box-shadow: 5px 0 20px rgba(0,0,0,0.5); transition: transform 0.3s ease; }
+        
+        /* Area Chat Utama */
         .main-chat { flex: 1; display: flex; flex-direction: column; background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0zMCAzMG0tMiAwYTIgMiAwIDEgMCA0IDBhMiAyIDAgMSAwLTQgMCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIvPjwvc3ZnPg=='); position: relative; width: 100%; min-height: 0; }
         
         /* Header Sidebar */
@@ -35,16 +40,17 @@
         .avatar { width: 40px; height: 40px; background: linear-gradient(45deg, #4b0082, #000); border: 1px solid var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--accent); font-size: 1em; flex-shrink: 0; box-shadow: 0 0 10px rgba(157, 0, 255, 0.3); }
         .patient-info { flex: 1; min-width: 0; }
         .patient-name { font-weight: 600; color: #fff; margin-bottom: 3px; font-family: 'Cinzel', serif; font-size: 0.95em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .session-id { font-size: 0.65em; color: var(--primary); background: rgba(157,0,255,0.2); padding: 1px 4px; border-radius: 4px; display: inline-block; margin-bottom: 2px; }
         .last-msg { font-size: 0.8em; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .badge { background: var(--accent); color: white; border-radius: 10px; padding: 2px 6px; font-size: 0.7em; font-weight: bold; box-shadow: 0 0 5px var(--accent); }
         
-        /* Chat Area */
+        /* Chat Header */
         .chat-header { background: var(--glass); backdrop-filter: blur(10px); padding: 12px; border-bottom: 1px solid rgba(157, 0, 255, 0.3); display: flex; justify-content: space-between; align-items: center; height: 60px; flex-shrink: 0; }
         .chat-header-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
         .back-btn { font-size: 1.5em; background: none; border: none; cursor: pointer; color: var(--accent); padding: 5px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex-shrink: 0; }
         .chat-header-right { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
-        .chat-window { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: transparent; min-height: 0; }
+        
+        /* Chat Window - FIX MOBILE SCROLL */
+        .chat-window { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: transparent; min-height: 0; -webkit-overflow-scrolling: touch; }
         
         /* Messages */
         .message { max-width: 85%; padding: 10px 15px; border-radius: 15px; font-size: 0.9em; line-height: 1.4; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.3); animation: popIn 0.3s ease; word-wrap: break-word; flex-shrink: 0; }
@@ -60,8 +66,8 @@
         .file-info { padding: 6px; display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.5); }
         .download-btn { color: var(--accent); text-decoration: none; font-size: 0.8em; font-weight: 600; }
         
-        /* Input Area */
-        .input-area { background: var(--bg-panel); padding: 10px; display: flex; gap: 8px; align-items: center; border-top: 1px solid rgba(157, 0, 255, 0.3); padding-bottom: max(10px, env(safe-area-inset-bottom)); flex-shrink: 0; width: 100%; }
+        /* Input Area - FIX MOBILE POSITION */
+        .input-area { background: var(--bg-panel); padding: 10px; display: flex; gap: 8px; align-items: center; border-top: 1px solid rgba(157, 0, 255, 0.3); flex-shrink: 0; width: 100%; padding-bottom: max(10px, env(safe-area-inset-bottom)); }
         .input-area input[type="text"] { flex: 1; padding: 10px 15px; border: 1px solid #4b0082; border-radius: 20px; background: #0f0518; color: white; font-size: 14px; transition: 0.3s; min-width: 0; }
         .input-area input[type="text"]:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(255, 0, 127, 0.3); }
         .icon-btn { width: 40px; height: 40px; min-width: 40px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.3em; transition: 0.2s; background: #2d1b4e; color: var(--text-main); box-shadow: 0 2px 5px rgba(0,0,0,0.3); flex-shrink: 0; }
@@ -109,14 +115,16 @@
         .call-action-label { font-size: 0.85em; color: #fff; margin-top: 10px; font-weight: 600; }
         .call-action-wrapper { display: flex; flex-direction: column; align-items: center; }
 
-        /* Responsive */
+        /* Responsive Mobile */
         @media (max-width: 768px) {
             .app-container { flex-direction: column; }
             .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 100%; max-width: 100%; z-index: 200; }
             .sidebar.hidden { transform: translateX(-100%); }
-            .main-chat { width: 100%; }
+            .main-chat { width: 100%; height: 100%; }
             .back-btn { display: flex !important; }
             .btn-finish { width: 100%; margin: 10px 0 0 0; }
+            .chat-header { height: 55px; padding: 10px; }
+            .message { max-width: 90%; font-size: 0.85em; }
         }
         @media (min-width: 769px) { .back-btn { display: none !important; } }
         #file-input, .hidden { display: none !important; }
@@ -175,7 +183,7 @@
         </div>
         <div class="sidebar-tabs">
             <button class="tab-btn active" onclick="switchTab('active')">🟢 Aktif</button>
-            <button class="tab-btn" onclick="switchTab('history')">📜 Riwayat Sesi</button>
+            <button class="tab-btn" onclick="switchTab('history')">📜 Riwayat Chat</button>
         </div>
         <ul id="patient-list" class="patient-list"></ul>
         <ul id="history-list" class="patient-list hidden"></ul>
@@ -226,25 +234,78 @@
     // --- KONFIGURASI & VARIABEL GLOBAL ---
     let peer = null, connections = {}, activePeerId = null, activePeerName = null, currentCall = null, pendingCall = null;
     let localStream = null, unreadCounts = {}, isSpeakerOn = false, currentTab = 'active';
-    let activeSessions = {}; // Menyimpan sesi aktif: { peerId: { conn, name, sessionId } }
+    let activeSessions = {}; 
     let patientNames = {}, ringtonePlaying = false, incomingCallTimeout = null, isRemoteEndingCall = false;
     let pendingFileMeta = null;
-    const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB Optimasi
+    const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB
     const STORAGE_KEY = 'madamTi_id';
-    const HISTORY_KEY = 'madamTi_sessions'; // Ganti key history jadi sessions
+    const DB_NAME = 'MadamTiDB';
+    const DB_VERSION = 1;
     const DEFAULT_QUICK_CHAT = ["Silakan fokus dan tenangkan pikiran Anda. Saya akan mulai menerawang.", "Mohon tunggu sebentar, saya sedang melihat energi Anda...", "Apakah ada hal spesifik yang ingin Anda tanyakan hari ini?"];
+    let db = null;
+
+    // --- INDEXEDDB HELPER (Untuk Simpan Gambar & Chat) ---
+    function initDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+            request.onupgradeneeded = (event) => {
+                const database = event.target.result;
+                if (!database.objectStoreNames.contains('chats')) {
+                    database.createObjectStore('chats', { keyPath: 'id' });
+                }
+            };
+            request.onsuccess = (event) => {
+                db = event.target.result;
+                resolve(db);
+            };
+            request.onerror = (event) => reject('DB Error');
+        });
+    }
+
+    function saveChatToDB(madamId, patientName, messageObj) {
+        if (!db) return;
+        const historyKey = `${madamId}_${patientName}`;
+        const transaction = db.transaction(['chats'], 'readwrite');
+        const store = transaction.objectStore('chats');
+        const getReq = store.get(historyKey);
+        
+        getReq.onsuccess = () => {
+            let data = getReq.result || { id: historyKey, madamId, patientName, messages: [], lastUpdate: new Date().toISOString() };
+            data.messages.push(messageObj);
+            data.lastUpdate = new Date().toISOString();
+            // Batasi pesan per riwayat agar tidak penuh (misal 100 pesan terakhir)
+            if (data.messages.length > 100) data.messages.shift(); 
+            store.put(data);
+            if (currentTab === 'history') renderHistoryList();
+        };
+    }
+
+    function getHistoryFromDB() {
+        return new Promise((resolve) => {
+            if (!db) { resolve([]); return; }
+            const transaction = db.transaction(['chats'], 'readonly');
+            const store = transaction.objectStore('chats');
+            const request = store.getAll();
+            request.onsuccess = () => resolve(request.result || []);
+        });
+    }
+
+    function clearHistoryDB() {
+        if (!db) return;
+        const transaction = db.transaction(['chats'], 'readwrite');
+        const store = transaction.objectStore('chats');
+        store.clear();
+    }
 
     // --- INISIALISASI ---
     if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
     
     function getStoredId() { return localStorage.getItem(STORAGE_KEY); }
     function storeId(id) { localStorage.setItem(STORAGE_KEY, id); }
-    
-    // REQUEST 1: ID 5 DIGIT
     function generateId() { return String(Math.floor(10000 + Math.random() * 90000)); } 
 
     function generateNewId() {
-        if(confirm('⚠️ Buat ID Baru?\n\nID lama tidak akan bisa digunakan lagi.\nPastikan tidak ada pasien yang sedang terhubung.\n\nLanjutkan?')) {
+        if(confirm('⚠️ Buat ID Baru?\n\nID lama tidak akan bisa digunakan lagi.\nRiwayat chat akan tetap tersimpan berdasarkan ID lama.\n\nLanjutkan?')) {
             Object.values(connections).forEach(conn => { conn.send({ type: 'exit', reason: 'madam_changed_id' }); conn.close(); });
             connections = {}; activeSessions = {}; 
             const newId = generateId(); 
@@ -256,25 +317,21 @@
     }
 
     function exitApp() {
-        if(confirm('Yakin ingin keluar dari aplikasi?\n\nSemua sesi konsultasi dengan Anak Madam akan diakhiri secara paksa.')) {
+        if(confirm('Yakin ingin keluar dari aplikasi?')) {
             Object.values(connections).forEach(conn => {
-                try { if(conn.open) conn.send({ type: 'exit', reason: 'madam_exited', message: 'Madam Ti\' telah keluar dari aplikasi.' }); } catch(e) {}
+                try { if(conn.open) conn.send({ type: 'exit', reason: 'madam_exited' }); } catch(e) {}
                 conn.close();
             });
             if(peer) peer.destroy();
-            document.body.innerHTML = `
-                <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; background: radial-gradient(circle at center, #2e004f 0%, #000000 100%); color: white; font-family: 'Lato', sans-serif; text-align: center; padding: 20px;">
-                    <div style="font-size: 4em; margin-bottom: 20px;">🔮</div>
-                    <h1 style="font-family: 'Cinzel', serif; color: #ff007f; margin-bottom: 10px;">Sesi Aplikasi Berakhir</h1>
-                    <p style="color: #a0a0a0; margin-bottom: 30px;">Anda telah keluar dari aplikasi Madam Ti'.<br>Silakan tutup tab/browser ini.</p>
-                    <button onclick="location.reload()" style="padding: 12px 24px; background: #9d00ff; color: white; border: none; border-radius: 20px; font-size: 1em; cursor: pointer;">Masuk Kembali</button>
-                </div>
-            `;
+            document.body.innerHTML = `<div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; background:#000; color:white;"><h1>Sesi Berakhir</h1><button onclick="location.reload()" style="padding:10px; margin-top:20px;">Masuk Kembali</button></div>`;
         }
     }
 
     let adminId = getStoredId();
     if (!adminId) { adminId = generateId(); storeId(adminId); }
+    
+    // Jalankan DB Init
+    initDB();
 
     function startKeepAlive() { const audio = document.getElementById('keep-alive-audio'); if (audio) { audio.volume = 0.01; audio.play().catch(e => {}); } }
     document.body.addEventListener('click', startKeepAlive, { once: true });
@@ -361,14 +418,8 @@
         connections[conn.peer] = conn; unreadCounts[conn.peer] = 0; 
         conn.patientData = { name: 'Menunggu nama...', id: conn.peer };
         
-        // REQUEST 3: GENERATE SESSION ID BARU SETIAP KONEKSI
-        const sessionId = 'SES-' + Date.now().toString().slice(-6) + Math.floor(Math.random()*100);
-        conn.sessionId = sessionId; 
-        
         conn.on('open', () => { 
-            console.log('Koneksi terbuka:', conn.peer, 'Session:', sessionId);
-            // Kirim ID Sesi ke klien agar mereka tahu sesi ini
-            conn.send({ type: 'session_info', sessionId: sessionId });
+            console.log('Koneksi terbuka:', conn.peer);
         });
         
         conn.on('data', (data) => {
@@ -376,32 +427,33 @@
                 if (pendingFileMeta && conn.patientData.name !== 'Menunggu nama...') {
                     const blob = new Blob([data], { type: pendingFileMeta.fileType });
                     const url = URL.createObjectURL(blob);
-                    addFileToWindow({ name: pendingFileMeta.name, fileType: pendingFileMeta.fileType, data: url, size: pendingFileMeta.size }, 'in');
-                    // Simpan ke history berdasarkan Session ID
-                    saveMessageToSession(conn.sessionId, conn.patientData.name, { type: 'file', name: pendingFileMeta.name, fileType: pendingFileMeta.fileType, size: pendingFileMeta.size }, 'in');
-                    conn.lastMessage = '📎 ' + pendingFileMeta.name;
-                    pendingFileMeta = null;
-                    updatePatientList();
+                    
+                    // Konversi Blob ke Base64 untuk disimpan di IndexedDB
+                    const reader = new FileReader();
+                    reader.onloadend = function() {
+                        const base64data = reader.result;
+                        addFileToWindow({ name: pendingFileMeta.name, fileType: pendingFileMeta.fileType, data: url, size: pendingFileMeta.size }, 'in');
+                        // Simpan ke DB dengan Base64
+                        saveChatToDB(adminId, conn.patientData.name, { 
+                            type: 'file', name: pendingFileMeta.name, fileType: pendingFileMeta.fileType, data: base64data, size: pendingFileMeta.size, direction: 'in', timestamp: new Date().toISOString() 
+                        });
+                        conn.lastMessage = '📎 ' + pendingFileMeta.name;
+                        pendingFileMeta = null;
+                        updatePatientList();
+                    }
+                    reader.readAsDataURL(blob);
                 }
                 return;
             }
 
             if (data && data.type === 'file-meta') { pendingFileMeta = data; return; }
             
-            if (data && data.type === 'session_info') { 
-                // Jika klien mengirim session info (resume), kita bisa update sessionId di sini jika perlu
-                // Tapi untuk logika sederhana: Madam yang pegang kendali sesi
-                return; 
-            }
-
             if (data && data.type === 'patientInfo' && data.name) {
                 conn.patientData.name = data.name; patientNames[conn.peer] = data.name;
-                // Update atau buat sesi aktif
                 if (!activeSessions[conn.peer]) {
-                    activeSessions[conn.peer] = { conn: conn, peerId: conn.peer, name: data.name, sessionId: conn.sessionId };
+                    activeSessions[conn.peer] = { conn: conn, peerId: conn.peer, name: data.name };
                 } else {
                     activeSessions[conn.peer].conn = conn;
-                    activeSessions[conn.peer].sessionId = conn.sessionId; // Update session ID jika reconnect
                 }
                 
                 if (activePeerName === data.name) {
@@ -437,8 +489,9 @@
             }
             
             const messageText = getMessageText(data); const messageType = data && data.type ? data.type : 'text';
-            // Simpan ke history berdasarkan Session ID
-            saveMessageToSession(conn.sessionId, conn.patientData.name, { type: messageType, text: messageText, data: data.data, fileType: data.fileType, name: data.name }, 'in');
+            
+            // Simpan ke DB
+            saveChatToDB(adminId, conn.patientData.name, { type: messageType, text: messageText, data: data.data, fileType: data.fileType, name: data.name, direction: 'in', timestamp: new Date().toISOString() });
             
             const senderName = conn.patientData.name || 'Anak Madam'; const preview = messageType === 'file' ? '📎 Mengirim file' : messageText; 
             showNotification(senderName, preview);
@@ -448,7 +501,6 @@
 
         conn.on('close', () => { 
             const pName = conn.patientData ? conn.patientData.name : 'Anak Madam'; 
-            // Jangan hapus dari activeSessions langsung agar bisa reconnect, tapi tandai conn null
             if (activeSessions[conn.peer]) activeSessions[conn.peer].conn = null;
             if (activePeerName === pName) { document.getElementById('current-session-info').innerText = '⚠️ Terputus, menunggu...'; }
             updatePatientList(); 
@@ -461,76 +513,47 @@
 
     function showNotification(title, message) { if ('Notification' in window && Notification.permission === 'granted') { new Notification(title, { body: message || 'Pesan baru', vibrate: [200, 100, 200] }); } const popup = document.getElementById('notification'); document.getElementById('notif-title').innerText = title; document.getElementById('notif-message').innerText = message || 'Pesan baru'; popup.classList.add('show'); setTimeout(() => { popup.classList.remove('show'); }, 3000); popup.onclick = () => { popup.classList.remove('show'); }; }
     
-    // --- REQUEST 3: HISTORY PER SESI ---
-    function getSessions() { const sessions = localStorage.getItem(HISTORY_KEY); return sessions ? JSON.parse(sessions) : []; }
-    
-    function saveMessageToSession(sessionId, patientName, data, direction) { 
-        let sessions = getSessions(); 
-        let sessionIndex = sessions.findIndex(s => s.sessionId === sessionId);
-        
-        if (sessionIndex === -1) {
-            // Buat sesi baru
-            sessions.unshift({ 
-                sessionId: sessionId, 
-                name: patientName, 
-                messages: [], 
-                lastUpdate: new Date().toISOString() 
-            });
-            sessionIndex = 0;
-        }
-        
-        sessions[sessionIndex].name = patientName; // Update nama jika berubah
-        sessions[sessionIndex].lastUpdate = new Date().toISOString(); 
-        sessions[sessionIndex].messages.push({ 
-            type: data.type, text: data.text, data: data.data, fileType: data.fileType, fileName: data.name, direction: direction, timestamp: new Date().toISOString() 
-        }); 
-        
-        if (sessions[sessionIndex].messages.length > 100) sessions[sessionIndex].messages.shift(); 
-        
-        // Batasi total sesi yang disimpan (misal 50 sesi terakhir)
-        if (sessions.length > 50) sessions.pop();
-        
-        localStorage.setItem(HISTORY_KEY, JSON.stringify(sessions)); 
-        if (currentTab === 'history') renderHistoryList(); 
-    } 
-    
-    function renderHistoryList() { 
+    // --- HISTORY FUNCTIONS ---
+    async function renderHistoryList() { 
         const listEl = document.getElementById('history-list'); listEl.innerHTML = ''; 
-        const sessions = getSessions(); 
-        if (sessions.length === 0) { listEl.innerHTML = '<li style="padding:20px; text-align:center; color:#666;">Belum ada riwayat sesi</li>'; return; } 
+        const sessions = await getHistoryFromDB();
+        // Filter hanya yang sesuai ID Madam saat ini (opsional, tapi bagus untuk kerapian)
+        // Atau tampilkan semua riwayat dari ID manapun. Di sini kita tampilkan semua.
+        sessions.sort((a, b) => new Date(b.lastUpdate) - new Date(a.lastUpdate));
+        
+        if (sessions.length === 0) { listEl.innerHTML = '<li style="padding:20px; text-align:center; color:#666;">Belum ada riwayat chat</li>'; return; } 
         sessions.forEach(session => { 
             const li = document.createElement('li'); li.className = 'patient-item'; 
-            li.onclick = () => loadSessionChat(session.sessionId); 
-            const lastMsg = session.messages.length > 0 ? (session.messages[session.messages.length - 1].type === 'file' ? '📎 ' + session.messages[session.messages.length - 1].fileName : session.messages[session.messages.length - 1].text) : 'Tidak ada pesan'; 
+            li.onclick = () => loadHistoryChat(session); 
+            const lastMsg = session.messages.length > 0 ? (session.messages[session.messages.length - 1].type === 'file' ? '📎 ' + session.messages[session.messages.length - 1].name : session.messages[session.messages.length - 1].text) : 'Tidak ada pesan'; 
             const date = new Date(session.lastUpdate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit' }); 
-            li.innerHTML = `<div class="avatar">🔮</div><div class="patient-info"><div class="patient-name">${session.name}</div><div class="session-id">ID: ${session.sessionId}</div><div class="last-msg">${lastMsg}</div><div class="history-date">📅 ${date}</div></div>`; 
+            li.innerHTML = `<div class="avatar">🔮</div><div class="patient-info"><div class="patient-name">${session.patientName}</div><div class="last-msg">${lastMsg}</div><div class="history-date" style="color:var(--primary)">🆔 Madam ID: ${session.madamId}</div><div class="history-date">📅 ${date}</div></div>`; 
             listEl.appendChild(li); 
         }); 
     } 
     
-    function loadSessionChat(sessionId) { 
-        const sessions = getSessions(); 
-        const session = sessions.find(s => s.sessionId === sessionId); 
-        if (!session) return; 
-        
-        // Untuk riwayat, kita tidak perlu peerId aktif, hanya tampilkan data
-        activePeerId = 'history_' + sessionId; 
+    async function loadHistoryChat(session) { 
+        activePeerId = 'history_' + session.id; 
         document.getElementById('empty-state').classList.add('hidden'); 
         document.getElementById('chat-interface').classList.remove('hidden'); 
         document.getElementById('chat-interface').style.display = 'flex'; 
-        document.getElementById('current-patient-name').innerText = session.name; 
-        document.getElementById('current-session-info').innerText = '📜 Riwayat Sesi: ' + session.sessionId; 
+        document.getElementById('current-patient-name').innerText = session.patientName; 
+        document.getElementById('current-session-info').innerText = '📜 Riwayat (ID: ' + session.madamId + ')'; 
         document.getElementById('chat-window').innerHTML = ''; 
         if(window.innerWidth <= 768) document.getElementById('sidebar').classList.add('hidden'); 
         
         session.messages.forEach(msg => { 
-            if (msg.type === 'file') addFileToWindow({ type: 'file', data: msg.data, fileType: msg.fileType, name: msg.fileName, size: msg.size }, msg.direction); 
-            else addMessageToWindow(msg.text, msg.direction); 
+            if (msg.type === 'file') {
+                // Render file dari Base64
+                addFileToWindow({ type: 'file', data: msg.data, fileType: msg.fileType, name: msg.name, size: msg.size }, msg.direction); 
+            } else {
+                addMessageToWindow(msg.text, msg.direction); 
+            }
         }); 
-        addSystemMessage('--- Riwayat Sesi ' + session.sessionId + ' dengan ' + session.name + ' ---'); 
+        addSystemMessage('--- Riwayat Chat dengan ' + session.patientName + ' ---'); 
     } 
     
-    function clearHistory() { if(confirm('Yakin ingin menghapus semua riwayat sesi?')) { localStorage.removeItem(HISTORY_KEY); renderHistoryList(); alert('Riwayat dihapus.'); } }
+    function clearHistory() { if(confirm('Yakin ingin menghapus semua riwayat chat?')) { clearHistoryDB(); renderHistoryList(); alert('Riwayat dihapus.'); } }
     
     function switchTab(tab) { currentTab = tab; document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active')); event.target.classList.add('active'); if (tab === 'active') { document.getElementById('patient-list').classList.remove('hidden'); document.getElementById('history-list').classList.add('hidden'); updatePatientList(); } else { document.getElementById('patient-list').classList.add('hidden'); document.getElementById('history-list').classList.remove('hidden'); renderHistoryList(); } }
     
@@ -565,7 +588,10 @@
                 conn.send(arrayBuffer); 
                 const blob = new Blob([arrayBuffer], { type: file.type }); const url = URL.createObjectURL(blob);
                 addFileToWindow({ name: file.name, fileType: file.type, data: url, size: file.size }, 'out'); 
-                saveMessageToSession(conn.sessionId, conn.patientData.name, { type: 'file', name: file.name, fileType: file.type, size: file.size }, 'out');
+                
+                // Simpan Base64 ke DB
+                saveChatToDB(adminId, conn.patientData.name, { type: 'file', name: file.name, fileType: file.type, data: e.target.result, size: file.size, direction: 'out', timestamp: new Date().toISOString() });
+                
                 conn.lastMessage = '📎 ' + file.name; updatePatientList(); 
             } 
             statusDiv.remove(); event.target.value = ''; 
@@ -573,10 +599,9 @@
         reader.readAsArrayBuffer(file);
     }
 
-    function sendMessage() { if(!activePeerName || !activeSessions[activePeerId]?.conn) return; const input = document.getElementById('msg-input'); const msg = input.value.trim(); if(msg) { const conn = activeSessions[activePeerId].conn; conn.send({ type: 'text', text: msg }); saveMessageToSession(conn.sessionId, conn.patientData.name, { type: 'text', text: msg }, 'out'); addMessageToWindow(msg, 'out'); conn.lastMessage = msg; input.value = ''; updatePatientList(); } }
+    function sendMessage() { if(!activePeerName || !activeSessions[activePeerId]?.conn) return; const input = document.getElementById('msg-input'); const msg = input.value.trim(); if(msg) { const conn = activeSessions[activePeerId].conn; conn.send({ type: 'text', text: msg }); saveChatToDB(adminId, conn.patientData.name, { type: 'text', text: msg, direction: 'out', timestamp: new Date().toISOString() }); addMessageToWindow(msg, 'out'); conn.lastMessage = msg; input.value = ''; updatePatientList(); } }
     function handleEnter(e) { if(e.key === 'Enter') sendMessage(); }
     
-    // OPTIMASI: Gunakan textContent untuk mencegah XSS
     function addMessageToWindow(text, type) { 
         const div = document.createElement('div'); div.className = 'message msg-' + type; 
         const textSpan = document.createElement('span'); textSpan.textContent = text;
@@ -609,7 +634,7 @@
             li.className = 'patient-item ' + (activePeerId === session.peerId ? 'active' : '') + (!isConnected ? ' disconnected' : ''); 
             li.onclick = () => selectPatient(session.peerId); 
             const badgeCount = unreadCounts[session.peerId] || 0; 
-            li.innerHTML = `<div class="avatar">🔮</div><div class="patient-info"><div class="patient-name">${session.name} ${!isConnected ? '⚠️' : ''}</div><div class="session-id">ID: ${session.sessionId}</div><div class="last-msg">${session.conn?.lastMessage || 'Menunggu...'}</div></div>${badgeCount > 0 ? '<span class="badge">' + badgeCount + '</span>' : ''}`; 
+            li.innerHTML = `<div class="avatar">🔮</div><div class="patient-info"><div class="patient-name">${session.name} ${!isConnected ? '⚠️' : ''}</div><div class="last-msg">${session.conn?.lastMessage || 'Menunggu...'}</div></div>${badgeCount > 0 ? '<span class="badge">' + badgeCount + '</span>' : ''}`; 
             listEl.appendChild(li); 
         }); 
     }
@@ -619,18 +644,19 @@
         activePeerId = pid; activePeerName = session.name; unreadCounts[pid] = 0; 
         document.getElementById('empty-state').classList.add('hidden'); document.getElementById('chat-interface').classList.remove('hidden'); document.getElementById('chat-interface').style.display = 'flex'; 
         document.getElementById('current-patient-name').innerText = session.name; 
-        document.getElementById('current-session-info').innerText = session.conn ? '● Tersambung (Sesi: ' + session.sessionId + ')' : '⚠️ Terputus, menunggu...'; 
+        document.getElementById('current-session-info').innerText = session.conn ? '● Tersambung' : '⚠️ Terputus, menunggu...'; 
         document.getElementById('chat-window').innerHTML = ''; 
         if(window.innerWidth <= 768) document.getElementById('sidebar').classList.add('hidden'); 
         
-        // Load history sesi ini jika ada
-        const sessions = getSessions();
-        const histSession = sessions.find(s => s.sessionId === session.sessionId);
-        if (histSession) { 
-            addSystemMessage('📜 Memuat riwayat sesi...'); 
-            histSession.messages.forEach(msg => { if (msg.type === 'file') addFileToWindow({ type: 'file', data: msg.data, fileType: msg.fileType, name: msg.fileName, size: msg.size }, msg.direction); else addMessageToWindow(msg.text, msg.direction); }); 
-        } 
-        addSystemMessage('Sesi dengan ' + session.name + (session.conn ? ' Dimulai/Dilanjutkan' : ' (Menunggu koneksi...)')); 
+        // Load history dari DB berdasarkan ID Madam + Nama Pasien
+        getHistoryFromDB().then(sessions => {
+            const histSession = sessions.find(s => s.madamId === adminId && s.patientName === session.name);
+            if (histSession) { 
+                addSystemMessage('📜 Memuat riwayat chat...'); 
+                histSession.messages.forEach(msg => { if (msg.type === 'file') addFileToWindow({ type: 'file', data: msg.data, fileType: msg.fileType, name: msg.name, size: msg.size }, msg.direction); else addMessageToWindow(msg.text, msg.direction); }); 
+            } 
+            addSystemMessage('Sesi dengan ' + session.name + (session.conn ? ' Dimulai/Dilanjutkan' : ' (Menunggu koneksi...)')); 
+        });
         updatePatientList(); 
     }
 
@@ -675,7 +701,7 @@
         const session = activeSessions[activePeerId]; 
         if (session && session.conn && session.conn.open) { 
             session.conn.send({ type: 'text', text: msg }); 
-            saveMessageToSession(session.conn.sessionId, session.name, { type: 'text', text: msg }, 'out'); 
+            saveChatToDB(adminId, session.name, { type: 'text', text: msg, direction: 'out', timestamp: new Date().toISOString() }); 
             addMessageToWindow(msg, 'out'); 
             session.conn.lastMessage = msg; 
             updatePatientList(); 

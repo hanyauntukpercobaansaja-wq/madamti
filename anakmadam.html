@@ -9,13 +9,14 @@
     <style>
         :root { --bg-dark: #0f0518; --primary: #9d00ff; --accent: #ff007f; --bubble-in: #2d1b4e; --bubble-out: #ff007f; --text-dim: #a0a0a0; --glass: rgba(26, 11, 46, 0.85); --success: #00ff88; --danger: #ff4444; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; outline: none; }
-        html, body { height: 100%; width: 100%; overflow: hidden; font-family: 'Lato', sans-serif; background: radial-gradient(circle at center, #2e004f 0%, #000000 100%); color: #e0e0e0; display: flex; flex-direction: column; }
+        /* FIX MOBILE: Gunakan dvh */
+        html, body { height: 100dvh; width: 100%; overflow: hidden; font-family: 'Lato', sans-serif; background: radial-gradient(circle at center, #2e004f 0%, #000000 100%); color: #e0e0e0; display: flex; flex-direction: column; }
         h1, h2 { font-family: 'Cinzel', serif; }
         
         .header { background: linear-gradient(135deg, #4b0082, #000); color: white; padding: 12px; border-bottom: 2px solid var(--accent); flex-shrink: 0; padding-top: max(12px, env(safe-area-inset-top)); display: flex; flex-direction: column; gap: 10px; }
         .header-top { display: flex; justify-content: space-between; align-items: center; }
         .header h2 { font-size: 1.1em; text-shadow: 0 0 10px var(--primary); }
-        .header .patient-info { font-size: 0.75em; color: #00ff88; margin-top: 5px; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .header .patient-info { font-size: 0.75em; color: #00ff88; margin-top: 5px; display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; }
         .header .connection-status { font-size: 0.7em; padding: 3px 10px; border-radius: 10px; background: rgba(0, 255, 136, 0.2); }
         .header .connection-status.disconnected { background: rgba(255, 165, 0, 0.3); color: #ffa500; }
         .btn-exit-header { background: #500000; color: #ff4444; border: 1px solid #ff4444; padding: 8px 15px; border-radius: 20px; font-size: 0.8em; font-weight: 600; cursor: pointer; flex-shrink: 0; }
@@ -31,6 +32,7 @@
         .status { text-align: center; padding-top: 15px; color: var(--primary); font-size: 0.85em; font-family: 'Cinzel'; }
         
         #chat-area { display: none; flex: 1; flex-direction: column; min-height: 0; overflow: hidden; }
+        /* FIX MOBILE SCROLL */
         #chat-box { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 15px; display: flex; flex-direction: column; gap: 10px; min-height: 0; -webkit-overflow-scrolling: touch; }
         .msg { padding: 10px 15px; border-radius: 18px; max-width: 80%; font-size: 0.95em; box-shadow: 0 2px 5px rgba(0,0,0,0.3); line-height: 1.4; word-wrap: break-word; flex-shrink: 0; }
         .msg-in { background: var(--bubble-in); color: white; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid rgba(157, 0, 255, 0.2); }
@@ -178,7 +180,6 @@
     let callTimeout = null, incomingCallTimeout = null, ringtonePlaying = false, isSessionEnded = false;
     let pendingFileMeta = null;
     let chatHistory = [];
-    let currentSessionId = null; // REQUEST 3: Simpan ID Sesi
     const MAX_FILE_SIZE = 1 * 1024 * 1024, MAX_RECONNECT = 50;
     const HISTORY_KEY = 'anakMadam_chatHistory';
 
@@ -234,9 +235,9 @@
         document.getElementById('display-patient-name').innerText = '👤 ' + patientName;
         document.getElementById('exit-btn').style.display = 'block';
         
-        // Tampilkan ID Sesi jika ada
-        const sessionDisplay = currentSessionId ? `Sesi: ${currentSessionId}` : 'Terhubung';
-        document.getElementById('connection-status').innerText = sessionDisplay;
+        // Tampilkan ID Madam yang dihubungi
+        const statusText = adminId ? `Terhubung ke ID: ${adminId}` : 'Terhubung';
+        document.getElementById('connection-status').innerText = statusText;
 
         if (chatHistory.length > 0) {
             renderChatHistory();
@@ -294,14 +295,6 @@
             if (data && data.type === 'file-meta') { pendingFileMeta = data; return; }
             if (data && data.type === 'heartbeat') return;
             
-            // REQUEST 3: TERIMA SESSION ID DARI MADAM
-            if (data && data.type === 'session_info') {
-                currentSessionId = data.sessionId;
-                const sessionDisplay = currentSessionId ? `Sesi: ${currentSessionId}` : 'Terhubung';
-                document.getElementById('connection-status').innerText = sessionDisplay;
-                return;
-            }
-
             if (data && data.type === 'call_rejected') { handleCallRejected(); addSystemBubble('📴 Panggilan dibatalkan oleh Madam Ti'); return; }
             if (data && data.type === 'end_call') { isRemoteEndingCall = true; handleCallRejected(); addSystemBubble('📴 Panggilan diakhiri oleh Madam Ti'); isRemoteEndingCall = false; return; }
             
@@ -423,7 +416,6 @@
         patientName = document.getElementById('patientName').value.trim();
         if(!patientName) { alert('Masukkan nama Anda!'); return; }
         if(!adminId) { alert('Masukkan ID Madam Ti\' (5 digit)!'); return; }
-        // REQUEST 1: VALIDASI 5 DIGIT
         if(adminId.length !== 5 || !/^\d+$/.test(adminId)) { alert('ID harus 5 digit angka!'); return; }
 
         const btn = document.getElementById('btn-connect');
