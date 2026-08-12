@@ -9,7 +9,6 @@
     <style>
         :root { --bg-dark: #0f0518; --primary: #9d00ff; --accent: #ff007f; --bubble-in: #2d1b4e; --bubble-out: #ff007f; --text-dim: #a0a0a0; --glass: rgba(26, 11, 46, 0.85); --success: #00ff88; --danger: #ff4444; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; outline: none; }
-        /* FIX MOBILE: Gunakan dvh */
         html, body { height: 100dvh; width: 100%; overflow: hidden; font-family: 'Lato', sans-serif; background: radial-gradient(circle at center, #2e004f 0%, #000000 100%); color: #e0e0e0; display: flex; flex-direction: column; }
         h1, h2 { font-family: 'Cinzel', serif; }
         
@@ -20,6 +19,7 @@
         .header .connection-status { font-size: 0.7em; padding: 3px 10px; border-radius: 10px; background: rgba(0, 255, 136, 0.2); }
         .header .connection-status.disconnected { background: rgba(255, 165, 0, 0.3); color: #ffa500; }
         .btn-exit-header { background: #500000; color: #ff4444; border: 1px solid #ff4444; padding: 8px 15px; border-radius: 20px; font-size: 0.8em; font-weight: 600; cursor: pointer; flex-shrink: 0; }
+        .btn-history-header { background: #4b0082; color: #ffd700; border: 1px solid #ffd700; padding: 8px 15px; border-radius: 20px; font-size: 0.8em; font-weight: 600; cursor: pointer; flex-shrink: 0; }
         
         #login-container { flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px; min-height: 0; }
         .card { background: rgba(26, 11, 46, 0.9); width: 100%; max-width: 350px; padding: 25px; border-radius: 15px; box-shadow: 0 0 20px rgba(157, 0, 255, 0.2); border: 1px solid rgba(157, 0, 255, 0.3); }
@@ -32,7 +32,6 @@
         .status { text-align: center; padding-top: 15px; color: var(--primary); font-size: 0.85em; font-family: 'Cinzel'; }
         
         #chat-area { display: none; flex: 1; flex-direction: column; min-height: 0; overflow: hidden; }
-        /* FIX MOBILE SCROLL */
         #chat-box { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 15px; display: flex; flex-direction: column; gap: 10px; min-height: 0; -webkit-overflow-scrolling: touch; }
         .msg { padding: 10px 15px; border-radius: 18px; max-width: 80%; font-size: 0.95em; box-shadow: 0 2px 5px rgba(0,0,0,0.3); line-height: 1.4; word-wrap: break-word; flex-shrink: 0; }
         .msg-in { background: var(--bubble-in); color: white; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid rgba(157, 0, 255, 0.2); }
@@ -77,6 +76,20 @@
         .btn-reject { background: #500000; color: #ff4444; border: 2px solid #ff4444; }
         .call-action-label { font-size: 0.75em; color: #fff; margin-top: 8px; font-family: 'Lato', sans-serif; }
         .call-action-wrapper { display: flex; flex-direction: column; align-items: center; }
+
+        /* HISTORY MODAL - LENGKAP */
+        .history-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 1500; display: none; justify-content: center; align-items: center; padding: 20px; }
+        .history-overlay.show { display: flex; }
+        .history-modal { background: var(--bg-dark); border: 1px solid var(--primary); border-radius: 15px; padding: 20px; width: 90%; max-width: 400px; max-height: 80vh; display: flex; flex-direction: column; }
+        .history-modal h3 { color: var(--accent); text-align: center; margin-bottom: 15px; font-family: 'Cinzel', serif; }
+        .history-list { list-style: none; padding: 0; margin: 0; flex: 1; overflow-y: auto; }
+        .history-item { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 10px; cursor: pointer; border: 1px solid transparent; transition: 0.3s; }
+        .history-item:hover { border-color: var(--accent); background: rgba(255,255,255,0.1); }
+        .history-item h4 { color: var(--accent); margin: 0 0 5px 0; font-size: 1em; }
+        .history-item p { color: #aaa; font-size: 0.8em; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .history-item .history-date { color: #666; font-size: 0.7em; margin-top: 5px; }
+        .history-close { margin-top: 15px; padding: 10px; background: #4b0082; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .history-close:active { transform: scale(0.95); }
         
         @media (max-width: 768px) {
             .file-attachment img { max-height: 200px; }
@@ -120,13 +133,25 @@
     </div>
 </div>
 
+<!-- HISTORY MODAL -->
+<div class="history-overlay" id="history-overlay">
+    <div class="history-modal">
+        <h3>📜 Riwayat Chat</h3>
+        <ul id="history-list-ul" class="history-list"></ul>
+        <button class="history-close" onclick="toggleHistory()">Tutup</button>
+    </div>
+</div>
+
 <div class="header" id="main-header">
     <div class="header-top">
         <h2> Konsultasi Madam Ti'</h2>
-        <button class="btn-exit-header" onclick="exitSession()" id="exit-btn" style="display: none;">🚪 Akhiri Sesi</button>
+        <div style="display:flex; gap:5px;">
+            <button class="btn-history-header" onclick="toggleHistory()" id="history-btn" style="display: none;">📜 Riwayat</button>
+            <button class="btn-exit-header" onclick="exitSession()" id="exit-btn" style="display: none;">🚪 Akhiri</button>
+        </div>
     </div>
     <div class="patient-info" id="patient-info" style="display: none;">
-        <span id="display-patient-name">👤 Nama Pasien</span>
+        <span id="display-patient-name">👤 Nama Anda</span>
         <span class="connection-status" id="connection-status">● Tersambung</span>
     </div>
 </div>
@@ -179,11 +204,80 @@
     let heartbeatInterval = null, reconnectAttempts = 0, isConnected = false;
     let callTimeout = null, incomingCallTimeout = null, ringtonePlaying = false, isSessionEnded = false;
     let pendingFileMeta = null;
-    let chatHistory = [];
     const MAX_FILE_SIZE = 1 * 1024 * 1024, MAX_RECONNECT = 50;
-    const HISTORY_KEY = 'anakMadam_chatHistory';
+    
+    // === INDEXEDDB SETUP (SAMA SEPERTI MADAMTI) ===
+    const DB_NAME = 'MadamTiClientDB';
+    const DB_VERSION = 1;
+    let db = null;
 
+    function initDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+            request.onupgradeneeded = (event) => {
+                const database = event.target.result;
+                if (!database.objectStoreNames.contains('chats')) {
+                    database.createObjectStore('chats', { keyPath: 'id' });
+                }
+            };
+            request.onsuccess = (event) => {
+                db = event.target.result;
+                console.log('✅ Database siap');
+                resolve(db);
+            };
+            request.onerror = (event) => {
+                console.error('❌ DB Error:', event);
+                reject('DB Error');
+            };
+        });
+    }
+
+    // Simpan chat ke IndexedDB
+    function saveChatToDB(madamId, pName, messageObj) {
+        if (!db) return;
+        const historyKey = `${madamId}_${pName}`;
+        const transaction = db.transaction(['chats'], 'readwrite');
+        const store = transaction.objectStore('chats');
+        const getReq = store.get(historyKey);
+        
+        getReq.onsuccess = () => {
+            let data = getReq.result || { id: historyKey, madamId, patientName: pName, messages: [], lastUpdate: new Date().toISOString() };
+            data.messages.push(messageObj);
+            data.lastUpdate = new Date().toISOString();
+            // Batasi 100 pesan terakhir per sesi
+            if (data.messages.length > 100) data.messages.shift(); 
+            store.put(data);
+            console.log('💾 Chat disimpan ke DB:', historyKey);
+        };
+    }
+
+    // Ambil semua history dari DB
+    function getHistoryFromDB(currentMadamId) {
+        return new Promise((resolve) => {
+            if (!db) { resolve([]); return; }
+            const transaction = db.transaction(['chats'], 'readonly');
+            const store = transaction.objectStore('chats');
+            const request = store.getAll();
+            request.onsuccess = () => {
+                const allHistory = request.result || [];
+                // Filter hanya history untuk Madam ID yang sedang diakses
+                const filtered = allHistory.filter(h => h.madamId === currentMadamId);
+                resolve(filtered);
+            };
+        });
+    }
+    
+    // Hapus semua history
+    function clearHistoryDB() {
+        if (!db) return;
+        const transaction = db.transaction(['chats'], 'readwrite');
+        const store = transaction.objectStore('chats');
+        store.clear();
+    }
+
+    // === INISIALISASI ===
     if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+    initDB();
 
     const iceConfig = {
         iceServers: [
@@ -201,14 +295,82 @@
     document.body.addEventListener('click', startKeepAlive, { once: true });
     document.body.addEventListener('touchstart', startKeepAlive, { once: true });
 
-    function saveChatHistory() {
-        try { localStorage.setItem(HISTORY_KEY, JSON.stringify(chatHistory.slice(-200))); } catch(e) {}
+    // === FUNGSI HISTORY UI ===
+    async function toggleHistory() {
+        const overlay = document.getElementById('history-overlay');
+        const listUl = document.getElementById('history-list-ul');
+        
+        if (overlay.classList.contains('show')) {
+            overlay.classList.remove('show');
+        } else {
+            overlay.classList.add('show');
+            listUl.innerHTML = '<li style="text-align:center; color:#aaa; padding:20px;">⏳ Memuat riwayat...</li>';
+            
+            const history = await getHistoryFromDB(adminId);
+            listUl.innerHTML = '';
+            
+            if (history.length === 0) {
+                listUl.innerHTML = '<li style="text-align:center; color:#666; padding:20px;">📭 Belum ada riwayat chat dengan Madam ini.</li>';
+            } else {
+                // Urutkan dari yang terbaru
+                history.sort((a, b) => new Date(b.lastUpdate) - new Date(a.lastUpdate));
+                
+                history.forEach(session => {
+                    const li = document.createElement('li');
+                    li.className = 'history-item';
+                    const lastMsg = session.messages.length > 0 
+                        ? (session.messages[session.messages.length - 1].type === 'file' 
+                            ? '📎 Mengirim file' 
+                            : session.messages[session.messages.length - 1].text) 
+                        : 'Mulai chat';
+                    const date = new Date(session.lastUpdate).toLocaleDateString('id-ID', { 
+                        day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute:'2-digit' 
+                    });
+                    li.innerHTML = `
+                        <h4>👤 ${session.patientName}</h4>
+                        <p>${lastMsg.substring(0, 50)}${lastMsg.length > 50 ? '...' : ''}</p>
+                        <div class="history-date">📅 ${date}</div>
+                    `;
+                    li.onclick = () => loadHistorySession(session);
+                    listUl.appendChild(li);
+                });
+            }
+        }
     }
-    function loadChatHistory() {
-        try { const s = localStorage.getItem(HISTORY_KEY); return s ? JSON.parse(s) : []; } catch(e) { return []; }
+
+    function loadHistorySession(session) {
+        document.getElementById('history-overlay').classList.remove('show');
+        
+        // Tampilkan chat di box
+        const box = document.getElementById('chat-box');
+        box.innerHTML = '';
+        
+        session.messages.forEach(msg => {
+            if (msg.type === 'file') {
+                addFileToBox(msg, msg.direction);
+            } else {
+                const div = document.createElement('div'); 
+                div.className = 'msg msg-' + msg.direction;
+                if (msg.direction === 'in') {
+                    const label = document.createElement('b'); 
+                    label.style.color = 'var(--accent)'; 
+                    label.style.fontSize = '0.8em'; 
+                    label.textContent = "Madam Ti'";
+                    const content = document.createElement('div'); 
+                    content.textContent = msg.text;
+                    div.appendChild(label); 
+                    div.appendChild(document.createElement('br')); 
+                    div.appendChild(content);
+                } else {
+                    div.textContent = msg.text;
+                }
+                box.appendChild(div);
+            }
+        });
+        
+        addSystemBubble('📜 Membuka riwayat chat tanggal ' + new Date(session.lastUpdate).toLocaleDateString('id-ID'));
+        box.scrollTop = box.scrollHeight;
     }
-    function clearChatHistory() { localStorage.removeItem(HISTORY_KEY); chatHistory = []; }
-    function addToHistory(msg) { chatHistory.push(msg); saveChatHistory(); }
 
     function startHeartbeat() {
         if (heartbeatInterval) clearInterval(heartbeatInterval);
@@ -227,21 +389,25 @@
         document.getElementById('connection-status').classList.remove('disconnected');
     }
 
-    function goToChatArea() {
+    async function goToChatArea() {
         console.log('➡️ Pindah ke chat area');
         document.getElementById('login-container').style.display = 'none';
         document.getElementById('chat-area').style.display = 'flex';
         document.getElementById('patient-info').style.display = 'flex';
         document.getElementById('display-patient-name').innerText = '👤 ' + patientName;
         document.getElementById('exit-btn').style.display = 'block';
+        document.getElementById('history-btn').style.display = 'block';
         
-        // Tampilkan ID Madam yang dihubungi
         const statusText = adminId ? `Terhubung ke ID: ${adminId}` : 'Terhubung';
         document.getElementById('connection-status').innerText = statusText;
 
-        if (chatHistory.length > 0) {
-            renderChatHistory();
-            addSystemBubble('✅ Koneksi dipulihkan. Sesi dilanjutkan.');
+        // Load history from DB automatically saat connect
+        const sessions = await getHistoryFromDB(adminId);
+        const session = sessions.find(s => s.patientName === patientName);
+        
+        if (session && session.messages.length > 0) {
+            loadHistorySession(session);
+            addSystemBubble('✅ Riwayat chat dengan Madam Ti\' dimuat.');
         } else {
             addSystemBubble('✅ Anda tersambung. Silakan mulai konsultasi.');
         }
@@ -288,7 +454,10 @@
                     const blob = new Blob([data], { type: pendingFileMeta.fileType });
                     const url = URL.createObjectURL(blob);
                     const fileMsg = { type: 'file', name: pendingFileMeta.name, fileType: pendingFileMeta.fileType, data: url, size: pendingFileMeta.size, direction: 'in', timestamp: new Date().toISOString() };
-                    addFileToBox(fileMsg, 'in'); addToHistory(fileMsg); pendingFileMeta = null;
+                    addFileToBox(fileMsg, 'in');
+                    // Simpan ke IndexedDB
+                    saveChatToDB(adminId, patientName, fileMsg);
+                    pendingFileMeta = null;
                 }
                 return;
             }
@@ -300,7 +469,7 @@
             
             if (data && data.type === 'exit') {
                 const message = data.message || 'Madam Ti\' telah mengakhiri sesi konsultasi';
-                addSystemBubble('❌ ' + message); isSessionEnded = true; clearChatHistory();
+                addSystemBubble('❌ ' + message); isSessionEnded = true;
                 hideAllUI();
                 document.getElementById('ended-screen').style.display = 'flex';
                 document.getElementById('end-message').innerText = message;
@@ -310,19 +479,19 @@
             const box = document.getElementById('chat-box');
             if (data && data.type === 'file') { 
                 const fileMsg = { type: 'file', name: data.name, fileType: data.fileType, data: data.data, size: data.size, direction: 'in', timestamp: new Date().toISOString() };
-                addFileToBox(fileMsg, 'in'); addToHistory(fileMsg);
+                addFileToBox(fileMsg, 'in');
+                saveChatToDB(adminId, patientName, fileMsg);
             } else {
                 const messageText = getMessageText(data);
                 const textMsg = { type: 'text', text: messageText, direction: 'in', timestamp: new Date().toISOString() };
                 
-                // OPTIMASI: Gunakan textContent untuk keamanan
                 const div = document.createElement('div'); div.className = 'msg msg-in';
                 const label = document.createElement('b'); label.style.color = 'var(--accent)'; label.style.fontSize = '0.8em'; label.textContent = "Madam Ti'";
                 const content = document.createElement('div'); content.textContent = messageText;
                 div.appendChild(label); div.appendChild(document.createElement('br')); div.appendChild(content);
                 
                 box.appendChild(div); box.scrollTop = box.scrollHeight;
-                addToHistory(textMsg);
+                saveChatToDB(adminId, patientName, textMsg);
                 showNotification('Madam Ti\'', messageText);
             }
             if(navigator.vibrate) navigator.vibrate(100);
@@ -335,6 +504,7 @@
             console.log('🔌 Connection closed');
             stopHeartbeat(); isConnected = false;
             document.getElementById('exit-btn').style.display = 'none';
+            document.getElementById('history-btn').style.display = 'none';
             showDisconnectedBanner();
             addSystemBubble('⚠️ Sinyal terputus. Mencoba menyambung ulang...');
             if (reconnectAttempts < MAX_RECONNECT) { reconnectAttempts++; setTimeout(() => doReconnect(), 3000); } 
@@ -392,69 +562,6 @@
         stopRingtone();
     }
 
-    function renderChatHistory() {
-        const box = document.getElementById('chat-box'); box.innerHTML = '';
-        chatHistory.forEach(msg => {
-            if (msg.type === 'file') addFileToBox(msg, msg.direction); 
-            else if (msg.type === 'text') {
-                const div = document.createElement('div'); div.className = 'msg msg-' + msg.direction;
-                if (msg.direction === 'in') {
-                    const label = document.createElement('b'); label.style.color = 'var(--accent)'; label.style.fontSize = '0.8em'; label.textContent = "Madam Ti'";
-                    const content = document.createElement('div'); content.textContent = msg.text;
-                    div.appendChild(label); div.appendChild(document.createElement('br')); div.appendChild(content);
-                } else {
-                    div.textContent = msg.text;
-                }
-                box.appendChild(div);
-            }
-        });
-        box.scrollTop = box.scrollHeight;
-    }
-
-    function connect() {
-        adminId = document.getElementById('adminId').value.trim();
-        patientName = document.getElementById('patientName').value.trim();
-        if(!patientName) { alert('Masukkan nama Anda!'); return; }
-        if(!adminId) { alert('Masukkan ID Madam Ti\' (5 digit)!'); return; }
-        if(adminId.length !== 5 || !/^\d+$/.test(adminId)) { alert('ID harus 5 digit angka!'); return; }
-
-        const btn = document.getElementById('btn-connect');
-        const statusEl = document.getElementById('status');
-        btn.disabled = true; btn.innerText = 'Menghubungkan...'; statusEl.innerText = 'Menghubungkan...';
-        
-        chatHistory = loadChatHistory();
-        reconnectAttempts = 0; isConnected = false;
-        
-        setTimeout(() => {
-            if (!isConnected && !isSessionEnded) {
-                btn.disabled = false; btn.innerText = 'Hubungkan Energi'; statusEl.innerText = 'Gagal terhubung. Coba lagi.';
-                alert('⏰ Waktu habis! Tidak bisa terhubung ke Madam Ti.\n\nPastikan:\n1. ID Madam Ti benar (5 digit)\n2. Madam Ti sedang online\n3. Koneksi internet stabil');
-                if (peer) { try { peer.destroy(); } catch(e){} peer = null; }
-            }
-        }, 15000);
-        
-        peer = new Peer({ debug: 1, config: iceConfig });
-        peer.on('open', (id) => {
-            console.log('✅ Peer terbuka:', id);
-            statusEl.innerText = 'Mencari Madam Ti...';
-            conn = peer.connect(adminId, { reliable: true });
-            setupConnectionHandlers(); setupPeerCallHandler();
-        });
-        peer.on('error', (err) => {
-            console.log('❌ Peer error:', err.type);
-            btn.disabled = false; btn.innerText = 'Hubungkan Energi'; statusEl.innerText = 'Gagal terhubung';
-            if (err.type === 'peer-unavailable') alert('❌ ID Madam Ti tidak ditemukan atau sedang offline.');
-            else if (err.type === 'network') alert('⚠️ Error jaringan.');
-        });
-    }
-
-    function showNotification(title, message) {
-        if ('Notification' in window && Notification.permission === 'granted') new Notification(title, { body: message || 'Pesan baru' });
-        const popup = document.getElementById('notification');
-        document.getElementById('notif-title').innerText = title; document.getElementById('notif-message').innerText = message || 'Pesan baru';
-        popup.classList.add('show'); setTimeout(() => { popup.classList.remove('show'); }, 3000);
-    }
-
     function sendMsg() {
         const input = document.getElementById('msgInput'); const messageText = input.value.trim();
         if(conn && conn.open && messageText) {
@@ -463,7 +570,7 @@
             const box = document.getElementById('chat-box'); const div = document.createElement('div');
             div.className = 'msg msg-out'; div.textContent = messageText;
             box.appendChild(div); input.value = ''; box.scrollTop = box.scrollHeight;
-            addToHistory(textMsg);
+            saveChatToDB(adminId, patientName, textMsg);
         } else if (!conn || !conn.open) alert('⚠️ Koneksi terputus.');
     }
 
@@ -485,7 +592,8 @@
                 conn.send({ type: 'file-meta', name: file.name, fileType: file.type, size: file.size }); conn.send(arrayBuffer);
                 const blob = new Blob([arrayBuffer], { type: file.type }); const url = URL.createObjectURL(blob);
                 const fileMsg = { type: 'file', name: file.name, fileType: file.type, data: url, size: file.size, direction: 'out', timestamp: new Date().toISOString() };
-                addFileToBox(fileMsg, 'out'); addToHistory(fileMsg);
+                addFileToBox(fileMsg, 'out');
+                saveChatToDB(adminId, patientName, fileMsg);
             } else alert('⚠️ Koneksi terputus.');
             statusDiv.remove(); event.target.value = '';
         };
@@ -534,6 +642,7 @@
         document.getElementById('chat-area').style.display = 'none';
         document.getElementById('patient-info').style.display = 'none';
         document.getElementById('exit-btn').style.display = 'none';
+        document.getElementById('history-btn').style.display = 'none';
         document.getElementById('notification').style.display = 'none';
         document.getElementById('disconnection-banner').classList.remove('show');
         document.getElementById('incoming-call-overlay').classList.remove('show');
@@ -541,15 +650,58 @@
     }
 
     function exitSession() {
-        if(confirm('Yakin ingin mengakhiri sesi konsultasi?\n\nSesi akan benar-benar ditutup dan history chat akan dihapus.')) {
+        if(confirm('Yakin ingin mengakhiri sesi konsultasi?\n\nSesi akan benar-benar ditutup.')) {
             isSessionEnded = true;
             if (isCalling) endCall();
             if (conn && conn.open) { conn.send({ type: 'exit', reason: 'patient_left' }); conn.close(); }
             if (peer) peer.destroy();
-            stopHeartbeat(); clearChatHistory();
+            stopHeartbeat();
             hideAllUI();
             document.getElementById('ended-screen').style.display = 'flex';
         }
+    }
+
+    function showNotification(title, message) {
+        if ('Notification' in window && Notification.permission === 'granted') new Notification(title, { body: message || 'Pesan baru' });
+        const popup = document.getElementById('notification');
+        document.getElementById('notif-title').innerText = title; document.getElementById('notif-message').innerText = message || 'Pesan baru';
+        popup.classList.add('show'); setTimeout(() => { popup.classList.remove('show'); }, 3000);
+    }
+
+    function connect() {
+        adminId = document.getElementById('adminId').value.trim();
+        patientName = document.getElementById('patientName').value.trim();
+        if(!patientName) { alert('Masukkan nama Anda!'); return; }
+        if(!adminId) { alert('Masukkan ID Madam Ti\' (5 digit)!'); return; }
+        if(adminId.length !== 5 || !/^\d+$/.test(adminId)) { alert('ID harus 5 digit angka!'); return; }
+
+        const btn = document.getElementById('btn-connect');
+        const statusEl = document.getElementById('status');
+        btn.disabled = true; btn.innerText = 'Menghubungkan...'; statusEl.innerText = 'Menghubungkan...';
+        
+        reconnectAttempts = 0; isConnected = false;
+        
+        setTimeout(() => {
+            if (!isConnected && !isSessionEnded) {
+                btn.disabled = false; btn.innerText = 'Hubungkan Energi'; statusEl.innerText = 'Gagal terhubung. Coba lagi.';
+                alert('⏰ Waktu habis! Tidak bisa terhubung ke Madam Ti.\n\nPastikan:\n1. ID Madam Ti benar (5 digit)\n2. Madam Ti sedang online\n3. Koneksi internet stabil');
+                if (peer) { try { peer.destroy(); } catch(e){} peer = null; }
+            }
+        }, 15000);
+        
+        peer = new Peer({ debug: 1, config: iceConfig });
+        peer.on('open', (id) => {
+            console.log('✅ Peer terbuka:', id);
+            statusEl.innerText = 'Mencari Madam Ti...';
+            conn = peer.connect(adminId, { reliable: true });
+            setupConnectionHandlers(); setupPeerCallHandler();
+        });
+        peer.on('error', (err) => {
+            console.log('❌ Peer error:', err.type);
+            btn.disabled = false; btn.innerText = 'Hubungkan Energi'; statusEl.innerText = 'Gagal terhubung';
+            if (err.type === 'peer-unavailable') alert('❌ ID Madam Ti tidak ditemukan atau sedang offline.');
+            else if (err.type === 'network') alert('⚠️ Error jaringan.');
+        });
     }
 
     document.addEventListener('visibilitychange', async () => {
