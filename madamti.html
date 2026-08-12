@@ -9,26 +9,18 @@
     <style>
         :root { --bg-dark: #0f0518; --bg-panel: #1a0b2e; --primary: #9d00ff; --accent: #ff007f; --text-main: #e0e0e0; --text-dim: #a0a0a0; --bubble-in: #2d1b4e; --bubble-out: #ff007f; --glass: rgba(26, 11, 46, 0.85); --success: #00ff88; --danger: #ff4444; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; outline: none; }
-        /* FIX MOBILE: Gunakan dvh untuk tinggi dinamis */
         html, body { height: 100dvh; overflow: hidden; font-family: 'Lato', sans-serif; background: radial-gradient(circle at center, #2e004f 0%, #000000 100%); color: var(--text-main); }
         h1, h2, h3, .mystic-font { font-family: 'Cinzel', serif; }
         
-        /* Layout Utama */
         .app-container { display: flex; height: 100%; width: 100%; overflow: hidden; }
-        
-        /* Sidebar */
         .sidebar { width: 320px; background: var(--bg-panel); border-right: 1px solid #4b0082; display: flex; flex-direction: column; z-index: 100; box-shadow: 5px 0 20px rgba(0,0,0,0.5); transition: transform 0.3s ease; }
-        
-        /* Area Chat Utama */
         .main-chat { flex: 1; display: flex; flex-direction: column; background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0zMCAzMG0tMiAwYTIgMiAwIDEgMCA0IDBhMiAyIDAgMSAwLTQgMCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIvPjwvc3ZnPg=='); position: relative; width: 100%; min-height: 0; }
         
-        /* Header Sidebar */
         .admin-header { background: linear-gradient(135deg, #4b0082, #000); color: #fff; padding: 15px; text-align: center; border-bottom: 2px solid var(--accent); flex-shrink: 0; }
         .admin-title { font-size: 1.2em; margin: 0; text-shadow: 0 0 10px var(--primary); }
         .admin-subtitle { font-size: 0.7em; opacity: 0.8; margin-top: 5px; letter-spacing: 1px; }
         .admin-id-box { background: rgba(0,0,0,0.5); border: 1px solid var(--primary); padding: 10px; border-radius: 8px; margin: 10px 0; font-family: monospace; color: var(--accent); font-size: 1.5em; font-weight: bold; text-shadow: 0 0 10px var(--accent); letter-spacing: 5px; }
         
-        /* Tabs & List */
         .sidebar-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
         .tab-btn { flex: 1; padding: 12px; background: transparent; border: none; color: var(--text-dim); cursor: pointer; font-family: 'Cinzel', serif; font-weight: bold; transition: 0.3s; font-size: 0.9em; }
         .tab-btn.active { color: var(--accent); border-bottom: 2px solid var(--accent); background: rgba(157, 0, 255, 0.1); }
@@ -43,16 +35,13 @@
         .last-msg { font-size: 0.8em; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .badge { background: var(--accent); color: white; border-radius: 10px; padding: 2px 6px; font-size: 0.7em; font-weight: bold; box-shadow: 0 0 5px var(--accent); }
         
-        /* Chat Header */
         .chat-header { background: var(--glass); backdrop-filter: blur(10px); padding: 12px; border-bottom: 1px solid rgba(157, 0, 255, 0.3); display: flex; justify-content: space-between; align-items: center; height: 60px; flex-shrink: 0; }
         .chat-header-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
         .back-btn { font-size: 1.5em; background: none; border: none; cursor: pointer; color: var(--accent); padding: 5px; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex-shrink: 0; }
         .chat-header-right { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
         
-        /* Chat Window - FIX MOBILE SCROLL */
         .chat-window { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: transparent; min-height: 0; -webkit-overflow-scrolling: touch; }
         
-        /* Messages */
         .message { max-width: 85%; padding: 10px 15px; border-radius: 15px; font-size: 0.9em; line-height: 1.4; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.3); animation: popIn 0.3s ease; word-wrap: break-word; flex-shrink: 0; }
         @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .msg-in { background: var(--bubble-in); color: #fff; align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid rgba(157, 0, 255, 0.2); }
@@ -60,13 +49,11 @@
         .msg-sys { background: rgba(0,0,0,0.6); color: var(--primary); align-self: center; font-size: 0.75em; padding: 6px 12px; border-radius: 20px; border: 1px solid var(--primary); text-transform: uppercase; letter-spacing: 1px; text-align: center; }
         .msg-time { font-size: 0.6em; opacity: 0.6; margin-top: 4px; text-align: right; display: block; }
         
-        /* Files */
         .file-attachment { margin-top: 6px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); max-width: 100%; }
         .file-attachment img { max-width: 100%; max-height: 300px; width: auto; height: auto; display: block; cursor: pointer; filter: brightness(0.9); object-fit: contain; }
         .file-info { padding: 6px; display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.5); }
         .download-btn { color: var(--accent); text-decoration: none; font-size: 0.8em; font-weight: 600; }
         
-        /* Input Area - FIX MOBILE POSITION */
         .input-area { background: var(--bg-panel); padding: 10px; display: flex; gap: 8px; align-items: center; border-top: 1px solid rgba(157, 0, 255, 0.3); flex-shrink: 0; width: 100%; padding-bottom: max(10px, env(safe-area-inset-bottom)); }
         .input-area input[type="text"] { flex: 1; padding: 10px 15px; border: 1px solid #4b0082; border-radius: 20px; background: #0f0518; color: white; font-size: 14px; transition: 0.3s; min-width: 0; }
         .input-area input[type="text"]:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(255, 0, 127, 0.3); }
@@ -79,16 +66,13 @@
         .btn-quick { background: #4b0082; color: #ffd700; border: 1px solid #ffd700; font-size: 1em; }
         .btn-finish { background: linear-gradient(135deg, #ff4444, #ff007f); color: white; border: none; font-size: 0.85em; padding: 10px 20px; border-radius: 20px; cursor: pointer; }
         
-        /* Sidebar Buttons */
         .btn-sidebar { background: #500000; color: #ff4444; border: 1px solid #ff4444; font-size: 0.75em; padding: 8px 10px; margin: 5px; width: calc(100% - 10px); cursor: pointer; border-radius: 8px; }
         .btn-sidebar.primary { background: linear-gradient(135deg, #9d00ff, #ff007f); color: white; border: none; }
         
-        /* Empty State */
         .empty-state { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; color: var(--text-dim); background: radial-gradient(circle, #1a0b2e 0%, #000 100%); z-index: 50; padding: 20px; }
         .crystal-ball { width: 80px; height: 80px; background: radial-gradient(circle at 30% 30%, rgba(157, 0, 255, 0.8), #000); border-radius: 50%; margin-bottom: 20px; box-shadow: 0 0 30px rgba(157, 0, 255, 0.5); animation: float 3s ease-in-out infinite; }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         
-        /* Notifications & Modals */
         .notification-popup { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; padding: 15px 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; gap: 10px; transition: transform 0.3s ease; max-width: 90%; width: 350px; }
         .notification-popup.show { transform: translateX(-50%) translateY(0); }
         
@@ -115,7 +99,6 @@
         .call-action-label { font-size: 0.85em; color: #fff; margin-top: 10px; font-weight: 600; }
         .call-action-wrapper { display: flex; flex-direction: column; align-items: center; }
 
-        /* Responsive Mobile */
         @media (max-width: 768px) {
             .app-container { flex-direction: column; }
             .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 100%; max-width: 100%; z-index: 200; }
@@ -237,14 +220,14 @@
     let activeSessions = {}; 
     let patientNames = {}, ringtonePlaying = false, incomingCallTimeout = null, isRemoteEndingCall = false;
     let pendingFileMeta = null;
-    const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB
+    const MAX_FILE_SIZE = 3 * 1024 * 1024; // REQUEST 1: 3MB
     const STORAGE_KEY = 'madamTi_id';
     const DB_NAME = 'MadamTiDB';
     const DB_VERSION = 1;
     const DEFAULT_QUICK_CHAT = ["Silakan fokus dan tenangkan pikiran Anda. Saya akan mulai menerawang.", "Mohon tunggu sebentar, saya sedang melihat energi Anda...", "Apakah ada hal spesifik yang ingin Anda tanyakan hari ini?"];
     let db = null;
 
-    // --- INDEXEDDB HELPER (Untuk Simpan Gambar & Chat) ---
+    // --- INDEXEDDB HELPER ---
     function initDB() {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -273,7 +256,6 @@
             let data = getReq.result || { id: historyKey, madamId, patientName, messages: [], lastUpdate: new Date().toISOString() };
             data.messages.push(messageObj);
             data.lastUpdate = new Date().toISOString();
-            // Batasi pesan per riwayat agar tidak penuh (misal 100 pesan terakhir)
             if (data.messages.length > 100) data.messages.shift(); 
             store.put(data);
             if (currentTab === 'history') renderHistoryList();
@@ -330,7 +312,6 @@
     let adminId = getStoredId();
     if (!adminId) { adminId = generateId(); storeId(adminId); }
     
-    // Jalankan DB Init
     initDB();
 
     function startKeepAlive() { const audio = document.getElementById('keep-alive-audio'); if (audio) { audio.volume = 0.01; audio.play().catch(e => {}); } }
@@ -374,7 +355,6 @@
         addSystemMessage('🔗 Koneksi dipulihkan'); 
     });
 
-    // --- PENANGANAN PANGGILAN MASUK ---
     peer.on('call', (incomingCall) => {
         if (!connections[incomingCall.peer] && !Object.values(activeSessions).some(s => s.peerId === incomingCall.peer)) { incomingCall.close(); return; }
         if (currentCall) { incomingCall.close(); return; }
@@ -413,14 +393,11 @@
     function stopRingtone() { const ringtone = document.getElementById('ringtone'); if (ringtonePlaying) { ringtone.pause(); ringtone.currentTime = 0; ringtonePlaying = false; } }
     function getMessageText(data) { if (typeof data === 'string') return data; if (data && typeof data === 'object') { if (data.text) return data.text; if (data.message) return data.message; if (data.content) return data.content; } return ''; }
 
-    // --- PENANGANAN KONEKSI DATA ---
     peer.on('connection', (conn) => {
         connections[conn.peer] = conn; unreadCounts[conn.peer] = 0; 
         conn.patientData = { name: 'Menunggu nama...', id: conn.peer };
         
-        conn.on('open', () => { 
-            console.log('Koneksi terbuka:', conn.peer);
-        });
+        conn.on('open', () => { console.log('Koneksi terbuka:', conn.peer); });
         
         conn.on('data', (data) => {
             if (data instanceof ArrayBuffer || data instanceof Blob) {
@@ -428,12 +405,10 @@
                     const blob = new Blob([data], { type: pendingFileMeta.fileType });
                     const url = URL.createObjectURL(blob);
                     
-                    // Konversi Blob ke Base64 untuk disimpan di IndexedDB
                     const reader = new FileReader();
                     reader.onloadend = function() {
                         const base64data = reader.result;
                         addFileToWindow({ name: pendingFileMeta.name, fileType: pendingFileMeta.fileType, data: url, size: pendingFileMeta.size }, 'in');
-                        // Simpan ke DB dengan Base64
                         saveChatToDB(adminId, conn.patientData.name, { 
                             type: 'file', name: pendingFileMeta.name, fileType: pendingFileMeta.fileType, data: base64data, size: pendingFileMeta.size, direction: 'in', timestamp: new Date().toISOString() 
                         });
@@ -489,8 +464,6 @@
             }
             
             const messageText = getMessageText(data); const messageType = data && data.type ? data.type : 'text';
-            
-            // Simpan ke DB
             saveChatToDB(adminId, conn.patientData.name, { type: messageType, text: messageText, data: data.data, fileType: data.fileType, name: data.name, direction: 'in', timestamp: new Date().toISOString() });
             
             const senderName = conn.patientData.name || 'Anak Madam'; const preview = messageType === 'file' ? '📎 Mengirim file' : messageText; 
@@ -513,12 +486,9 @@
 
     function showNotification(title, message) { if ('Notification' in window && Notification.permission === 'granted') { new Notification(title, { body: message || 'Pesan baru', vibrate: [200, 100, 200] }); } const popup = document.getElementById('notification'); document.getElementById('notif-title').innerText = title; document.getElementById('notif-message').innerText = message || 'Pesan baru'; popup.classList.add('show'); setTimeout(() => { popup.classList.remove('show'); }, 3000); popup.onclick = () => { popup.classList.remove('show'); }; }
     
-    // --- HISTORY FUNCTIONS ---
     async function renderHistoryList() { 
         const listEl = document.getElementById('history-list'); listEl.innerHTML = ''; 
         const sessions = await getHistoryFromDB();
-        // Filter hanya yang sesuai ID Madam saat ini (opsional, tapi bagus untuk kerapian)
-        // Atau tampilkan semua riwayat dari ID manapun. Di sini kita tampilkan semua.
         sessions.sort((a, b) => new Date(b.lastUpdate) - new Date(a.lastUpdate));
         
         if (sessions.length === 0) { listEl.innerHTML = '<li style="padding:20px; text-align:center; color:#666;">Belum ada riwayat chat</li>'; return; } 
@@ -544,7 +514,6 @@
         
         session.messages.forEach(msg => { 
             if (msg.type === 'file') {
-                // Render file dari Base64
                 addFileToWindow({ type: 'file', data: msg.data, fileType: msg.fileType, name: msg.name, size: msg.size }, msg.direction); 
             } else {
                 addMessageToWindow(msg.text, msg.direction); 
@@ -577,7 +546,7 @@
     function handleFileSelect(event) { 
         const file = event.target.files[0]; 
         if (!file || !activePeerName || !activeSessions[activePeerId]?.conn) { alert('Pilih pasien terlebih dahulu'); return; } 
-        if (file.size > MAX_FILE_SIZE) { alert('File terlalu besar! Maksimal 1MB.'); event.target.value = ''; return; } 
+        if (file.size > MAX_FILE_SIZE) { alert('File terlalu besar! Maksimal 3MB.'); event.target.value = ''; return; } 
         const statusDiv = document.createElement('div'); statusDiv.className = 'msg-sys'; statusDiv.innerText = '⏳ Mengirim...'; document.getElementById('chat-window').appendChild(statusDiv); 
         const reader = new FileReader(); 
         reader.onload = function(e) { 
@@ -588,10 +557,7 @@
                 conn.send(arrayBuffer); 
                 const blob = new Blob([arrayBuffer], { type: file.type }); const url = URL.createObjectURL(blob);
                 addFileToWindow({ name: file.name, fileType: file.type, data: url, size: file.size }, 'out'); 
-                
-                // Simpan Base64 ke DB
                 saveChatToDB(adminId, conn.patientData.name, { type: 'file', name: file.name, fileType: file.type, data: e.target.result, size: file.size, direction: 'out', timestamp: new Date().toISOString() });
-                
                 conn.lastMessage = '📎 ' + file.name; updatePatientList(); 
             } 
             statusDiv.remove(); event.target.value = ''; 
@@ -648,7 +614,6 @@
         document.getElementById('chat-window').innerHTML = ''; 
         if(window.innerWidth <= 768) document.getElementById('sidebar').classList.add('hidden'); 
         
-        // Load history dari DB berdasarkan ID Madam + Nama Pasien
         getHistoryFromDB().then(sessions => {
             const histSession = sessions.find(s => s.madamId === adminId && s.patientName === session.name);
             if (histSession) { 
@@ -669,7 +634,6 @@
     function endCallUI() { document.getElementById('btn-call').style.display = 'flex'; document.getElementById('btn-end').style.display = 'none'; document.getElementById('btn-speaker').style.display = 'none'; isSpeakerOn = false; currentCall = null; stopRingtone(); addSystemMessage('📴 Panggilan Diakhiri'); }
     function copyId() { const idText = document.getElementById('my-id').innerText; navigator.clipboard.writeText(idText).then(() => { alert('ID Disalin: ' + idText); }).catch(() => { const textArea = document.createElement('textarea'); textArea.value = idText; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); alert('ID Disalin: ' + idText); }); }
     
-    // === FITUR CHAT CEPAT ===
     function getQuickChatTemplates() { const saved = localStorage.getItem('madamTi_quickchat'); return saved ? JSON.parse(saved) : [...DEFAULT_QUICK_CHAT]; }
     function saveQuickChatTemplates(templates) { localStorage.setItem('madamTi_quickchat', JSON.stringify(templates)); }
     function openQuickChat() { if (!activePeerName || !activeSessions[activePeerId]?.conn) { alert('Pilih pasien terlebih dahulu'); return; } renderQuickChatList(); document.getElementById('quick-chat-overlay').classList.add('show'); }
