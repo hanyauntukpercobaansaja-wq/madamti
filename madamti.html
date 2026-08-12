@@ -2,1095 +2,230 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Madam Ti' - Terawang Online</title>
 <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg-dark:#0f0518;--bg-panel:#1a0b2e;--primary:#9d00ff;--accent:#ff007f;--text-main:#e0e0e0;--text-dim:#a0a0a0;--bubble-in:#2d1b4e;--bubble-out:#ff007f;--glass:rgba(26,11,46,0.85)}
+:root{--bg:#0f0518;--panel:#1a0b2e;--pri:#9d00ff;--acc:#ff007f;--txt:#e0e0e0;--dim:#a0a0a0;--bin:#2d1b4e;--bout:#ff007f;--glass:rgba(26,11,46,0.85)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
-html,body{height:100%;overflow:hidden;font-family:'Lato',sans-serif;background:radial-gradient(circle at center,#2e004f 0%,#000 100%);color:var(--text-main)}
-h1,h2,h3,.mystic-font{font-family:'Cinzel',serif}
-.app-container{display:flex;height:100%;width:100%;overflow:hidden}
-.sidebar{width:320px;background:var(--bg-panel);border-right:1px solid #4b0082;display:flex;flex-direction:column;z-index:100;box-shadow:5px 0 20px rgba(0,0,0,0.5);transition:transform 0.3s ease}
-.admin-header{background:linear-gradient(135deg,#4b0082,#000);color:#fff;padding:15px;text-align:center;border-bottom:2px solid var(--accent);flex-shrink:0}
-.admin-title{font-size:1.2em;margin:0;text-shadow:0 0 10px var(--primary)}
-.admin-subtitle{font-size:0.7em;opacity:0.8;margin-top:5px;letter-spacing:1px}
-.admin-id-box{background:rgba(0,0,0,0.5);border:1px solid var(--primary);padding:10px;border-radius:8px;margin:10px 0;font-family:monospace;color:var(--accent);font-size:1.5em;font-weight:bold;text-shadow:0 0 10px var(--accent);letter-spacing:5px}
-.sidebar-tabs{display:flex;border-bottom:1px solid rgba(255,255,255,0.1);flex-shrink:0}
-.tab-btn{flex:1;padding:12px;background:transparent;border:none;color:var(--text-dim);cursor:pointer;font-family:'Cinzel',serif;font-weight:bold;transition:0.3s;font-size:0.9em}
-.tab-btn.active{color:var(--accent);border-bottom:2px solid var(--accent);background:rgba(157,0,255,0.1)}
-.patient-list{flex:1;overflow-y:auto;list-style:none;padding:0;margin:0}
-.patient-item{padding:12px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;display:flex;align-items:center;gap:10px;transition:0.3s}
-.patient-item:hover{background:rgba(157,0,255,0.1)}
-.patient-item.active{background:linear-gradient(90deg,rgba(157,0,255,0.2),transparent);border-left:4px solid var(--accent)}
-.patient-item.disconnected{opacity:0.7;border-left:4px solid #ffa500}
-.patient-item.reconnecting{opacity:0.5;border-left:4px solid #ffa500;animation:reconPulse 1.5s infinite}
-@keyframes reconPulse{0%,100%{opacity:0.5}50%{opacity:0.8}}
-.avatar{width:40px;height:40px;background:linear-gradient(45deg,#4b0082,#000);border:1px solid var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;color:var(--accent);font-size:1em;flex-shrink:0;box-shadow:0 0 10px rgba(157,0,255,0.3)}
-.patient-info{flex:1;min-width:0}
-.patient-name{font-weight:600;color:#fff;margin-bottom:3px;font-family:'Cinzel',serif;font-size:0.95em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.last-msg{font-size:0.8em;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.patient-status{font-size:0.65em;margin-top:2px}
-.patient-status.connected{color:#00ff88}
-.patient-status.disconnected{color:#ffa500}
-.badge{background:var(--accent);color:white;border-radius:10px;padding:2px 6px;font-size:0.7em;font-weight:bold;box-shadow:0 0 5px var(--accent)}
-.history-date{font-size:0.65em;color:#666;margin-top:2px}
-.main-chat{flex:1;display:flex;flex-direction:column;background:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0zMCAzMG0tMiAwYTIgMiAwIDEgMCA0IDBhMiAyIDAgMSAwLTQgMCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIvPjwvc3ZnPg==');position:relative;width:100%;min-height:0}
-.chat-header{background:var(--glass);backdrop-filter:blur(10px);padding:12px;border-bottom:1px solid rgba(157,0,255,0.3);display:flex;justify-content:space-between;align-items:center;height:60px;flex-shrink:0}
-.chat-header-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
-.back-btn{font-size:1.5em;background:none;border:none;cursor:pointer;color:var(--accent);padding:5px;display:flex;align-items:center;justify-content:center;width:40px;height:40px;flex-shrink:0}
-.patient-header-info{min-width:0;flex:1}
-#current-patient-name{font-weight:600;color:#fff;font-size:1em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#current-patient-realname{font-size:0.7em;color:var(--accent);text-shadow:0 0 5px var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.chat-header-right{display:flex;gap:8px;flex-shrink:0;align-items:center}
-.chat-window{flex:1;padding:15px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;background:transparent;min-height:0}
-.message{max-width:85%;padding:10px 15px;border-radius:15px;font-size:0.9em;line-height:1.4;position:relative;box-shadow:0 4px 15px rgba(0,0,0,0.3);animation:popIn 0.3s ease;word-wrap:break-word;flex-shrink:0}
+html,body{height:100%;overflow:hidden;font-family:'Lato',sans-serif;background:radial-gradient(circle at center,#2e004f,#000);color:var(--txt)}
+h1,h2,h3,.mf{font-family:'Cinzel',serif}
+.app{display:flex;height:100%;width:100%;overflow:hidden}
+.sb{width:320px;background:var(--panel);border-right:1px solid #4b0082;display:flex;flex-direction:column;z-index:100;box-shadow:5px 0 20px rgba(0,0,0,0.5);transition:transform 0.3s}
+.ah{background:linear-gradient(135deg,#4b0082,#000);color:#fff;padding:15px;text-align:center;border-bottom:2px solid var(--acc);flex-shrink:0}
+.at{font-size:1.2em;margin:0;text-shadow:0 0 10px var(--pri)}
+.as{font-size:0.7em;opacity:0.8;margin-top:5px;letter-spacing:1px}
+.aib{background:rgba(0,0,0,0.5);border:1px solid var(--pri);padding:10px;border-radius:8px;margin:10px 0;font-family:monospace;color:var(--acc);font-size:1.5em;font-weight:bold;text-shadow:0 0 10px var(--acc);letter-spacing:5px}
+.st{display:flex;border-bottom:1px solid rgba(255,255,255,0.1);flex-shrink:0}
+.tb{flex:1;padding:12px;background:transparent;border:none;color:var(--dim);cursor:pointer;font-family:'Cinzel',serif;font-weight:bold;transition:0.3s;font-size:0.9em}
+.tb.active{color:var(--acc);border-bottom:2px solid var(--acc);background:rgba(157,0,255,0.1)}
+.pl{flex:1;overflow-y:auto;list-style:none;padding:0;margin:0}
+.pi{padding:12px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;display:flex;align-items:center;gap:10px;transition:0.3s}
+.pi:hover{background:rgba(157,0,255,0.1)}
+.pi.active{background:linear-gradient(90deg,rgba(157,0,255,0.2),transparent);border-left:4px solid var(--acc)}
+.pi.disconnected{opacity:0.7;border-left:4px solid #ffa500}
+.av{width:40px;height:40px;background:linear-gradient(45deg,#4b0082,#000);border:1px solid var(--pri);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;color:var(--acc);font-size:1em;flex-shrink:0;box-shadow:0 0 10px rgba(157,0,255,0.3)}
+.pinfo{flex:1;min-width:0}
+.pn{font-weight:600;color:#fff;margin-bottom:3px;font-family:'Cinzel',serif;font-size:0.95em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lm{font-size:0.8em;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ps{font-size:0.65em;margin-top:2px}.ps.c{color:#00ff88}.ps.d{color:#ffa500}
+.badge{background:var(--acc);color:white;border-radius:10px;padding:2px 6px;font-size:0.7em;font-weight:bold;box-shadow:0 0 5px var(--acc)}
+.hd{font-size:0.65em;color:#666;margin-top:2px}
+.hmi{font-size:0.6em;color:#9d00ff;margin-top:2px;font-family:monospace}
+.mc{flex:1;display:flex;flex-direction:column;background:url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCI+PHBhdGggZD0iTTAgMGg2MHY2MEgweiIgZmlsbD0ibm9uZSIvPjxwYXRoIGQ9Ik0zMCAzMG0tMiAwYTIgMiAwIDEgMCA0IDBhMiAyIDAgMSAwLTQgMCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIvPjwvc3ZnPg==');position:relative;width:100%;min-height:0}
+.ch{background:var(--glass);backdrop-filter:blur(10px);padding:12px;border-bottom:1px solid rgba(157,0,255,0.3);display:flex;justify-content:space-between;align-items:center;height:60px;flex-shrink:0}
+.chl{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.bb{font-size:1.5em;background:none;border:none;cursor:pointer;color:var(--acc);padding:5px;display:flex;align-items:center;justify-content:center;width:40px;height:40px;flex-shrink:0}
+.phi{min-width:0;flex:1}
+#cpn{font-weight:600;color:#fff;font-size:1em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#cpr{font-size:0.7em;color:var(--acc);text-shadow:0 0 5px var(--acc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chr{display:flex;gap:8px;flex-shrink:0;align-items:center}
+.cw{flex:1;padding:15px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;background:transparent;min-height:0}
+.msg{max-width:85%;padding:10px 15px;border-radius:15px;font-size:0.9em;line-height:1.4;position:relative;box-shadow:0 4px 15px rgba(0,0,0,0.3);animation:popIn 0.3s ease;word-wrap:break-word;flex-shrink:0}
 @keyframes popIn{from{transform:scale(0.9);opacity:0}to{transform:scale(1);opacity:1}}
-.msg-in{background:var(--bubble-in);color:#fff;align-self:flex-start;border-bottom-left-radius:2px;border:1px solid rgba(157,0,255,0.2)}
-.msg-out{background:linear-gradient(135deg,var(--accent),#9d00ff);color:white;align-self:flex-end;border-bottom-right-radius:2px;box-shadow:0 0 15px rgba(255,0,127,0.4)}
-.msg-sys{background:rgba(0,0,0,0.6);color:var(--primary);align-self:center;font-size:0.75em;padding:6px 12px;border-radius:20px;border:1px solid var(--primary);text-transform:uppercase;letter-spacing:1px;text-align:center}
-.msg-time{font-size:0.6em;opacity:0.6;margin-top:4px;text-align:right;display:block}
-.file-attachment{margin-top:6px;background:rgba(0,0,0,0.3);border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);max-width:100%}
-.file-attachment img{max-width:100%;max-height:300px;width:auto;height:auto;display:block;cursor:pointer;filter:brightness(0.9);object-fit:contain}
-.file-info{padding:6px;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.5)}
-.download-btn{color:var(--accent);text-decoration:none;font-size:0.8em;font-weight:600}
-.input-area{background:var(--bg-panel);padding:10px;display:flex;gap:8px;align-items:center;border-top:1px solid rgba(157,0,255,0.3);padding-bottom:max(10px,env(safe-area-inset-bottom));flex-shrink:0;width:100%}
-.input-area input[type="text"]{flex:1;padding:10px 15px;border:1px solid #4b0082;border-radius:20px;background:#0f0518;color:white;font-size:14px;outline:none;transition:0.3s;min-width:0}
-.input-area input[type="text"]:focus{border-color:var(--accent);box-shadow:0 0 10px rgba(255,0,127,0.3)}
-.icon-btn{width:40px;height:40px;min-width:40px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.3em;transition:0.2s;background:#2d1b4e;color:var(--text-main);box-shadow:0 2px 5px rgba(0,0,0,0.3);flex-shrink:0}
-.icon-btn:active{transform:scale(0.9)}
-.btn-send{background:var(--accent);color:white;box-shadow:0 0 15px rgba(255,0,127,0.5)}
-.btn-call{background:#2d1b4e;color:#00ff88;border:1px solid #00ff88}
-.btn-end{background:#500000;color:#ff4444;border:1px solid #ff4444;display:none}
-.btn-speaker{background:#1a4d2e;color:#4ade80;border:1px solid #4ade80;display:none}
-.btn-quick{background:#4b0082;color:#ffd700;border:1px solid #ffd700;font-size:1em}
-.btn-finish{background:linear-gradient(135deg,#ff4444,#ff007f);color:white;border:none;font-size:0.85em;padding:10px 20px;border-radius:20px;cursor:pointer}
-.btn-sidebar{background:#500000;color:#ff4444;border:1px solid #ff4444;font-size:0.75em;padding:8px 10px;margin:5px;width:calc(100% - 10px);cursor:pointer;border-radius:8px}
-.btn-sidebar.primary{background:linear-gradient(135deg,#9d00ff,#ff007f);color:white;border:none}
-.empty-state{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;justify-content:center;align-items:center;color:var(--text-dim);background:radial-gradient(circle,#1a0b2e 0%,#000 100%);z-index:50;padding:20px}
-.crystal-ball{width:80px;height:80px;background:radial-gradient(circle at 30% 30%,rgba(157,0,255,0.8),#000);border-radius:50%;margin-bottom:20px;box-shadow:0 0 30px rgba(157,0,255,0.5);animation:float 3s ease-in-out infinite}
+.mi{background:var(--bin);color:#fff;align-self:flex-start;border-bottom-left-radius:2px;border:1px solid rgba(157,0,255,0.2)}
+.mo{background:linear-gradient(135deg,var(--acc),#9d00ff);color:white;align-self:flex-end;border-bottom-right-radius:2px;box-shadow:0 0 15px rgba(255,0,127,0.4)}
+.ms{background:rgba(0,0,0,0.6);color:var(--pri);align-self:center;font-size:0.75em;padding:6px 12px;border-radius:20px;border:1px solid var(--pri);text-transform:uppercase;letter-spacing:1px;text-align:center}
+.mt{font-size:0.6em;opacity:0.6;margin-top:4px;text-align:right;display:block}
+.fa{margin-top:6px;background:rgba(0,0,0,0.3);border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);max-width:100%}
+.fa img{max-width:100%;max-height:300px;width:auto;height:auto;display:block;cursor:pointer;filter:brightness(0.9);object-fit:contain}
+.fi{padding:6px;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.5)}
+.db{color:var(--acc);text-decoration:none;font-size:0.8em;font-weight:600}
+.ia{background:var(--panel);padding:10px;display:flex;gap:8px;align-items:center;border-top:1px solid rgba(157,0,255,0.3);padding-bottom:max(10px,env(safe-area-inset-bottom));flex-shrink:0;width:100%}
+.ia input[type="text"]{flex:1;padding:10px 15px;border:1px solid #4b0082;border-radius:20px;background:#0f0518;color:white;font-size:14px;outline:none;transition:0.3s;min-width:0}
+.ia input[type="text"]:focus{border-color:var(--acc);box-shadow:0 0 10px rgba(255,0,127,0.3)}
+.ib{width:40px;height:40px;min-width:40px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.3em;transition:0.2s;background:#2d1b4e;color:var(--txt);box-shadow:0 2px 5px rgba(0,0,0,0.3);flex-shrink:0}
+.ib:active{transform:scale(0.9)}
+.bs{background:var(--acc);color:white;box-shadow:0 0 15px rgba(255,0,127,0.5)}
+.bc{background:#2d1b4e;color:#00ff88;border:1px solid #00ff88}
+.be{background:#500000;color:#ff4444;border:1px solid #ff4444;display:none}
+.bsp{background:#1a4d2e;color:#4ade80;border:1px solid #4ade80;display:none}
+.bq{background:#4b0082;color:#ffd700;border:1px solid #ffd700;font-size:1em}
+.bf{background:linear-gradient(135deg,#ff4444,#ff007f);color:white;border:none;font-size:0.85em;padding:10px 20px;border-radius:20px;cursor:pointer}
+.bsb{background:#500000;color:#ff4444;border:1px solid #ff4444;font-size:0.75em;padding:8px 10px;margin:5px;width:calc(100% - 10px);cursor:pointer;border-radius:8px}
+.bsb.p{background:linear-gradient(135deg,#9d00ff,#ff007f);color:white;border:none}
+.es{position:absolute;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;justify-content:center;align-items:center;color:var(--dim);background:radial-gradient(circle,#1a0b2e,#000);z-index:50;padding:20px}
+.cb{width:80px;height:80px;background:radial-gradient(circle at 30% 30%,rgba(157,0,255,0.8),#000);border-radius:50%;margin-bottom:20px;box-shadow:0 0 30px rgba(157,0,255,0.5);animation:float 3s ease-in-out infinite}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-.notification-popup{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-100px);background:linear-gradient(135deg,var(--primary),var(--accent));color:white;padding:15px 20px;border-radius:15px;box-shadow:0 5px 20px rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:center;gap:10px;transition:transform 0.3s ease;max-width:90%;width:350px}
-.notification-popup.show{transform:translateX(-50%) translateY(0)}
-.notification-icon{font-size:1.5em}
-.notification-content{flex:1;min-width:0}
-.notification-title{font-weight:bold;font-size:0.9em;margin-bottom:3px}
-.notification-message{font-size:0.85em;opacity:0.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.disconnection-banner{display:none;background:rgba(255,165,0,0.15);border:1px solid #ffa500;color:#ffa500;padding:8px;text-align:center;font-size:0.8em;flex-shrink:0}
-.disconnection-banner.show{display:block}
-.quick-chat-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:500;display:none;justify-content:center;align-items:center;padding:20px}
-.quick-chat-overlay.show{display:flex}
-.quick-chat-modal{background:var(--bg-panel);border:1px solid var(--primary);border-radius:15px;padding:20px;width:90%;max-width:500px;max-height:85vh;overflow-y:auto;box-shadow:0 0 30px rgba(157,0,255,0.5);display:flex;flex-direction:column}
-.quick-chat-modal h3{color:var(--accent);margin-bottom:20px;font-family:'Cinzel',serif;text-align:center;font-size:1.2em}
-.quick-chat-list{flex:1;overflow-y:auto;margin-bottom:15px}
-.quick-chat-item{background:rgba(0,0,0,0.3);border:1px solid rgba(157,0,255,0.3);border-radius:10px;padding:15px;margin-bottom:15px;display:flex;flex-direction:column;gap:10px}
-.quick-chat-text{width:100%;min-height:80px;padding:12px;border:1px solid #4b0082;border-radius:8px;background:#0f0518;color:white;font-size:16px;font-family:'Lato',sans-serif;resize:vertical;outline:none;box-sizing:border-box;line-height:1.4}
-.quick-chat-text:focus{border-color:var(--accent);box-shadow:0 0 5px rgba(255,0,127,0.3)}
-.quick-chat-actions{display:flex;gap:10px;justify-content:flex-end;width:100%;margin-top:5px}
-.qc-btn{padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-size:0.9em;font-weight:600;transition:0.2s}
-.qc-btn:active{transform:scale(0.95)}
-.qc-send{background:var(--accent);color:white}
-.qc-save{background:#1a4d2e;color:#4ade80}
-.qc-delete{background:#500000;color:#ff4444}
-.qc-add{width:100%;padding:12px;background:linear-gradient(135deg,#9d00ff,#ff007f);color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;margin-bottom:10px;font-size:1em}
-.qc-close{width:100%;padding:12px;background:#2d1b4e;color:var(--text-main);border:1px solid var(--primary);border-radius:10px;cursor:pointer;font-size:1em}
-.incoming-call-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:3000;display:none;justify-content:center;align-items:center;padding:20px}
-.incoming-call-overlay.show{display:flex}
-.incoming-call-modal{background:linear-gradient(135deg,#4b0082,#1a0b2e);border:2px solid var(--accent);border-radius:20px;padding:30px;width:100%;max-width:320px;text-align:center;box-shadow:0 0 40px rgba(255,0,127,0.5);animation:callPulse 2s ease-in-out infinite}
-@keyframes callPulse{0%,100%{box-shadow:0 0 40px rgba(255,0,127,0.5)}50%{box-shadow:0 0 60px rgba(255,0,127,0.8)}}
-.incoming-call-modal h3{color:var(--accent);font-family:'Cinzel',serif;font-size:1.4em;margin-bottom:10px;text-shadow:0 0 10px var(--accent)}
-.incoming-call-modal p{color:#fff;margin-bottom:25px;font-size:1em}
-.incoming-call-actions{display:flex;gap:20px;justify-content:center}
-.call-action-btn{width:75px;height:75px;border-radius:50%;border:none;cursor:pointer;font-size:2em;display:flex;align-items:center;justify-content:center;transition:transform 0.2s}
-.call-action-btn:active{transform:scale(0.9)}
-.btn-answer{background:#1a4d2e;color:#00ff88;border:2px solid #00ff88}
-.btn-reject{background:#500000;color:#ff4444;border:2px solid #ff4444}
-.call-action-label{font-size:0.85em;color:#fff;margin-top:10px;font-family:'Lato',sans-serif;font-weight:600}
-.call-action-wrapper{display:flex;flex-direction:column;align-items:center}
+.np{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-100px);background:linear-gradient(135deg,var(--pri),var(--acc));color:white;padding:15px 20px;border-radius:15px;box-shadow:0 5px 20px rgba(0,0,0,0.5);z-index:1000;display:flex;align-items:center;gap:10px;transition:transform 0.3s;max-width:90%;width:350px}
+.np.show{transform:translateX(-50%) translateY(0)}
+.ni{font-size:1.5em}.nc{flex:1;min-width:0}.nt{font-weight:bold;font-size:0.9em;margin-bottom:3px}.nm{font-size:0.85em;opacity:0.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dban{display:none;background:rgba(255,165,0,0.15);border:1px solid #ffa500;color:#ffa500;padding:8px;text-align:center;font-size:0.8em;flex-shrink:0}
+.dban.show{display:block}
+.qco{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:500;display:none;justify-content:center;align-items:center;padding:20px}
+.qco.show{display:flex}
+.qcm{background:var(--panel);border:1px solid var(--pri);border-radius:15px;padding:20px;width:90%;max-width:500px;max-height:85vh;overflow-y:auto;box-shadow:0 0 30px rgba(157,0,255,0.5);display:flex;flex-direction:column}
+.qcm h3{color:var(--acc);margin-bottom:20px;font-family:'Cinzel',serif;text-align:center;font-size:1.2em}
+.qcl{flex:1;overflow-y:auto;margin-bottom:15px}
+.qci{background:rgba(0,0,0,0.3);border:1px solid rgba(157,0,255,0.3);border-radius:10px;padding:15px;margin-bottom:15px;display:flex;flex-direction:column;gap:10px}
+.qct{width:100%;min-height:80px;padding:12px;border:1px solid #4b0082;border-radius:8px;background:#0f0518;color:white;font-size:16px;font-family:'Lato',sans-serif;resize:vertical;outline:none;box-sizing:border-box;line-height:1.4}
+.qct:focus{border-color:var(--acc);box-shadow:0 0 5px rgba(255,0,127,0.3)}
+.qca{display:flex;gap:10px;justify-content:flex-end;width:100%;margin-top:5px}
+.qcb{padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-size:0.9em;font-weight:600;transition:0.2s}
+.qcb:active{transform:scale(0.95)}
+.qcs{background:var(--acc);color:white}.qcsv{background:#1a4d2e;color:#4ade80}.qcd{background:#500000;color:#ff4444}
+.qca2{width:100%;padding:12px;background:linear-gradient(135deg,#9d00ff,#ff007f);color:white;border:none;border-radius:10px;cursor:pointer;font-weight:600;margin-bottom:10px;font-size:1em}
+.qcc{width:100%;padding:12px;background:#2d1b4e;color:var(--txt);border:1px solid var(--pri);border-radius:10px;cursor:pointer;font-size:1em}
+.ico{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:3000;display:none;justify-content:center;align-items:center;padding:20px}
+.ico.show{display:flex}
+.icm{background:linear-gradient(135deg,#4b0082,#1a0b2e);border:2px solid var(--acc);border-radius:20px;padding:30px;width:100%;max-width:320px;text-align:center;box-shadow:0 0 40px rgba(255,0,127,0.5);animation:cp 2s ease-in-out infinite}
+@keyframes cp{0%,100%{box-shadow:0 0 40px rgba(255,0,127,0.5)}50%{box-shadow:0 0 60px rgba(255,0,127,0.8)}}
+.icm h3{color:var(--acc);font-family:'Cinzel',serif;font-size:1.4em;margin-bottom:10px;text-shadow:0 0 10px var(--acc)}
+.icm p{color:#fff;margin-bottom:25px;font-size:1em}
+.ica{display:flex;gap:20px;justify-content:center}
+.cab{width:75px;height:75px;border-radius:50%;border:none;cursor:pointer;font-size:2em;display:flex;align-items:center;justify-content:center;transition:transform 0.2s}
+.cab:active{transform:scale(0.9)}
+.ba{background:#1a4d2e;color:#00ff88;border:2px solid #00ff88}
+.br{background:#500000;color:#ff4444;border:2px solid #ff4444}
+.cal{font-size:0.85em;color:#fff;margin-top:10px;font-family:'Lato',sans-serif;font-weight:600}
+.caw{display:flex;flex-direction:column;align-items:center}
 @media(max-width:768px){
-.app-container{flex-direction:column}
-.sidebar{position:fixed;left:0;top:0;bottom:0;width:100%;max-width:100%;z-index:200}
-.sidebar.hidden{transform:translateX(-100%)}
-.main-chat{width:100%}
-.back-btn{display:flex !important}
-.admin-title{font-size:1.1em}
-.message{max-width:90%;font-size:0.85em}
-.input-area{gap:6px;padding:8px;flex-wrap:wrap}
-.icon-btn{width:38px;height:38px;min-width:38px;font-size:1.1em}
-.chat-header{height:55px;padding:10px}
-.btn-finish{width:100%;margin:10px 0 0 0}
-.file-attachment img{max-height:200px}
-.incoming-call-modal{padding:25px}
-.call-action-btn{width:65px;height:65px;font-size:1.7em}
+.app{flex-direction:column}.sb{position:fixed;left:0;top:0;bottom:0;width:100%;max-width:100%;z-index:200}
+.sb.hidden{transform:translateX(-100%)}.mc{width:100%}.bb{display:flex !important}.at{font-size:1.1em}
+.msg{max-width:90%;font-size:0.85em}.ia{gap:6px;padding:8px;flex-wrap:wrap}.ib{width:38px;height:38px;min-width:38px;font-size:1.1em}
+.ch{height:55px;padding:10px}.bf{width:100%;margin:10px 0 0 0}.fa img{max-height:200px}.icm{padding:25px}.cab{width:65px;height:65px;font-size:1.7em}
 }
-@media(min-width:769px){.back-btn{display:none !important}}
-#file-input{display:none}
-.hidden{display:none !important}
-audio{display:none}
+@media(min-width:769px){.bb{display:none !important}}
+#fi{display:none}.h{display:none !important}audio{display:none}
 </style>
 </head>
 <body>
-
 <audio id="ringtone" src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-tone-996.mp3" loop></audio>
-<audio id="keep-alive-audio" loop preload="auto">
-<source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" type="audio/wav">
-</audio>
-
-<div id="notification" class="notification-popup">
-<div class="notification-icon"></div>
-<div class="notification-content">
-<div class="notification-title" id="notif-title">Pesan Baru</div>
-<div class="notification-message" id="notif-message">...</div>
+<audio id="ka" loop preload="auto"><source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" type="audio/wav"></audio>
+<div id="notif" class="np"><div class="ni"></div><div class="nc"><div class="nt" id="nt">Pesan Baru</div><div class="nm" id="nm">...</div></div></div>
+<div class="ico" id="ico"><div class="icm"><h3>📞 PANGGILAN MASUK</h3><p id="icn">Anak Madam sedang menelepon...</p><div class="ica"><div class="caw"><button class="cab br" onclick="rejectIncomingCall()">📴</button><div class="cal">Tolak</div></div><div class="caw"><button class="cab ba" onclick="answerIncomingCall()">📞</button><div class="cal">Jawab</div></div></div></div></div>
+<div class="qco" id="qco"><div class="qcm"><h3>⚡ Chat Cepat</h3><div id="qcl" class="qcl"></div><button class="qca2" onclick="addQuickChatTemplate()">+ Tambah Template Baru</button><button class="qcc" onclick="closeQuickChat()">Tutup</button></div></div>
+<div class="app">
+<div class="sb" id="sb">
+<div class="ah"><h1 class="at mf">🔮 Madam Ti'</h1><div class="as">ID Spiritual Anda</div><div class="aib" id="myid">----</div><button onclick="copyId()" style="background:rgba(255,255,255,0.1);border:1px solid var(--pri);color:var(--acc);padding:5px 15px;border-radius:15px;font-size:0.75em;cursor:pointer;font-family:'Lato';">📋 Salin ID</button><div id="cs" style="font-size:0.7em;color:#00ff88;margin-top:5px;">● Tersambung</div></div>
+<div id="mdb" class="dban">⚠️ Koneksi Madam terputus. Mencoba menyambung ulang...</div>
+<div class="st"><button class="tb active" onclick="switchTab('active',this)">🟢 Aktif</button><button class="tb" onclick="switchTab('history',this)">📜 Riwayat</button></div>
+<ul id="pl" class="pl"></ul><ul id="hl" class="pl h"></ul>
+<div style="padding:10px;"><button class="bsb p" onclick="generateNewId()">🔄 Buat ID Baru</button><button class="bsb" onclick="clearHistory()">️ Hapus Semua Riwayat</button><button class="bsb" onclick="exitApp()" style="margin-top:10px;">🚪 Keluar Aplikasi</button></div>
 </div>
-</div>
-
-<div class="incoming-call-overlay" id="incoming-call-overlay">
-<div class="incoming-call-modal">
-<h3>📞 PANGGILAN MASUK</h3>
-<p id="incoming-caller-name">Anak Madam sedang menelepon...</p>
-<div class="incoming-call-actions">
-<div class="call-action-wrapper">
-<button class="call-action-btn btn-reject" onclick="rejectIncomingCall()">📴</button>
-<div class="call-action-label">Tolak</div>
-</div>
-<div class="call-action-wrapper">
-<button class="call-action-btn btn-answer" onclick="answerIncomingCall()">📞</button>
-<div class="call-action-label">Jawab</div>
+<div class="mc">
+<div id="es" class="es"><div class="cb"></div><h3 class="mf" style="color:var(--pri);text-shadow:0 0 10px var(--pri);font-size:1.2em;">Menunggu Energi Masuk...</h3><p style="font-size:0.85em;opacity:0.7;margin-top:10px;text-align:center;">Pilih Anak Madam dari daftar untuk mulai menerawang</p></div>
+<div id="ci" class="h" style="display:flex;flex-direction:column;height:100%;">
+<div class="ch"><div class="chl"><button class="bb" onclick="backToSidebar()"></button><div class="phi"><div id="cpn" class="mf">Anak Madam</div><div id="cpr" style="font-size:0.7em;color:var(--acc);text-shadow:0 0 5px var(--acc);">● Tersambung</div></div></div><div class="chr"><button id="bsp" class="ib bsp" onclick="toggleSpeaker()"></button><button id="bc" class="ib bc" onclick="startCall()">📞</button><button id="be" class="ib be" onclick="endCall()"></button><button class="bf" onclick="finishSession()">✓ Selesai</button></div></div>
+<div id="cdb" class="dban">⚠️ Sinyal Anak Madam terputus. Menunggu koneksi ulang...</div>
+<div id="cw" class="cw"></div>
+<div class="ia"><label for="fi" class="ib" title="Kirim File"></label><input type="file" id="fi" accept="image/*,.pdf,.doc,.docx,.txt" onchange="handleFileSelect(event)"><button class="ib bq" onclick="openQuickChat()" title="Chat Cepat">⚡</button><input type="text" id="mi" placeholder="Ketik pesan..." onkeypress="handleEnter(event)"><button class="ib bs" onclick="sendMessage()" title="Kirim">▶</button></div>
 </div>
 </div>
 </div>
-</div>
-
-<div class="quick-chat-overlay" id="quick-chat-overlay">
-<div class="quick-chat-modal">
-<h3>⚡ Chat Cepat</h3>
-<div id="quick-chat-list" class="quick-chat-list"></div>
-<button class="qc-add" onclick="addQuickChatTemplate()">+ Tambah Template Baru</button>
-<button class="qc-close" onclick="closeQuickChat()">Tutup</button>
-</div>
-</div>
-
-<div class="app-container">
-<div class="sidebar" id="sidebar">
-<div class="admin-header">
-<h1 class="admin-title mystic-font">🔮 Madam Ti'</h1>
-<div class="admin-subtitle">ID Spiritual Anda</div>
-<div class="admin-id-box" id="my-id">----</div>
-<button onclick="copyId()" style="background:rgba(255,255,255,0.1);border:1px solid var(--primary);color:var(--accent);padding:5px 15px;border-radius:15px;font-size:0.75em;cursor:pointer;font-family:'Lato';">📋 Salin ID</button>
-<div id="connection-status" style="font-size:0.7em;color:#00ff88;margin-top:5px;">● Tersambung</div>
-</div>
-<div id="madam-disconnect-banner" class="disconnection-banner">⚠️ Koneksi Madam terputus. Mencoba menyambung ulang...</div>
-<div class="sidebar-tabs">
-<button class="tab-btn active" onclick="switchTab('active')">🟢 Aktif</button>
-<button class="tab-btn" onclick="switchTab('history')">📜 Riwayat</button>
-</div>
-<ul id="patient-list" class="patient-list"></ul>
-<ul id="history-list" class="patient-list hidden"></ul>
-<div style="padding:10px;">
-<button class="btn-sidebar primary" onclick="generateNewId()">🔄 Buat ID Baru</button>
-<button class="btn-sidebar" onclick="clearHistory()">🗑️ Hapus Semua Riwayat</button>
-<button class="btn-sidebar" onclick="exitApp()" style="margin-top:10px;">🚪 Keluar Aplikasi</button>
-</div>
-</div>
-
-<div class="main-chat">
-<div id="empty-state" class="empty-state">
-<div class="crystal-ball"></div>
-<h3 class="mystic-font" style="color:var(--primary);text-shadow:0 0 10px var(--primary);font-size:1.2em;">Menunggu Energi Masuk...</h3>
-<p style="font-size:0.85em;opacity:0.7;margin-top:10px;text-align:center;">Pilih Anak Madam dari daftar untuk mulai menerawang</p>
-</div>
-<div id="chat-interface" class="hidden" style="display:flex;flex-direction:column;height:100%;">
-<div class="chat-header">
-<div class="chat-header-left">
-<button class="back-btn" onclick="backToSidebar()">⬅</button>
-<div class="patient-header-info">
-<div id="current-patient-name" class="mystic-font">Anak Madam</div>
-<div id="current-patient-realname" style="font-size:0.7em;color:var(--accent);text-shadow:0 0 5px var(--accent);">● Tersambung</div>
-</div>
-</div>
-<div class="chat-header-right">
-<button id="btn-speaker" class="icon-btn btn-speaker" onclick="toggleSpeaker()" title="Pengeras Suara">🔊</button>
-<button id="btn-call" class="icon-btn btn-call" onclick="startCall()" title="Telepon">📞</button>
-<button id="btn-end" class="icon-btn btn-end" onclick="endCall()" title="Tutup">📴</button>
-<button class="btn-finish" onclick="finishSession()">✓ Selesai</button>
-</div>
-</div>
-<div id="chat-disconnect-banner" class="disconnection-banner">⚠️ Sinyal Anak Madam terputus. Menunggu koneksi ulang...</div>
-<div id="chat-window" class="chat-window"></div>
-<div class="input-area">
-<label for="file-input" class="icon-btn" title="Kirim File">📎</label>
-<input type="file" id="file-input" accept="image/*,.pdf,.doc,.docx,.txt" onchange="handleFileSelect(event)">
-<button class="icon-btn btn-quick" onclick="openQuickChat()" title="Chat Cepat">⚡</button>
-<input type="text" id="msg-input" placeholder="Ketik pesan..." onkeypress="handleEnter(event)">
-<button class="icon-btn btn-send" onclick="sendMessage()" title="Kirim">▶</button>
-</div>
-</div>
-</div>
-</div>
-
-<audio id="remote-audio" autoplay playsinline></audio>
-
+<audio id="ra" autoplay playsinline></audio>
 <script>
-// ============================================
-// VARIABEL GLOBAL
-// ============================================
-let peer=null,connections={},activePeerId=null,activePeerName=null;
-let currentCall=null,pendingCall=null;
-let localStream=null,unreadCounts={},isSpeakerOn=false,currentTab='active';
-let activeSessions={};
-let patientNames={},ringtonePlaying=false,incomingCallTimeout=null,isRemoteEndingCall=false;
-let pendingFileMeta=null;
-
-// SESSION PERSISTENCE (disamakan dengan anakmadam.html)
-let sessionStates={};
-let heartbeatIntervals={};
-let reconnectMonitors={};
-let madamReconnectAttempts=0;
-const MAX_RECONNECT=50;
-const HEARTBEAT_INTERVAL=5000;
-const HEARTBEAT_TIMEOUT=15000;
-const MAX_FILE_SIZE=5*1024*1024;
-const STORAGE_KEY='madamTi_id';
-const DEFAULT_QUICK_CHAT=["Silakan fokus dan tenangkan pikiran Anda. Saya akan mulai menerawang.","Mohon tunggu sebentar, saya sedang melihat energi Anda...","Apakah ada hal spesifik yang ingin Anda tanyakan hari ini?"];
-
+let peer=null,conns={},apId=null,apName=null,curCall=null,pendCall=null,lStream=null,unreads={},isSpk=false,curTab='active',aSessions={},pNames={},rPlay=false,icTimeout=null,isRE=false,pFM=null;
+let sStates={},hbInts={},rcMons={},mRA=0,isMR=false,mDT=null;
+const MAX_R=30,HB_INT=10000,HB_TO=30000,RC_DB=5000;
+const MFS=5*1024*1024,SK='madamTi_id',HK='madamTi_sessions';
+const DQC=["Silakan fokus dan tenangkan pikiran Anda. Saya akan mulai menerawang.","Mohon tunggu sebentar, saya sedang melihat energi Anda...","Apakah ada hal spesifik yang ingin Anda tanyakan hari ini?"];
 if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();
-
-// ============================================
-// ID MANAGEMENT
-// ============================================
-function getStoredId(){return localStorage.getItem(STORAGE_KEY)}
-function storeId(id){localStorage.setItem(STORAGE_KEY,id)}
-function generateId(){return String(Math.floor(1000+Math.random()*9000))}
-
-function generateNewId(){
-if(confirm('⚠️ Buat ID Baru?\n\nID lama tidak akan bisa digunakan lagi.\nPastikan tidak ada pasien yang sedang terhubung.\n\nLanjutkan?')){
-Object.values(connections).forEach(conn=>{try{conn.send({type:'exit',reason:'madam_changed_id'})}catch(e){}conn.close()});
-connections={};activeSessions={};sessionStates={};
-Object.values(heartbeatIntervals).forEach(id=>clearInterval(id));
-Object.values(reconnectMonitors).forEach(id=>clearInterval(id));
-heartbeatIntervals={};reconnectMonitors={};
-const newId=generateId();storeId(newId);
-document.getElementById('my-id').innerText='...';
-document.getElementById('connection-status').innerText='● Membuat ID baru...';
-setTimeout(()=>{window.location.reload()},1000);
-}}
-
-function exitApp(){
-if(confirm('Yakin ingin keluar dari aplikasi?\n\nSemua sesi konsultasi dengan Anak Madam akan diakhiri secara paksa.')){
-Object.values(connections).forEach(conn=>{
-try{if(conn.open)conn.send({type:'exit',reason:'madam_exited',message:'Madam Ti\' telah keluar dari aplikasi.'})}catch(e){}
-conn.close()});
-Object.values(heartbeatIntervals).forEach(id=>clearInterval(id));
-Object.values(reconnectMonitors).forEach(id=>clearInterval(id));
-if(peer)peer.destroy();
-document.body.innerHTML='<div style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh;background:radial-gradient(circle at center,#2e004f 0%,#000 100%);color:white;font-family:Lato,sans-serif;text-align:center;padding:20px;"><div style="font-size:4em;margin-bottom:20px;">🔮</div><h1 style="font-family:Cinzel,serif;color:#ff007f;margin-bottom:10px;">Sesi Aplikasi Berakhir</h1><p style="color:#a0a0a0;margin-bottom:30px;">Anda telah keluar dari aplikasi Madam Ti\'.<br>Silakan tutup tab/browser ini.</p><button onclick="location.reload()" style="padding:12px 24px;background:#9d00ff;color:white;border:none;border-radius:20px;font-size:1em;cursor:pointer;">Masuk Kembali</button></div>';
-}}
-
-let adminId=getStoredId();
-if(!adminId){adminId=generateId();storeId(adminId)}
-
-// ============================================
-// KEEP ALIVE & WAKELOCK
-// ============================================
-function startKeepAlive(){const audio=document.getElementById('keep-alive-audio');if(audio){audio.volume=0.01;audio.play().catch(e=>{})}}
-document.body.addEventListener('click',startKeepAlive,{once:true});
-document.body.addEventListener('touchstart',startKeepAlive,{once:true});
-
-let wakeLock=null;
-async function requestWakeLock(){if('wakeLock' in navigator){try{wakeLock=await navigator.wakeLock.request('screen')}catch(err){}}}
-requestWakeLock();
-
-// ============================================
-// ICE SERVERS
-// ============================================
-const iceServers=[
-{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},
-{urls:'stun:stun2.l.google.com:19302'},{urls:'stun:stun3.l.google.com:19302'},
-{urls:'stun:stun4.l.google.com:19302'},{urls:'stun:stun.cloudflare.com:3478'},
-{urls:'turn:freeturn.net:3478',username:'free',credential:'free'},
-{urls:'turn:freeturn.net:3478?transport=tcp',username:'free',credential:'free'},
-{urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},
-{urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},
-{urls:'turn:openrelay.metered.ca:443?transport=tcp',username:'openrelayproject',credential:'openrelayproject'}
-];
-
-// ============================================
-// PEER INITIALIZATION
-// ============================================
-peer=new Peer(adminId,{debug:2,config:{iceServers:iceServers},pingInterval:5000});
-
-peer.on('open',(id)=>{
-document.getElementById('my-id').innerText=id;
-document.getElementById('connection-status').innerText='● Tersambung';
-document.getElementById('connection-status').style.color='#00ff88';
-document.getElementById('madam-disconnect-banner').classList.remove('show');
-storeId(id);madamReconnectAttempts=0;
-});
-
-peer.on('error',(err)=>{
-console.error('Peer error:',err.type,err);
-document.getElementById('connection-status').innerText='● Tidak Terhubung';
-document.getElementById('connection-status').style.color='#ff4444';
-if(err.type==='unavailable-id'){
-const newId=generateId();storeId(newId);
-setTimeout(()=>{window.location.reload()},2000);
-}else if(err.type==='peer-disconnected'||err.type==='network'){
-document.getElementById('madam-disconnect-banner').classList.add('show');
-setTimeout(()=>{doReconnectMadam()},3000);
-}});
-
-peer.on('disconnected',()=>{
-document.getElementById('connection-status').innerText='● Menghubungkan ulang...';
-document.getElementById('connection-status').style.color='#ffa500';
-document.getElementById('madam-disconnect-banner').classList.add('show');
-setTimeout(()=>{doReconnectMadam()},3000);
-});
-
-peer.on('reconnected',()=>{
-document.getElementById('connection-status').innerText='● Tersambung';
-document.getElementById('connection-status').style.color='#00ff88';
-document.getElementById('madam-disconnect-banner').classList.remove('show');
-madamReconnectAttempts=0;
-addSystemMessage('🔗 Koneksi Madam dipulihkan');
-});
-
-// ============================================
-// MADAM RECONNECT (sama dengan anakmadam.html)
-// ============================================
-function doReconnectMadam(){
-if(madamReconnectAttempts>=MAX_RECONNECT){
-document.getElementById('connection-status').innerText='● Gagal terhubung';
-document.getElementById('connection-status').style.color='#ff4444';
-document.getElementById('madam-disconnect-banner').classList.remove('show');
-return;
-}
-madamReconnectAttempts++;
-console.log('🔄 Madam reconnect attempt',madamReconnectAttempts);
-try{peer.reconnect()}catch(e){
-console.log('Reconnect error, recreating peer...');
-try{peer.destroy()}catch(e2){}
-peer=new Peer(adminId,{debug:2,config:{iceServers:iceServers},pingInterval:5000});
-setupPeerHandlers();
-}}
-
-function setupPeerHandlers(){
-peer.on('open',(id)=>{
-document.getElementById('my-id').innerText=id;
-document.getElementById('connection-status').innerText='● Tersambung';
-document.getElementById('connection-status').style.color='#00ff88';
-document.getElementById('madam-disconnect-banner').classList.remove('show');
-storeId(id);madamReconnectAttempts=0;
-});
-peer.on('error',(err)=>{
-if(err.type==='unavailable-id'){
-const newId=generateId();storeId(newId);
-setTimeout(()=>{window.location.reload()},2000);
-}else if(err.type==='peer-disconnected'||err.type==='network'){
-document.getElementById('madam-disconnect-banner').classList.add('show');
-setTimeout(()=>{doReconnectMadam()},3000);
-}});
-peer.on('disconnected',()=>{
-document.getElementById('madam-disconnect-banner').classList.add('show');
-setTimeout(()=>{doReconnectMadam()},3000);
-});
-peer.on('reconnected',()=>{
-document.getElementById('madam-disconnect-banner').classList.remove('show');
-madamReconnectAttempts=0;
-});
-peer.on('connection',handleNewConnection);
-peer.on('call',handleIncomingCall);
-}
-
-// ============================================
-// HEARTBEAT (sama dengan anakmadam.html)
-// ============================================
-function startHeartbeatForPatient(patientName){
-stopHeartbeatForPatient(patientName);
-heartbeatIntervals[patientName]=setInterval(()=>{
-const session=activeSessions[patientName];
-if(session&&session.conn&&session.conn.open){
-session.conn.send({type:'heartbeat',timestamp:Date.now()});
-if(sessionStates[patientName]){
-const timeSinceLastSeen=Date.now()-(sessionStates[patientName].lastSeen||0);
-if(timeSinceLastSeen>HEARTBEAT_TIMEOUT&&sessionStates[patientName].state==='connected'){
-console.log('⚠️ Heartbeat timeout for',patientName);
-handlePatientDisconnected(patientName,'heartbeat_timeout');
-}}}},HEARTBEAT_INTERVAL);
-}
-
-function stopHeartbeatForPatient(patientName){
-if(heartbeatIntervals[patientName]){clearInterval(heartbeatIntervals[patientName]);delete heartbeatIntervals[patientName]}
-}
-
-// ============================================
-// SESSION STATE MANAGEMENT
-// ============================================
-function setSessionState(patientName,state,peerId){
-if(!sessionStates[patientName]){
-sessionStates[patientName]={state:state,lastSeen:Date.now(),reconnectAttempts:0,peerId:peerId||''};
-}else{
-sessionStates[patientName].state=state;
-sessionStates[patientName].lastSeen=Date.now();
-if(peerId)sessionStates[patientName].peerId=peerId;
-}
-console.log('📋 Session state:',patientName,'->',state);
-}
-
-function getSessionState(patientName){
-return sessionStates[patientName]?sessionStates[patientName].state:'unknown';
-}
-
-// ============================================
-// INCOMING CALL HANDLER
-// ============================================
-function handleIncomingCall(incomingCall){
-if(!connections[incomingCall.peer]&&!Object.values(activeSessions).some(s=>s.peerId===incomingCall.peer)){incomingCall.close();return}
-if(currentCall){incomingCall.close();return}
-pendingCall=incomingCall;
-pendingCall.on('close',()=>{
-if(pendingCall===incomingCall){
-document.getElementById('incoming-call-overlay').classList.remove('show');
-stopRingtone();clearTimeout(incomingCallTimeout);pendingCall=null;
-addSystemMessage('📴 Panggilan dibatalkan oleh penelepon');
-}});
-const callerName=(connections[incomingCall.peer]?.patientData?.name)||'Anak Madam';
-document.getElementById('incoming-caller-name').innerText=callerName+' sedang menelepon...';
-document.getElementById('incoming-call-overlay').classList.add('show');
-const ringtone=document.getElementById('ringtone');
-ringtone.currentTime=0;ringtone.play().catch(e=>console.log('Ringtone error:',e));
-ringtonePlaying=true;
-if(navigator.vibrate)navigator.vibrate([200,100,200,100,200]);
-showNotification('📞 Panggilan Masuk',callerName+' sedang menelepon...');
-incomingCallTimeout=setTimeout(()=>{rejectIncomingCall();addSystemMessage('⏰ Panggilan tidak dijawab, diakhiri otomatis')},60000);
-}
-
-peer.on('call',handleIncomingCall);
-
-function answerIncomingCall(){
-if(!pendingCall)return;
-clearTimeout(incomingCallTimeout);stopRingtone();
-document.getElementById('incoming-call-overlay').classList.remove('show');
-const pId=pendingCall.peer;
-selectPatient(pId);
-navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}})
-.then((stream)=>{
-localStream=stream;pendingCall.answer(stream);
-currentCall=pendingCall;pendingCall=null;
-handleCall(currentCall);enableLoudspeaker();
-}).catch(err=>{alert('❌ Gagal mengakses mikrofon: '+err.message);rejectIncomingCall()});
-}
-
-function rejectIncomingCall(){
-clearTimeout(incomingCallTimeout);stopRingtone();
-document.getElementById('incoming-call-overlay').classList.remove('show');
-if(pendingCall&&connections[pendingCall.peer]&&connections[pendingCall.peer].open){
-connections[pendingCall.peer].send({type:'call_rejected'});
-}
-if(pendingCall){pendingCall.close();pendingCall=null}
-addSystemMessage('📴 Panggilan ditolak');
-}
-
-function stopRingtone(){
-const ringtone=document.getElementById('ringtone');
-if(ringtonePlaying){ringtone.pause();ringtone.currentTime=0;ringtonePlaying=false}
-}
-
-function getMessageText(data){
-if(typeof data==='string')return data;
-if(data&&typeof data==='object'){
-if(data.text)return data.text;
-if(data.message)return data.message;
-if(data.content)return data.content;
-}
-return '';
-}
-
-// ============================================
-// CONNECTION HANDLER (DENGAN SESSION PERSISTENCE)
-// ============================================
-function handleNewConnection(conn){
-connections[conn.peer]=conn;
-unreadCounts[conn.peer]=0;
-conn.patientData={name:'Menunggu nama...',id:conn.peer};
-
-conn.on('open',()=>{console.log('✅ Connection opened:',conn.peer)});
-
-conn.on('data',(data)=>{
-if(data instanceof ArrayBuffer||data instanceof Blob){
-if(pendingFileMeta&&conn.patientData.name!=='Menunggu nama...'){
-const blob=new Blob([data],{type:pendingFileMeta.fileType});
-const url=URL.createObjectURL(blob);
-addFileToWindow({name:pendingFileMeta.name,fileType:pendingFileMeta.fileType,data:url,size:pendingFileMeta.size},'in');
-saveMessageToHistory(conn.peer,conn.patientData.name,{type:'file',name:pendingFileMeta.name,fileType:pendingFileMeta.fileType,size:pendingFileMeta.size},'in');
-conn.lastMessage='📎 '+pendingFileMeta.name;
-pendingFileMeta=null;
-updatePatientList();
-}
-return;
-}
-
-if(data&&data.type==='heartbeat'){
-const pName=conn.patientData.name;
-if(pName&&pName!=='Menunggu nama...'&&sessionStates[pName]){
-sessionStates[pName].lastSeen=Date.now();
-if(sessionStates[pName].state==='disconnected'){
-sessionStates[pName].state='connected';
-sessionStates[pName].reconnectAttempts=0;
-handlePatientReconnected(pName,conn.peer);
-}}
-return;
-}
-
-if(data&&data.type==='file-meta'){pendingFileMeta=data;return}
-
-if(data&&data.type==='patientInfo'&&data.name){
-conn.patientData.name=data.name;
-patientNames[conn.peer]=data.name;
-
-const wasDisconnected=sessionStates[data.name]&&sessionStates[data.name].state==='disconnected';
-const wasEnded=sessionStates[data.name]&&sessionStates[data.name].state==='ended';
-
-if(wasEnded){delete sessionStates[data.name]}
-
-if(activeSessions[data.name]){
-activeSessions[data.name].conn=conn;
-activeSessions[data.name].peerId=conn.peer;
-if(wasDisconnected){
-handlePatientReconnected(data.name,conn.peer);
-}else if(activePeerName===data.name){
-document.getElementById('current-patient-realname').innerText='● Tersambung (Sesi Dilanjutkan)';
-document.getElementById('chat-disconnect-banner').classList.remove('show');
-setTimeout(()=>{if(activePeerName===data.name){document.getElementById('current-patient-realname').innerText='● Tersambung'}},3000);
-}
-}else{
-activeSessions[data.name]={conn:conn,peerId:conn.peer,name:data.name};
-}
-
-setSessionState(data.name,'connected',conn.peer);
-startHeartbeatForPatient(data.name);
-updatePatientList();
-return;
-}
-
-if(data&&data.type==='end_call'){
-isRemoteEndingCall=true;
-if(currentCall){currentCall.close();currentCall=null}
-if(pendingCall){pendingCall.close();pendingCall=null}
-document.getElementById('incoming-call-overlay').classList.remove('show');
-document.getElementById('btn-call').style.display='flex';
-document.getElementById('btn-end').style.display='none';
-document.getElementById('btn-speaker').style.display='none';
-stopRingtone();clearTimeout(incomingCallTimeout);
-addSystemMessage('📴 Panggilan dibatalkan/diakhiri oleh pasien');
-isRemoteEndingCall=false;
-return;
-}
-
-if(data&&data.type==='exit'){
-const pName=conn.patientData.name||'Anak Madam';
-addSystemMessage('❌ '+pName+' mengakhiri konsultasi');
-setSessionState(pName,'ended');
-stopHeartbeatForPatient(pName);
-if(reconnectMonitors[pName]){clearInterval(reconnectMonitors[pName]);delete reconnectMonitors[pName]}
-if(activePeerId===conn.peer&&currentCall){
-currentCall.close();
-if(localStream){localStream.getTracks().forEach(t=>t.stop());localStream=null}
-}
-delete activeSessions[pName];
-delete connections[conn.peer];
-conn.close();
-if(activePeerName===pName){
-document.getElementById('chat-disconnect-banner').classList.remove('show');
-setTimeout(()=>{backToSidebar()},1000);
-}
-updatePatientList();
-return;
-}
-
-const messageText=getMessageText(data);
-const messageType=data&&data.type?data.type:'text';
-const senderName=conn.patientData.name||'Anak Madam';
-if(sessionStates[senderName]){sessionStates[senderName].lastSeen=Date.now()}
-saveMessageToHistory(conn.peer,conn.patientData.name,{type:messageType,text:messageText,data:data.data,fileType:data.fileType,name:data.name},'in');
-const preview=messageType==='file'?'📎 Mengirim file':messageText;
-showNotification(senderName,preview);
-conn.lastMessage=messageType==='file'?'📎 File':(messageText||'Pesan');
-if(activePeerId===conn.peer){
-if(messageType==='file')addFileToWindow(data,'in');
-else if(messageText)addMessageToWindow(messageText,'in');
-}else{
-unreadCounts[conn.peer]=(unreadCounts[conn.peer]||0)+1;
-updatePatientList();
-if(navigator.vibrate)navigator.vibrate(200);
-}
-});
-
-conn.on('close',()=>{
-const pName=conn.patientData?conn.patientData.name:'Anak Madam';
-console.log('🔌 Connection closed for:',pName,'peer:',conn.peer);
-delete connections[conn.peer];
-stopHeartbeatForPatient(pName);
-if(pName!=='Menunggu nama...'&&activeSessions[pName]){
-setSessionState(pName,'disconnected');
-activeSessions[pName].conn=null;
-if(activePeerName===pName){
-document.getElementById('current-patient-realname').innerText='⚠️ Terputus, menunggu reconnect...';
-document.getElementById('chat-disconnect-banner').classList.add('show');
-}
-addSystemMessage('⚠️ '+pName+' terputus. Menunggu koneksi ulang...');
-updatePatientList();
-startReconnectMonitor(pName);
-}else{
-updatePatientList();
-}
-});
-
-conn.on('error',(err)=>{console.error('Connection error:',err)});
-}
-
-peer.on('connection',handleNewConnection);
-
-// ============================================
-// RECONNECT MONITOR (sama dengan anakmadam.html)
-// ============================================
-function startReconnectMonitor(patientName){
-if(reconnectMonitors[patientName])clearInterval(reconnectMonitors[patientName]);
-if(!sessionStates[patientName]){
-sessionStates[patientName]={state:'disconnected',lastSeen:Date.now(),reconnectAttempts:0,peerId:''};
-}
-sessionStates[patientName].reconnectAttempts=0;
-reconnectMonitors[patientName]=setInterval(()=>{
-if(!sessionStates[patientName]||sessionStates[patientName].state!=='disconnected'){
-clearInterval(reconnectMonitors[patientName]);
-delete reconnectMonitors[patientName];
-return;
-}
-sessionStates[patientName].reconnectAttempts++;
-console.log('🔄 Reconnect monitor for',patientName,'- attempt',sessionStates[patientName].reconnectAttempts);
-if(sessionStates[patientName].reconnectAttempts>=MAX_RECONNECT){
-clearInterval(reconnectMonitors[patientName]);
-delete reconnectMonitors[patientName];
-setSessionState(patientName,'ended');
-addSystemMessage('❌ '+patientName+' gagal reconnect setelah '+MAX_RECONNECT+' percobaan');
-if(activePeerName===patientName){
-document.getElementById('current-patient-realname').innerText='❌ Koneksi hilang';
-}
-updatePatientList();
-}
-},5000);
-}
-
-// ============================================
-// PATIENT RECONNECTED HANDLER
-// ============================================
-function handlePatientReconnected(patientName,newPeerId){
-console.log('✅ Patient reconnected:',patientName,'new peer:',newPeerId);
-if(reconnectMonitors[patientName]){
-clearInterval(reconnectMonitors[patientName]);
-delete reconnectMonitors[patientName];
-}
-setSessionState(patientName,'connected',newPeerId);
-sessionStates[patientName].reconnectAttempts=0;
-startHeartbeatForPatient(patientName);
-if(activePeerName===patientName){
-document.getElementById('current-patient-realname').innerText='● Tersambung (Koneksi Dipulihkan)';
-document.getElementById('chat-disconnect-banner').classList.remove('show');
-addSystemMessage('✅ '+patientName+' tersambung kembali. Sesi dilanjutkan.');
-setTimeout(()=>{if(activePeerName===patientName){document.getElementById('current-patient-realname').innerText='● Tersambung'}},3000);
-}else{
-addSystemMessage('✅ '+patientName+' tersambung kembali');
-}
-updatePatientList();
-}
-
-// ============================================
-// PATIENT DISCONNECTED HANDLER
-// ============================================
-function handlePatientDisconnected(patientName,reason){
-console.log('⚠️ Patient disconnected (heartbeat):',patientName,'reason:',reason);
-const session=activeSessions[patientName];
-if(session&&session.conn){try{session.conn.close()}catch(e){}}
-setSessionState(patientName,'disconnected');
-stopHeartbeatForPatient(patientName);
-if(activePeerName===patientName){
-document.getElementById('current-patient-realname').innerText='⚠️ Terputus (heartbeat timeout)';
-document.getElementById('chat-disconnect-banner').classList.add('show');
-}
-addSystemMessage('⚠️ '+patientName+' terputus. Menunggu koneksi ulang...');
-startReconnectMonitor(patientName);
-updatePatientList();
-}
-
-// ============================================
-// VISIBILITY CHANGE (sama dengan anakmadam.html)
-// ============================================
-document.addEventListener('visibilitychange',async()=>{
-if(document.visibilityState==='visible'){
-requestWakeLock();startKeepAlive();
-if(peer&&peer.disconnected){
-console.log('🔄 Halaman aktif kembali, reconnecting madam peer...');
-doReconnectMadam();
-}
-}
-});
-
-// ============================================
-// NOTIFICATION
-// ============================================
-function showNotification(title,message){
-if('Notification' in window&&Notification.permission==='granted'){
-new Notification(title,{body:message||'Pesan baru',vibrate:[200,100,200]});
-}
-const popup=document.getElementById('notification');
-document.getElementById('notif-title').innerText=title;
-document.getElementById('notif-message').innerText=message||'Pesan baru';
-popup.classList.add('show');
-setTimeout(()=>{popup.classList.remove('show')},3000);
-popup.onclick=()=>{popup.classList.remove('show')};
-}
-
-// ============================================
-// HISTORY MANAGEMENT
-// ============================================
-function getHistory(){const history=localStorage.getItem('madamTi_history');return history?JSON.parse(history):{}}
-function saveMessageToHistory(peerId,patientName,data,direction){
-const history=getHistory();
-if(!history[peerId]){history[peerId]={name:patientName,messages:[],lastUpdate:new Date().toISOString()}}
-history[peerId].name=patientName;
-history[peerId].lastUpdate=new Date().toISOString();
-history[peerId].messages.push({type:data.type,text:data.text,data:data.data,fileType:data.fileType,fileName:data.name,direction:direction,timestamp:new Date().toISOString()});
-if(history[peerId].messages.length>200)history[peerId].messages.shift();
-localStorage.setItem('madamTi_history',JSON.stringify(history));
-if(currentTab==='history')renderHistoryList();
-}
-
-function renderHistoryList(){
-const listEl=document.getElementById('history-list');listEl.innerHTML='';
-const history=getHistory();
-const peers=Object.keys(history).sort((a,b)=>new Date(history[b].lastUpdate)-new Date(history[a].lastUpdate));
-if(peers.length===0){listEl.innerHTML='<li style="padding:20px;text-align:center;color:#666;">Belum ada riwayat</li>';return}
-peers.forEach(pid=>{
-const record=history[pid];
-const li=document.createElement('li');li.className='patient-item';li.onclick=()=>loadHistoryChat(pid);
-const lastMsg=record.messages.length>0?(record.messages[record.messages.length-1].type==='file'?'📎 '+record.messages[record.messages.length-1].fileName:record.messages[record.messages.length-1].text):'Tidak ada pesan';
-const date=new Date(record.lastUpdate).toLocaleDateString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-li.innerHTML='<div class="avatar">🔮</div><div class="patient-info"><div class="patient-name">'+record.name+'</div><div class="last-msg">'+lastMsg+'</div><div class="history-date">📅 '+date+'</div></div>';
-listEl.appendChild(li);
-});
-}
-
-function loadHistoryChat(peerId){
-const history=getHistory();const record=history[peerId];if(!record)return;
-activePeerId=peerId;
-document.getElementById('empty-state').classList.add('hidden');
-document.getElementById('chat-interface').classList.remove('hidden');
-document.getElementById('chat-interface').style.display='flex';
-document.getElementById('current-patient-name').innerText=record.name;
-document.getElementById('current-patient-realname').innerText='📜 Riwayat';
-document.getElementById('chat-window').innerHTML='';
-if(window.innerWidth<=768)document.getElementById('sidebar').classList.add('hidden');
-record.messages.forEach(msg=>{
-if(msg.type==='file')addFileToWindow({type:'file',data:msg.data,fileType:msg.fileType,name:msg.fileName,size:msg.size},msg.direction);
-else addMessageToWindow(msg.text,msg.direction);
-});
-addSystemMessage('--- Riwayat dengan '+record.name+' ---');
-}
-
-function clearHistory(){if(confirm('Yakin ingin menghapus semua riwayat?')){localStorage.removeItem('madamTi_history');renderHistoryList();alert('Riwayat dihapus.')}}
-
-function switchTab(tab){
-currentTab=tab;
-document.querySelectorAll('.tab-btn').forEach(btn=>btn.classList.remove('active'));
-event.target.classList.add('active');
-if(tab==='active'){document.getElementById('patient-list').classList.remove('hidden');document.getElementById('history-list').classList.add('hidden');updatePatientList()}
-else{document.getElementById('patient-list').classList.add('hidden');document.getElementById('history-list').classList.remove('hidden');renderHistoryList()}
-}
-
-// ============================================
-// CALL MANAGEMENT
-// ============================================
-function enableLoudspeaker(){document.getElementById('remote-audio').volume=1.0;isSpeakerOn=true;updateSpeakerButton()}
-function toggleSpeaker(){isSpeakerOn=!isSpeakerOn;document.getElementById('remote-audio').volume=isSpeakerOn?1.0:0.5;updateSpeakerButton()}
-function updateSpeakerButton(){const btn=document.getElementById('btn-speaker');btn.style.display=isSpeakerOn?'flex':'none';btn.innerHTML=isSpeakerOn?'🔊':'🔇';btn.style.background=isSpeakerOn?'#1a4d2e':'#2d1b4e'}
-
-function finishSession(){
-if(!activePeerName||!activeSessions[activePeerName]){alert('Tidak ada pasien yang terhubung');return}
-if(confirm('✓ Akhiri Sesi Konsultasi?\n\nPasien akan diberitahu bahwa Anda telah keluar.\n\nLanjutkan?')){
-const session=activeSessions[activePeerName];
-setSessionState(activePeerName,'ended');
-stopHeartbeatForPatient(activePeerName);
-if(reconnectMonitors[activePeerName]){clearInterval(reconnectMonitors[activePeerName]);delete reconnectMonitors[activePeerName]}
-if(session.conn&&session.conn.open){session.conn.send({type:'exit',reason:'madam_finished',message:'Madam Ti\' telah mengakhiri sesi konsultasi'});session.conn.close()}
-delete activeSessions[activePeerName];
-if(currentCall){currentCall.close();currentCall=null}
-if(localStream){localStream.getTracks().forEach(t=>t.stop());localStream=null}
-addSystemMessage('✓ Sesi dengan '+activePeerName+' diakhiri');
-document.getElementById('chat-disconnect-banner').classList.remove('show');
-setTimeout(()=>{backToSidebar()},1000);
-}
-}
-
-// ============================================
-// FILE HANDLING
-// ============================================
-function handleFileSelect(event){
-const file=event.target.files[0];
-if(!file||!activePeerName||!activeSessions[activePeerName]?.conn){alert('Pilih pasien terlebih dahulu');return}
-if(file.size>MAX_FILE_SIZE){alert('File terlalu besar! Maksimal 5MB.');event.target.value='';return}
-const statusDiv=document.createElement('div');statusDiv.className='msg-sys';statusDiv.innerText='⏳ Mengirim...';document.getElementById('chat-window').appendChild(statusDiv);
-const reader=new FileReader();
-reader.onload=function(e){
-const arrayBuffer=e.target.result;
-const conn=activeSessions[activePeerName].conn;
-if(conn&&conn.open){
-conn.send({type:'file-meta',name:file.name,fileType:file.type,size:file.size});
-conn.send(arrayBuffer);
-const blob=new Blob([arrayBuffer],{type:file.type});const url=URL.createObjectURL(blob);
-addFileToWindow({name:file.name,fileType:file.type,data:url,size:file.size},'out');
-saveMessageToHistory(conn.peer,conn.patientData.name,{type:'file',name:file.name,fileType:file.type,size:file.size},'out');
-conn.lastMessage='📎 '+file.name;updatePatientList();
-}
-statusDiv.remove();event.target.value='';
-};
-reader.readAsArrayBuffer(file);
-}
-
-// ============================================
-// MESSAGE HANDLING
-// ============================================
-function sendMessage(){
-if(!activePeerName||!activeSessions[activePeerName]?.conn)return;
-const input=document.getElementById('msg-input');const msg=input.value.trim();
-if(msg){
-const conn=activeSessions[activePeerName].conn;
-conn.send({type:'text',text:msg});
-saveMessageToHistory(conn.peer,conn.patientData.name,{type:'text',text:msg},'out');
-addMessageToWindow(msg,'out');
-conn.lastMessage=msg;input.value='';updatePatientList();
-}
-}
-
-function handleEnter(e){if(e.key==='Enter')sendMessage()}
-
-function addMessageToWindow(text,type){
-const div=document.createElement('div');div.className='message msg-'+type;
-div.innerHTML=text+'<span class="msg-time">'+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'</span>';
-const win=document.getElementById('chat-window');win.appendChild(div);win.scrollTop=win.scrollHeight;
-}
-
-function addFileToWindow(fileData,type){
-const div=document.createElement('div');div.className='message msg-'+type;
-const isImage=fileData.fileType&&fileData.fileType.startsWith('image/');
-const fileSizeKB=fileData.size?(fileData.size/1024).toFixed(1):'0';
-let content='';
-if(isImage){
-content='<div class="file-attachment"><img src="'+fileData.data+'" onclick="viewImage(this.src)"></div>';
-}else{
-content='<div class="file-attachment"><div class="file-info"><span style="font-size:1.3em">📄</span><div style="flex:1"><div style="font-weight:600;font-size:0.8em">'+(fileData.name||'File')+'</div><div style="font-size:0.7em;color:#aaa">'+fileSizeKB+' KB</div></div>'+(fileData.data?'<a href="'+fileData.data+'" download="'+fileData.name+'" class="download-btn">⬇ Unduh</a>':'')+'</div></div>';
-}
-div.innerHTML=content+'<span class="msg-time">'+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'</span>';
-const win=document.getElementById('chat-window');win.appendChild(div);win.scrollTop=win.scrollHeight;
-}
-
-function viewImage(src){const win=window.open();win.document.write('<body style="background:#000;margin:0;display:flex;justify-content:center;align-items:center;height:100vh;"><img src="'+src+'" style="max-width:100%;max-height:100%;"></body>')}
-
-// ============================================
-// PATIENT LIST
-// ============================================
-function updatePatientList(){
-if(currentTab!=='active')return;
-const listEl=document.getElementById('patient-list');listEl.innerHTML='';
-const sessions=Object.values(activeSessions);
-if(sessions.length===0){listEl.innerHTML='<li style="padding:20px;text-align:center;color:#666;">Belum ada Anak Madam</li>';return}
-sessions.forEach(session=>{
-const state=sessionStates[session.name]?sessionStates[session.name].state:'unknown';
-const isConnected=state==='connected';
-const isReconnecting=state==='disconnected';
-const li=document.createElement('li');
-li.className='patient-item'+(activePeerName===session.name?' active':'')+(isReconnecting?' disconnected':'');
-li.onclick=()=>selectPatientByName(session.name);
-const badgeCount=unreadCounts[session.peerId]||0;
-let statusText='● Tersambung';
-let statusClass='connected';
-if(state==='disconnected'){statusText='⚠️ Terputus (reconnect...)';statusClass='disconnected'}
-else if(state==='ended'){statusText='❌ Sesi berakhir';statusClass='disconnected'}
-li.innerHTML='<div class="avatar">🔮</div><div class="patient-info"><div class="patient-name">'+session.name+'</div><div class="last-msg">'+(session.conn?.lastMessage||'Menunggu...')+'</div><div class="patient-status '+statusClass+'">'+statusText+'</div></div>'+(badgeCount>0?'<span class="badge">'+badgeCount+'</span>':'');
-listEl.appendChild(li);
-});
-}
-
-function selectPatientByName(name){const session=activeSessions[name];if(!session)return;if(session.conn)selectPatient(session.peerId)}
-
-function selectPatient(pid){
-const session=Object.values(activeSessions).find(s=>s.peerId===pid);if(!session)return;
-activePeerId=pid;activePeerName=session.name;unreadCounts[pid]=0;
-document.getElementById('empty-state').classList.add('hidden');
-document.getElementById('chat-interface').classList.remove('hidden');
-document.getElementById('chat-interface').style.display='flex';
-document.getElementById('current-patient-name').innerText=session.name;
-const state=sessionStates[session.name]?sessionStates[session.name].state:'unknown';
-if(state==='connected'){
-document.getElementById('current-patient-realname').innerText='● Tersambung';
-document.getElementById('chat-disconnect-banner').classList.remove('show');
-}else if(state==='disconnected'){
-document.getElementById('current-patient-realname').innerText='⚠️ Terputus, menunggu reconnect...';
-document.getElementById('chat-disconnect-banner').classList.add('show');
-}else{
-document.getElementById('current-patient-realname').innerText=session.conn?'● Tersambung':'⚠️ Terputus, menunggu...';
-}
-document.getElementById('chat-window').innerHTML='';
-if(window.innerWidth<=768)document.getElementById('sidebar').classList.add('hidden');
-const histData=getHistory();const histKey=Object.keys(histData).find(k=>histData[k].name===session.name)||pid;
-if(histData[histKey]){
-addSystemMessage('📜 Memuat riwayat...');
-histData[histKey].messages.forEach(msg=>{
-if(msg.type==='file')addFileToWindow({type:'file',data:msg.data,fileType:msg.fileType,name:msg.fileName,size:msg.size},msg.direction);
-else addMessageToWindow(msg.text,msg.direction);
-});
-}
-addSystemMessage('🔮 Sesi dengan '+session.name+(session.conn?' Dimulai/Dilanjutkan':' (Menunggu koneksi...)'));
-updatePatientList();
-}
-
-function backToSidebar(){
-activePeerId=null;activePeerName=null;
-document.getElementById('chat-interface').classList.add('hidden');
-document.getElementById('empty-state').classList.remove('hidden');
-document.getElementById('sidebar').classList.remove('hidden');
-updatePatientList();
-}
-
-function addSystemMessage(text){
-const div=document.createElement('div');div.className='message msg-sys';div.innerText=text;
-document.getElementById('chat-window').appendChild(div);
-}
-
-// ============================================
-// CALL FUNCTIONS
-// ============================================
-function startCall(){
-if(!activePeerName||!activeSessions[activePeerName]?.conn){alert('Tidak ada pasien yang terhubung');return}
-const session=activeSessions[activePeerName];
-navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}})
-.then((stream)=>{
-localStream=stream;const call=peer.call(session.peerId,stream);
-handleCall(call);enableLoudspeaker();
-incomingCallTimeout=setTimeout(()=>{if(currentCall){addSystemMessage('⏰ Panggilan tidak dijawab, diakhiri otomatis');endCall()}},60000);
-}).catch(err=>{alert('❌ Gagal mengakses mikrofon: '+err.message)});
-}
-
-function handleCall(call){
-currentCall=call;
-document.getElementById('btn-call').style.display='none';
-document.getElementById('btn-end').style.display='flex';
-document.getElementById('btn-speaker').style.display='flex';
-call.on('stream',(remoteStream)=>{
-document.getElementById('remote-audio').srcObject=remoteStream;
-document.getElementById('remote-audio').volume=1.0;
-document.getElementById('remote-audio').play();
-addSystemMessage('🔊 Suara Terbuka');
-});
-call.on('close',()=>{if(!isRemoteEndingCall)endCallUI()});
-}
-
-function endCall(){
-if(incomingCallTimeout){clearTimeout(incomingCallTimeout);incomingCallTimeout=null}
-const session=activeSessions[activePeerName];
-if(!isRemoteEndingCall&&session?.conn?.open){session.conn.send({type:'end_call'})}
-if(currentCall){currentCall.close();currentCall=null}
-if(localStream){localStream.getTracks().forEach(t=>t.stop());localStream=null}
-endCallUI();
-}
-
-function endCallUI(){
-document.getElementById('btn-call').style.display='flex';
-document.getElementById('btn-end').style.display='none';
-document.getElementById('btn-speaker').style.display='none';
-isSpeakerOn=false;currentCall=null;stopRingtone();
-addSystemMessage('📴 Panggilan Diakhiri');
-}
-
-// ============================================
-// QUICK CHAT
-// ============================================
-function getQuickChatTemplates(){const saved=localStorage.getItem('madamTi_quickchat');return saved?JSON.parse(saved):[...DEFAULT_QUICK_CHAT]}
-function saveQuickChatTemplates(templates){localStorage.setItem('madamTi_quickchat',JSON.stringify(templates))}
-
-function openQuickChat(){
-if(!activePeerName||!activeSessions[activePeerName]?.conn){alert('Pilih pasien terlebih dahulu');return}
-renderQuickChatList();
-document.getElementById('quick-chat-overlay').classList.add('show');
-}
-
-function closeQuickChat(){document.getElementById('quick-chat-overlay').classList.remove('show')}
-
-function renderQuickChatList(){
-const list=document.getElementById('quick-chat-list');
-const templates=getQuickChatTemplates();
-list.innerHTML='';
-templates.forEach((text,index)=>{
-const item=document.createElement('div');
-item.className='quick-chat-item';
-item.innerHTML='<textarea class="quick-chat-text" id="qc-text-'+index+'" placeholder="Tulis pesan cepat di sini...">'+text+'</textarea><div class="quick-chat-actions"><button class="qc-btn qc-delete" onclick="deleteQuickChatItem('+index+')">🗑️ Hapus</button><button class="qc-btn qc-save" onclick="saveQuickChatItem('+index+')">💾 Simpan</button><button class="qc-btn qc-send" onclick="sendQuickChat('+index+')">🚀 Kirim</button></div>';
-list.appendChild(item);
-});
-}
-
-function sendQuickChat(index){
-const textarea=document.getElementById('qc-text-'+index);
-const msg=textarea.value.trim();
-if(!msg){alert('Pesan kosong');return}
-const session=activeSessions[activePeerName];
-if(session&&session.conn&&session.conn.open){
-session.conn.send({type:'text',text:msg});
-saveMessageToHistory(session.peerId,session.name,{type:'text',text:msg},'out');
-addMessageToWindow(msg,'out');
-session.conn.lastMessage=msg;
-updatePatientList();
-closeQuickChat();
-}else{alert('Koneksi ke pasien terputus.')}
-}
-
-function saveQuickChatItem(index){
-const textarea=document.getElementById('qc-text-'+index);
-const templates=getQuickChatTemplates();
-templates[index]=textarea.value.trim();
-saveQuickChatTemplates(templates);
-alert('✅ Template disimpan');
-}
-
-function deleteQuickChatItem(index){
-if(!confirm('Yakin ingin menghapus template ini?'))return;
-const templates=getQuickChatTemplates();
-templates.splice(index,1);
-saveQuickChatTemplates(templates);
-renderQuickChatList();
-}
-
-function addQuickChatTemplate(){
-const templates=getQuickChatTemplates();
-templates.push('Template baru...');
-saveQuickChatTemplates(templates);
-renderQuickChatList();
-}
-
-document.getElementById('quick-chat-overlay').addEventListener('click',function(e){if(e.target===this)closeQuickChat()});
-
-// ============================================
-// COPY ID & MISC
-// ============================================
-function copyId(){
-const idText=document.getElementById('my-id').innerText;
-navigator.clipboard.writeText(idText).then(()=>{alert('ID Disalin: '+idText)}).catch(()=>{
-const textArea=document.createElement('textarea');textArea.value=idText;
-document.body.appendChild(textArea);textArea.select();document.execCommand('copy');
-document.body.removeChild(textArea);alert('ID Disalin: '+idText);
-});
-}
-
-// Periodic reconnect check
-setInterval(()=>{if(peer&&peer.disconnected)peer.reconnect()},10000);
+function gSI(){return localStorage.getItem(SK)}function sI(id){localStorage.setItem(SK,id)}function gId(){return String(Math.floor(1000+Math.random()*9000))}
+function gNId(){if(confirm('⚠️ Buat ID Baru?\n\nID lama tidak akan bisa digunakan lagi.\nPastikan tidak ada pasien yang sedang terhubung.\n\nLanjutkan?')){Object.values(conns).forEach(c=>{try{c.send({type:'exit',reason:'madam_changed_id'})}catch(e){}c.close()});conns={};aSessions={};sStates={};Object.values(hbInts).forEach(i=>clearInterval(i));Object.values(rcMons).forEach(i=>clearInterval(i));hbInts={};rcMons={};const nid=gId();sI(nid);document.getElementById('myid').innerText='...';document.getElementById('cs').innerText='● Membuat ID baru...';setTimeout(()=>{location.reload()},1000)}}
+function exApp(){if(confirm('Yakin ingin keluar dari aplikasi?\n\nSemua sesi konsultasi dengan Anak Madam akan diakhiri secara paksa.')){Object.values(conns).forEach(c=>{try{if(c.open)c.send({type:'exit',reason:'madam_exited',message:"Madam Ti' telah keluar dari aplikasi."})}catch(e){}c.close()});Object.values(hbInts).forEach(i=>clearInterval(i));Object.values(rcMons).forEach(i=>clearInterval(i));if(mDT)clearTimeout(mDT);if(peer)peer.destroy();document.body.innerHTML='<div style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh;background:radial-gradient(circle at center,#2e004f,#000);color:white;font-family:Lato,sans-serif;text-align:center;padding:20px;"><div style="font-size:4em;margin-bottom:20px;">🔮</div><h1 style="font-family:Cinzel,serif;color:#ff007f;margin-bottom:10px;">Sesi Aplikasi Berakhir</h1><p style="color:#a0a0a0;margin-bottom:30px;">Anda telah keluar dari aplikasi Madam Ti\'.<br>Silakan tutup tab/browser ini.</p><button onclick="location.reload()" style="padding:12px 24px;background:#9d00ff;color:white;border:none;border-radius:20px;font-size:1em;cursor:pointer;">Masuk Kembali</button></div>'}}
+let aId=gSI();if(!aId){aId=gId();sI(aId)}
+function sKA(){const a=document.getElementById('ka');if(a){a.volume=0.01;a.play().catch(e=>{})}}
+document.body.addEventListener('click',sKA,{once:true});document.body.addEventListener('touchstart',sKA,{once:true});
+let wL=null;async function rWL(){if('wakeLock' in navigator){try{wL=await navigator.wakeLock.request('screen')}catch(e){}}}rWL();
+const iceS=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun2.l.google.com:19302'},{urls:'stun:stun3.l.google.com:19302'},{urls:'stun:stun4.l.google.com:19302'},{urls:'stun:stun.cloudflare.com:3478'},{urls:'turn:freeturn.net:3478',username:'free',credential:'free'},{urls:'turn:freeturn.net:3478?transport=tcp',username:'free',credential:'free'},{urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},{urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},{urls:'turn:openrelay.metered.ca:443?transport=tcp',username:'openrelayproject',credential:'openrelayproject'}];
+peer=new Peer(aId,{debug:0,config:{iceServers:iceS},pingInterval:10000,pingTimeout:15000});
+peer.on('open',(id)=>{console.log('✅ Peer open:',id);document.getElementById('myid').innerText=id;document.getElementById('cs').innerText='● Tersambung';document.getElementById('cs').style.color='#00ff88';document.getElementById('mdb').classList.remove('show');sI(id);mRA=0;isMR=false;if(mDT){clearTimeout(mDT);mDT=null}});
+peer.on('error',(e)=>{console.warn('Peer error:',e.type);if(e.type==='unavailable-id'){const nid=gId();sI(nid);setTimeout(()=>{location.reload()},2000)}});
+peer.on('disconnected',()=>{console.log('⚠️ Peer disconnected');if(isMR)return;isMR=true;document.getElementById('cs').innerText='● Menghubungkan ulang...';document.getElementById('cs').style.color='#ffa500';mDT=setTimeout(()=>{console.log('⏱️ Madam reconnect after debounce');document.getElementById('mdb').classList.add('show');doRM()},RC_DB)});
+peer.on('reconnected',()=>{console.log('✅ Peer reconnected');document.getElementById('cs').innerText='● Tersambung';document.getElementById('cs').style.color='#00ff88';document.getElementById('mdb').classList.remove('show');mRA=0;isMR=false;if(mDT){clearTimeout(mDT);mDT=null}aSM('🔗 Koneksi Madam dipulihkan')});
+function doRM(){if(mRA>=MAX_R){document.getElementById('cs').innerText='● Gagal terhubung';document.getElementById('cs').style.color='#ff4444';document.getElementById('mdb').classList.remove('show');isMR=false;return}mRA++;console.log('🔄 Madam reconnect attempt',mRA);try{peer.reconnect();setTimeout(()=>{if(peer.disconnected&&isMR)doRM()},8000)}catch(e){console.log('Recreate peer');try{peer.destroy()}catch(e2){}peer=new Peer(aId,{debug:0,config:{iceServers:iceS},pingInterval:10000,pingTimeout:15000});sPH()}}
+function sPH(){peer.on('open',(id)=>{document.getElementById('myid').innerText=id;document.getElementById('cs').innerText='● Tersambung';document.getElementById('cs').style.color='#00ff88';document.getElementById('mdb').classList.remove('show');sI(id);mRA=0;isMR=false;if(mDT){clearTimeout(mDT);mDT=null}});peer.on('error',(e)=>{if(e.type==='unavailable-id'){const nid=gId();sI(nid);setTimeout(()=>{location.reload()},2000)}});peer.on('disconnected',()=>{if(isMR)return;isMR=true;document.getElementById('mdb').classList.add('show');setTimeout(()=>{doRM()},RC_DB)});peer.on('reconnected',()=>{document.getElementById('mdb').classList.remove('show');mRA=0;isMR=false});peer.on('connection',hNC);peer.on('call',hIC)}
+function sHBP(pn){eHBP(pn);hbInts[pn]=setInterval(()=>{const s=aSessions[pn];if(s&&s.conn&&s.conn.open){s.conn.send({type:'heartbeat',ts:Date.now()});if(sStates[pn]){const tls=Date.now()-(sStates[pn].ls||0);if(tls>HB_TO&&sStates[pn].st==='connected'){console.log('⚠️ HB timeout',pn);hPD(pn,'hb_to')}}}},HB_INT)}
+function eHBP(pn){if(hbInts[pn]){clearInterval(hbInts[pn]);delete hbInts[pn]}}
+function sSS(pn,st,pid){if(!sStates[pn])sStates[pn]={st:st,ls:Date.now(),ra:0,pid:pid||''};else{sStates[pn].st=st;sStates[pn].ls=Date.now();if(pid)sStates[pn].pid=pid}}
+function gSS(pn){return sStates[pn]?sStates[pn].st:'unknown'}
+function hIC(ic){if(!conns[ic.peer]&&!Object.values(aSessions).some(s=>s.pid===ic.peer)){ic.close();return}if(curCall){ic.close();return}pendCall=ic;pendCall.on('close',()=>{if(pendCall===ic){document.getElementById('ico').classList.remove('show');sR();clearTimeout(icTimeout);pendCall=null;aSM(' Panggilan dibatalkan')}});const cn=(conns[ic.peer]?.pData?.n)||'Anak Madam';document.getElementById('icn').innerText=cn+' sedang menelepon...';document.getElementById('ico').classList.add('show');const r=document.getElementById('ringtone');r.currentTime=0;r.play().catch(e=>{});rPlay=true;if(navigator.vibrate)navigator.vibrate([200,100,200,100,200]);sN('📞 Panggilan Masuk',cn+' sedang menelepon...');icTimeout=setTimeout(()=>{rIC();aSM(' Panggilan tidak dijawab')},60000)}
+peer.on('call',hIC);
+function aIC(){if(!pendCall)return;clearTimeout(icTimeout);sR();document.getElementById('ico').classList.remove('show');sP(pendCall.peer);navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}}).then(s=>{lStream=s;pendCall.answer(s);curCall=pendCall;pendCall=null;hC(curCall);eLS()}).catch(e=>{alert('❌ Gagal akses mikrofon: '+e.message);rIC()})}
+function rIC(){clearTimeout(icTimeout);sR();document.getElementById('ico').classList.remove('show');if(pendCall&&conns[pendCall.peer]&&conns[pendCall.peer].open)conns[pendCall.peer].send({type:'call_rejected'});if(pendCall){pendCall.close();pendCall=null}aSM('📴 Panggilan ditolak')}
+function sR(){const r=document.getElementById('ringtone');if(rPlay){r.pause();r.currentTime=0;rPlay=false}}
+function gMT(d){if(typeof d==='string')return d;if(d&&typeof d==='object'){if(d.text)return d.text;if(d.message)return d.message;if(d.content)return d.content}return ''}
+function hNC(conn){conns[conn.peer]=conn;unreads[conn.peer]=0;conn.pData={n:'Menunggu nama...',id:conn.peer};
+conn.on('open',()=>{console.log('✅ Conn open:',conn.peer)});
+conn.on('data',(d)=>{
+if(d instanceof ArrayBuffer||d instanceof Blob){if(pFM&&conn.pData.n!=='Menunggu nama...'){const b=new Blob([d],{type:pFM.fileType});const u=URL.createObjectURL(b);aFW({name:pFM.name,fileType:pFM.fileType,data:u,size:pFM.size},'in');const pn=conn.pData.n;const sid=sStates[pn]?sStates[pn].sid:null;sSM(sid,conn.peer,pn,{type:'file',name:pFM.name,fileType:pFM.fileType,size:pFM.size},'in');conn.lm='📎 '+pFM.name;pFM=null;uPL()}return}
+if(d&&d.type==='heartbeat'){const pn=conn.pData.n;if(pn&&pn!=='Menunggu nama...'&&sStates[pn]){sStates[pn].ls=Date.now();if(sStates[pn].st==='disconnected'){sStates[pn].st='connected';sStates[pn].ra=0;hPR(pn,conn.peer)}}return}
+if(d&&d.type==='file-meta'){pFM=d;return}
+if(d&&d.type==='patientInfo'&&d.n){conn.pData.n=d.n;pNames[conn.peer]=d.n;
+const wd=sStates[d.n]&&sStates[d.n].st==='disconnected';const we=sStates[d.n]&&sStates[d.n].st==='ended';
+if(we)delete sStates[d.n];
+let sid=null;
+if(sStates[d.n]&&sStates[d.n].sid)sid=sStates[d.n].sid;
+else sid='s_'+Date.now()+'_'+Math.random().toString(36).substr(2,9);
+if(aSessions[d.n]){aSessions[d.n].conn=conn;aSessions[d.n].pid=conn.peer;if(wd)hPR(d.n,conn.peer);else if(apName===d.n){document.getElementById('cpr').innerText='● Tersambung (Sesi Dilanjutkan)';document.getElementById('cdb').classList.remove('show');setTimeout(()=>{if(apName===d.n)document.getElementById('cpr').innerText='● Tersambung'},3000)}}else{aSessions[d.n]={conn:conn,pid:conn.peer,n:d.n}}
+sSS(d.n,'connected',conn.peer);sStates[d.n].sid=sid;sStates[d.n].mid=aId;sStates[d.n].pn=d.n;if(!sStates[d.n].st2)sStates[d.n].st2=new Date().toISOString();sHBP(d.n);uPL();return}
+if(d&&d.type==='end_call'){isRE=true;if(curCall){curCall.close();curCall=null}if(pendCall){pendCall.close();pendCall=null}document.getElementById('ico').classList.remove('show');document.getElementById('bc').style.display='flex';document.getElementById('be').style.display='none';document.getElementById('bsp').style.display='none';sR();clearTimeout(icTimeout);aSM(' Panggilan diakhiri pasien');isRE=false;return}
+if(d&&d.type==='exit'){const pn=conn.pData.n||'Anak Madam';aSM('❌ '+pn+' mengakhiri konsultasi');fS(pn,'ended');if(apId===conn.peer&&curCall){curCall.close();if(lStream){lStream.getTracks().forEach(t=>t.stop());lStream=null}}delete aSessions[pn];delete conns[conn.peer];conn.close();if(apName===pn){document.getElementById('cdb').classList.remove('show');setTimeout(()=>{bTS()},1000)}uPL();return}
+const mt=gMT(d);const mtp=d&&d.type?d.type:'text';const sn=conn.pData.n||'Anak Madam';if(sStates[sn])sStates[sn].ls=Date.now();const sid=sStates[sn]?sStates[sn].sid:null;sSM(sid,conn.peer,conn.pData.n,{type:mtp,text:mt,data:d.data,fileType:d.fileType,name:d.name},'in');const pv=mtp==='file'?'📎 Mengirim file':mt;sN(sn,pv);conn.lm=mtp==='file'?'📎 File':(mt||'Pesan');if(apId===conn.peer){if(mtp==='file')aFW(d,'in');else if(mt)aMW(mt,'in')}else{unreads[conn.peer]=(unreads[conn.peer]||0)+1;uPL();if(navigator.vibrate)navigator.vibrate(200)}});
+conn.on('close',()=>{const pn=conn.pData?conn.pData.n:'Anak Madam';console.log('🔌 Conn closed:',pn);delete conns[conn.peer];eHBP(pn);if(pn!=='Menunggu nama...'&&aSessions[pn]){sSS(pn,'disconnected');aSessions[pn].conn=null;if(apName===pn){document.getElementById('cpr').innerText='⚠️ Terputus, menunggu reconnect...';document.getElementById('cdb').classList.add('show')}aSM('⚠️ '+pn+' terputus. Menunggu koneksi ulang...');uPL();sRCM(pn)}else{uPL()}});
+conn.on('error',(e)=>{console.error('Conn error:',e)})}
+peer.on('connection',hNC);
+function sRCM(pn){if(rcMons[pn])clearInterval(rcMons[pn]);if(!sStates[pn])sStates[pn]={st:'disconnected',ls:Date.now(),ra:0,pid:''};sStates[pn].ra=0;rcMons[pn]=setInterval(()=>{if(!sStates[pn]||sStates[pn].st!=='disconnected'){clearInterval(rcMons[pn]);delete rcMons[pn];return}sStates[pn].ra++;console.log('🔄 RC monitor',pn,'attempt',sStates[pn].ra);if(sStates[pn].ra>=MAX_R){clearInterval(rcMons[pn]);delete rcMons[pn];fS(pn,'disconnected');aSM('❌ '+pn+' gagal reconnect');if(apName===pn)document.getElementById('cpr').innerText='❌ Koneksi hilang';uPL()}},10000)}
+function hPR(pn,npid){console.log('✅ Patient reconnected:',pn);if(rcMons[pn]){clearInterval(rcMons[pn]);delete rcMons[pn]}sSS(pn,'connected',npid);sStates[pn].ra=0;sHBP(pn);if(apName===pn){document.getElementById('cpr').innerText='● Tersambung (Koneksi Dipulihkan)';document.getElementById('cdb').classList.remove('show');aSM('✅ '+pn+' tersambung kembali. Sesi dilanjutkan.');setTimeout(()=>{if(apName===pn)document.getElementById('cpr').innerText='● Tersambung'},3000)}else{aSM('✅ '+pn+' tersambung kembali')}uPL()}
+function hPD(pn,reason){console.log('⚠️ Patient disconnected:',pn,reason);const s=aSessions[pn];if(s&&s.conn){try{s.conn.close()}catch(e){}}sSS(pn,'disconnected');eHBP(pn);if(apName===pn){document.getElementById('cpr').innerText='⚠️ Terputus (heartbeat timeout)';document.getElementById('cdb').classList.add('show')}aSM('⚠️ '+pn+' terputus. Menunggu koneksi ulang...');sRCM(pn);uPL()}
+function fS(pn,status){const st=sStates[pn];if(!st)return;const sid=st.sid;if(!sid)return;const ss=gS();if(!ss[sid])ss[sid]={mid:st.mid||aId,pn:st.pn||pn,st2:st.st2||new Date().toISOString(),et:new Date().toISOString(),status:status,msgs:[]};else{ss[sid].et=new Date().toISOString();ss[sid].status=status}localStorage.setItem(HK,JSON.stringify(ss));eHBP(pn);if(rcMons[pn]){clearInterval(rcMons[pn]);delete rcMons[pn]}delete sStates[pn];if(curTab==='history')rHL()}
+function gS(){const s=localStorage.getItem(HK);return s?JSON.parse(s):{}}
+function sSM(sid,pid,pn,d,dir){if(!sid)return;const ss=gS();if(!ss[sid])ss[sid]={mid:aId,pn:pn||'Unknown',st2:new Date().toISOString(),et:null,status:'active',msgs:[]};ss[sid].msgs.push({type:d.type,text:d.text,data:d.data,fileType:d.fileType,fn:d.name,dir:dir,ts:new Date().toISOString()});if(ss[sid].msgs.length>500)ss[sid].msgs.shift();localStorage.setItem(HK,JSON.stringify(ss))}
+document.addEventListener('visibilitychange',async()=>{if(document.visibilityState==='visible'){rWL();sKA();if(peer&&peer.disconnected&&!isMR){console.log('🔄 Page visible, reconnecting');isMR=true;setTimeout(()=>{doRM()},2000)}}});
+function sN(t,m){if('Notification' in window&&Notification.permission==='granted')new Notification(t,{body:m||'Pesan baru',vibrate:[200,100,200]});const p=document.getElementById('notif');document.getElementById('nt').innerText=t;document.getElementById('nm').innerText=m||'Pesan baru';p.classList.add('show');setTimeout(()=>{p.classList.remove('show')},3000);p.onclick=()=>{p.classList.remove('show')}}
+function rHL(){const le=document.getElementById('hl');le.innerHTML='';const ss=gS();const sorted=Object.entries(ss).sort((a,b)=>new Date(b[1].et||b[1].st2)-new Date(a[1].et||a[1].st2));if(sorted.length===0){le.innerHTML='<li style="padding:20px;text-align:center;color:#666;">Belum ada riwayat</li>';return}sorted.forEach(([sid,r])=>{const li=document.createElement('li');li.className='pi';li.onclick=()=>lSC(sid);const mc=r.msgs?r.msgs.length:0;const lm=mc>0?(r.msgs[mc-1].type==='file'?'📎 '+r.msgs[mc-1].fn:r.msgs[mc-1].text):'Tidak ada pesan';const dt=new Date(r.st2).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});const tm=new Date(r.st2).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});const et=r.et?new Date(r.et).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}):'Aktif';const si=r.status==='completed'?'✅':r.status==='ended'?'🔚':r.status==='disconnected'?'⚠️':'';li.innerHTML='<div class="av"></div><div class="pinfo"><div class="pn">'+si+' '+r.pn+'</div><div class="lm">'+lm+'</div><div class="hmi">🆔 ID Madam: '+r.mid+' | 📅 '+dt+' '+tm+' - '+et+'</div><div class="hd">💬 '+mc+' pesan | '+r.status+'</div></div>';le.appendChild(li)})}
+function lSC(sid){const ss=gS();const r=ss[sid];if(!r)return;apId=sid;apName=r.pn;document.getElementById('es').classList.add('hidden');document.getElementById('ci').classList.remove('hidden');document.getElementById('ci').style.display='flex';document.getElementById('cpn').innerText=r.pn;document.getElementById('cpr').innerText='🆔 ID: '+r.mid+' | 📜 Riwayat';document.getElementById('cw').innerHTML='';if(window.innerWidth<=768)document.getElementById('sb').classList.add('hidden');aSM('--- Sesi dengan '+r.pn+' ---');aSM('🆔 ID Madam Ti: '+r.mid);aSM('📅 '+new Date(r.st2).toLocaleString('id-ID')+(r.et?' - '+new Date(r.et).toLocaleString('id-ID'):''));aSM('Status: '+r.status);if(r.msgs)r.msgs.forEach(m=>{if(m.type==='file')aFW({type:'file',data:m.data,fileType:m.fileType,name:m.fn,size:m.size},m.dir);else aMW(m.text,m.dir)})}
+function cH(){if(confirm('Yakin ingin menghapus semua riwayat sesi?')){localStorage.removeItem(HK);rHL();alert('Riwayat dihapus.')}}
+function switchTab(tab,btn){curTab=tab;document.querySelectorAll('.tb').forEach(b=>b.classList.remove('active'));btn.classList.add('active');if(tab==='active'){document.getElementById('pl').classList.remove('hidden');document.getElementById('hl').classList.add('hidden');uPL()}else{document.getElementById('pl').classList.add('hidden');document.getElementById('hl').classList.remove('hidden');rHL()}}
+function eLS(){document.getElementById('ra').volume=1.0;isSpk=true;uSB()}function tS(){isSpk=!isSpk;document.getElementById('ra').volume=isSpk?1.0:0.5;uSB()}function uSB(){const b=document.getElementById('bsp');b.style.display=isSpk?'flex':'none';b.innerHTML=isSpk?'🔊':'';b.style.background=isSpk?'#1a4d2e':'#2d1b4e'}
+function fSess(){if(!apName||!aSessions[apName]){alert('Tidak ada pasien yang terhubung');return}if(confirm('✓ Akhiri Sesi Konsultasi?\n\nPasien akan diberitahu bahwa Anda telah keluar.\n\nLanjutkan?')){const s=aSessions[apName];fS(apName,'completed');if(s.conn&&s.conn.open){s.conn.send({type:'exit',reason:'madam_finished',message:"Madam Ti' telah mengakhiri sesi konsultasi"});s.conn.close()}delete aSessions[apName];if(curCall){curCall.close();curCall=null}if(lStream){lStream.getTracks().forEach(t=>t.stop());lStream=null}aSM('✓ Sesi dengan '+apName+' diakhiri');document.getElementById('cdb').classList.remove('show');setTimeout(()=>{bTS()},1000)}}
+function hFS(e){const f=e.target.files[0];if(!f||!apName||!aSessions[apName]?.conn){alert('Pilih pasien terlebih dahulu');return}if(f.size>MFS){alert('File terlalu besar! Maksimal 5MB.');e.target.value='';return}const sd=document.createElement('div');sd.className='ms';sd.innerText=' Mengirim...';document.getElementById('cw').appendChild(sd);const rd=new FileReader();rd.onload=function(ev){const ab=ev.target.result;const conn=aSessions[apName].conn;if(conn&&conn.open){conn.send({type:'file-meta',name:f.name,fileType:f.type,size:f.size});conn.send(ab);const b=new Blob([ab],{type:f.type});const u=URL.createObjectURL(b);aFW({name:f.name,fileType:f.type,data:u,size:f.size},'out');const sid=sStates[apName]?sStates[apName].sid:null;sSM(sid,conn.peer,apName,{type:'file',name:f.name,fileType:f.type,size:f.size},'out');conn.lm='📎 '+f.name;uPL()}sd.remove();e.target.value=''};rd.readAsArrayBuffer(f)}
+function sMsg(){if(!apName||!aSessions[apName]?.conn)return;const inp=document.getElementById('mi');const msg=inp.value.trim();if(msg){const conn=aSessions[apName].conn;conn.send({type:'text',text:msg});const sid=sStates[apName]?sStates[apName].sid:null;sSM(sid,conn.peer,apName,{type:'text',text:msg},'out');aMW(msg,'out');conn.lm=msg;inp.value='';uPL()}}
+function hE(e){if(e.key==='Enter')sMsg()}
+function aMW(t,tp){const d=document.createElement('div');d.className='msg m'+tp[0];d.innerHTML=t+'<span class="mt">'+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'</span>';const w=document.getElementById('cw');w.appendChild(d);w.scrollTop=w.scrollHeight}
+function aFW(fd,tp){const d=document.createElement('div');d.className='msg m'+tp[0];const isImg=fd.fileType&&fd.fileType.startsWith('image/');const fsKB=fd.size?(fd.size/1024).toFixed(1):'0';let c='';if(isImg)c='<div class="fa"><img src="'+fd.data+'" onclick="vI(this.src)"></div>';else c='<div class="fa"><div class="fi"><span style="font-size:1.3em"></span><div style="flex:1"><div style="font-weight:600;font-size:0.8em">'+(fd.name||'File')+'</div><div style="font-size:0.7em;color:#aaa">'+fsKB+' KB</div></div>'+(fd.data?'<a href="'+fd.data+'" download="'+fd.name+'" class="db">⬇ Unduh</a>':'')+'</div></div>';d.innerHTML=c+'<span class="mt">'+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+'</span>';const w=document.getElementById('cw');w.appendChild(d);w.scrollTop=w.scrollHeight}
+function vI(s){const w=window.open();w.document.write('<body style="background:#000;margin:0;display:flex;justify-content:center;align-items:center;height:100vh;"><img src="'+s+'" style="max-width:100%;max-height:100%;"></body>')}
+function uPL(){if(curTab!=='active')return;const le=document.getElementById('pl');le.innerHTML='';const ss=Object.values(aSessions);if(ss.length===0){le.innerHTML='<li style="padding:20px;text-align:center;color:#666;">Belum ada Anak Madam</li>';return}ss.forEach(s=>{const st=sStates[s.n]?sStates[s.n].st:'unknown';const isC=st==='connected';const isR=st==='disconnected';const li=document.createElement('li');li.className='pi'+(apName===s.n?' active':'')+(isR?' disconnected':'');li.onclick=()=>sPN(s.n);const bc=unreads[s.pid]||0;let stT='● Tersambung';let stC='c';if(st==='disconnected'){stT='⚠️ Terputus (reconnect...)';stC='d'}else if(st==='ended'){stT='❌ Sesi berakhir';stC='d'}li.innerHTML='<div class="av">🔮</div><div class="pinfo"><div class="pn">'+s.n+'</div><div class="lm">'+(s.conn?.lm||'Menunggu...')+'</div><div class="ps '+stC+'">'+stT+'</div></div>'+(bc>0?'<span class="badge">'+bc+'</span>':'');le.appendChild(li)})}
+function sPN(n){const s=aSessions[n];if(!s)return;if(s.conn)sP(s.pid)}
+function sP(pid){const s=Object.values(aSessions).find(x=>x.pid===pid);if(!s)return;apId=pid;apName=s.n;unreads[pid]=0;document.getElementById('es').classList.add('hidden');document.getElementById('ci').classList.remove('hidden');document.getElementById('ci').style.display='flex';document.getElementById('cpn').innerText=s.n;const st=sStates[s.n]?sStates[s.n].st:'unknown';if(st==='connected'){document.getElementById('cpr').innerText='● Tersambung';document.getElementById('cdb').classList.remove('show')}else if(st==='disconnected'){document.getElementById('cpr').innerText='⚠️ Terputus, menunggu reconnect...';document.getElementById('cdb').classList.add('show')}else{document.getElementById('cpr').innerText=s.conn?'● Tersambung':'⚠️ Terputus, menunggu...'}document.getElementById('cw').innerHTML='';if(window.innerWidth<=768)document.getElementById('sb').classList.add('hidden');const sid=sStates[s.n]?sStates[s.n].sid:null;if(sid){const ss=gS();const sr=ss[sid];if(sr&&sr.msgs){aSM('📜 Memuat riwayat sesi...');sr.msgs.forEach(m=>{if(m.type==='file')aFW({type:'file',data:m.data,fileType:m.fileType,name:m.fn,size:m.size},m.dir);else aMW(m.text,m.dir)})}}aSM('🔮 Sesi dengan '+s.n+(s.conn?' Dimulai/Dilanjutkan':' (Menunggu koneksi...)'));uPL()}
+function bTS(){apId=null;apName=null;document.getElementById('ci').classList.add('hidden');document.getElementById('es').classList.remove('hidden');document.getElementById('sb').classList.remove('hidden');uPL()}
+function aSM(t){const d=document.createElement('div');d.className='msg ms';d.innerText=t;document.getElementById('cw').appendChild(d)}
+function sC(){if(!apName||!aSessions[apName]?.conn){alert('Tidak ada pasien yang terhubung');return}const s=aSessions[apName];navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}}).then(st=>{lStream=st;const c=peer.call(s.pid,st);hC(c);eLS();icTimeout=setTimeout(()=>{if(curCall){aSM(' Panggilan tidak dijawab');eC()}},60000)}).catch(e=>{alert('❌ Gagal akses mikrofon: '+e.message)})}
+function hC(c){curCall=c;document.getElementById('bc').style.display='none';document.getElementById('be').style.display='flex';document.getElementById('bsp').style.display='flex';c.on('stream',rs=>{document.getElementById('ra').srcObject=rs;document.getElementById('ra').volume=1.0;document.getElementById('ra').play();aSM('🔊 Suara Terbuka')});c.on('close',()=>{if(!isRE)eCU()})}
+function eC(){if(icTimeout){clearTimeout(icTimeout);icTimeout=null}const s=aSessions[apName];if(!isRE&&s?.conn?.open)s.conn.send({type:'end_call'});if(curCall){curCall.close();curCall=null}if(lStream){lStream.getTracks().forEach(t=>t.stop());lStream=null}eCU()}
+function eCU(){document.getElementById('bc').style.display='flex';document.getElementById('be').style.display='none';document.getElementById('bsp').style.display='none';isSpk=false;curCall=null;sR();aSM(' Panggilan Diakhiri')}
+function gQCT(){const s=localStorage.getItem('madamTi_qc');return s?JSON.parse(s):[...DQC]}function sQCT(t){localStorage.setItem('madamTi_qc',JSON.stringify(t))}
+function oQC(){if(!apName||!aSessions[apName]?.conn){alert('Pilih pasien terlebih dahulu');return}rQCL();document.getElementById('qco').classList.add('show')}function cQC(){document.getElementById('qco').classList.remove('show')}
+function rQCL(){const l=document.getElementById('qcl');const ts=gQCT();l.innerHTML='';ts.forEach((t,i)=>{const it=document.createElement('div');it.className='qci';it.innerHTML='<textarea class="qct" id="qct-'+i+'" placeholder="Tulis pesan cepat...">'+t+'</textarea><div class="qca"><button class="qcb qcd" onclick="dQCI('+i+')">🗑️ Hapus</button><button class="qcb qcsv" onclick="sQCI('+i+')">💾 Simpan</button><button class="qcb qcs" onclick="sdQC('+i+')">🚀 Kirim</button></div>';l.appendChild(it)})}
+function sdQC(i){const ta=document.getElementById('qct-'+i);const m=ta.value.trim();if(!m){alert('Pesan kosong');return}const s=aSessions[apName];if(s&&s.conn&&s.conn.open){s.conn.send({type:'text',text:m});const sid=sStates[apName]?sStates[apName].sid:null;sSM(sid,s.pid,apName,{type:'text',text:m},'out');aMW(m,'out');s.conn.lm=m;uPL();cQC()}else{alert('Koneksi terputus.')}}
+function sQCI(i){const ta=document.getElementById('qct-'+i);const ts=gQCT();ts[i]=ta.value.trim();sQCT(ts);alert('✅ Template disimpan')}
+function dQCI(i){if(!confirm('Yakin hapus template?'))return;const ts=gQCT();ts.splice(i,1);sQCT(ts);rQCL()}
+function aQCT(){const ts=gQCT();ts.push('Template baru...');sQCT(ts);rQCL()}
+document.getElementById('qco').addEventListener('click',function(e){if(e.target===this)cQC()});
+function cI(){const t=document.getElementById('myid').innerText;navigator.clipboard.writeText(t).then(()=>{alert('ID Disalin: '+t)}).catch(()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('ID Disalin: '+t)})}
+setInterval(()=>{if(peer&&peer.disconnected&&!isMR){isMR=true;setTimeout(()=>{doRM()},5000)}},15000);
 </script>
 </body>
 </html>
