@@ -16,6 +16,7 @@
         .header h2 { font-size: 1.1em; text-shadow: 0 0 10px var(--primary); }
         .header .patient-info { font-size: 0.75em; color: #00ff88; margin-top: 5px; display: flex; justify-content: center; align-items: center; gap: 10px; }
         .header .connection-status { font-size: 0.7em; padding: 3px 10px; border-radius: 10px; background: rgba(0, 255, 136, 0.2); }
+        .header .connection-status.disconnected { background: rgba(255, 165, 0, 0.3); color: #ffa500; }
         .btn-exit-header { background: #500000; color: #ff4444; border: 1px solid #ff4444; padding: 8px 15px; border-radius: 20px; font-size: 0.8em; font-weight: 600; cursor: pointer; flex-shrink: 0; }
         #login-container { flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px; min-height: 0; }
         .card { background: rgba(26, 11, 46, 0.9); width: 100%; max-width: 350px; padding: 25px; border-radius: 15px; box-shadow: 0 0 20px rgba(157, 0, 255, 0.2); border: 1px solid rgba(157, 0, 255, 0.3); }
@@ -59,6 +60,9 @@
         #ended-screen h2 { color: var(--accent); margin-bottom: 10px; font-family: 'Cinzel', serif; }
         #ended-screen p { color: var(--text-dim); margin-bottom: 20px; }
         .btn-reconnect { background: linear-gradient(90deg, var(--primary), var(--accent)); color: white; padding: 15px 30px; border: none; border-radius: 25px; font-size: 1em; font-weight: 700; cursor: pointer; margin-top: 10px; }
+        .btn-reconnect-manual { background: #4b0082; color: white; padding: 10px 20px; border: none; border-radius: 20px; font-size: 0.9em; cursor: pointer; margin: 10px auto; display: block; }
+        .disconnection-banner { display: none; background: rgba(255, 165, 0, 0.2); border: 1px solid #ffa500; color: #ffa500; padding: 8px; text-align: center; font-size: 0.85em; flex-shrink: 0; }
+        .disconnection-banner.show { display: block; }
         .incoming-call-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 2000; display: none; justify-content: center; align-items: center; flex-direction: column; padding: 20px; }
         .incoming-call-overlay.show { display: flex; }
         .incoming-call-modal { background: linear-gradient(135deg, #4b0082, #1a0b2e); border: 2px solid var(--accent); border-radius: 20px; padding: 30px; width: 100%; max-width: 320px; text-align: center; box-shadow: 0 0 40px rgba(255, 0, 127, 0.5); animation: callPulse 2s ease-in-out infinite; }
@@ -114,7 +118,7 @@
                 <div class="call-action-label">Tolak</div>
             </div>
             <div class="call-action-wrapper">
-                <button class="call-action-btn btn-answer" onclick="answerIncomingCall()">📞</button>
+                <button class="call-action-btn btn-answer" onclick="answerIncomingCall()"></button>
                 <div class="call-action-label">Jawab</div>
             </div>
         </div>
@@ -132,10 +136,16 @@
     </div>
 </div>
 
+<!-- Banner notifikasi terputus -->
+<div class="disconnection-banner" id="disconnection-banner">
+    ⚠️ Sinyal terputus. Mencoba menyambung ulang...
+    <button class="btn-reconnect-manual" id="btn-reconnect-manual" onclick="manualReconnect()" style="display:none;">🔄 Coba Sambung Ulang</button>
+</div>
+
 <div id="login-container">
     <div class="card">
         <p style="color:#aaa; text-align: center; margin-bottom: 15px; font-size: 0.9em;">Isi data untuk memulai terawang</p>
-        <label> Nama Anda</label>
+        <label>✦ Nama Anda</label>
         <input type="text" id="patientName" placeholder="Masukkan nama Anda">
         <label>✦ ID Spiritual Madam Ti' (4 Digit)</label>
         <input type="text" id="adminId" placeholder="Contoh: 8392" maxlength="4" inputmode="numeric" pattern="[0-9]*">
@@ -161,10 +171,10 @@
 </div>
 
 <div id="ended-screen">
-    <h2>🔮 Sesi Konsultasi Berakhir</h2>
+    <h2> Sesi Konsultasi Berakhir</h2>
     <p id="end-message">Terima kasih telah berkonsultasi dengan Madam Ti'</p>
     <p style="font-size: 0.85em; opacity: 0.7;">Semoga energi baik menyertai Anda</p>
-    <button class="btn-reconnect" onclick="location.reload()">🔄 Konsultasi Lagi</button>
+    <button class="btn-reconnect" onclick="location.reload()"> Konsultasi Lagi</button>
 </div>
 
 <audio id="remoteAudio" autoplay playsinline></audio>
@@ -176,7 +186,9 @@
     let heartbeatInterval = null, reconnectAttempts = 0, isConnected = false;
     let callTimeout = null, incomingCallTimeout = null, ringtonePlaying = false, isSessionEnded = false;
     let pendingFileMeta = null;
-    const MAX_FILE_SIZE = 5 * 1024 * 1024, MAX_RECONNECT = 10;
+    let chatHistory = []; // FIX: Simpan history chat di memory
+    let isReconnecting = false;
+    const MAX_FILE_SIZE = 5 * 1024 * 1024, MAX_RECONNECT = 999; // FIX: Reconnect hampir tak terbatas selama sesi belum diakhiri
 
     if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
 
@@ -196,22 +208,85 @@
     document.body.addEventListener('click', startKeepAlive, { once: true });
     document.body.addEventListener('touchstart', startKeepAlive, { once: true });
 
+    // === FIX: LocalStorage untuk history chat ===
+    const HISTORY_KEY = 'anakMadam_chatHistory';
+    function saveChatHistory() {
+        try {
+            // Batasi history max 200 pesan agar tidak penuh
+            const toSave = chatHistory.slice(-200);
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(toSave));
+        } catch(e) { console.log('Gagal simpan history:', e); }
+    }
+    function loadChatHistory() {
+        try {
+            const saved = localStorage.getItem(HISTORY_KEY);
+            return saved ? JSON.parse(saved) : [];
+        } catch(e) { return []; }
+    }
+    function clearChatHistory() {
+        localStorage.removeItem(HISTORY_KEY);
+        chatHistory = [];
+    }
+    function addToHistory(msg) {
+        chatHistory.push(msg);
+        saveChatHistory();
+    }
+
     function startHeartbeat() {
         if (heartbeatInterval) clearInterval(heartbeatInterval);
         heartbeatInterval = setInterval(() => {
             if (conn && conn.open) { conn.send({ type: 'heartbeat', timestamp: Date.now() }); } 
-            else if (conn && !conn.open && reconnectAttempts < MAX_RECONNECT && !isSessionEnded) { reconnectAttempts++; reconnect(); }
+            else if (conn && !conn.open && !isSessionEnded && !isReconnecting) { reconnect(); }
         }, 5000);
     }
     function stopHeartbeat() { if (heartbeatInterval) { clearInterval(heartbeatInterval); heartbeatInterval = null; } }
 
+    function showDisconnectedBanner() {
+        document.getElementById('disconnection-banner').classList.add('show');
+        document.getElementById('connection-status').innerText = '⚠️ Terputus';
+        document.getElementById('connection-status').classList.add('disconnected');
+        // Tampilkan tombol manual setelah 5 detik jika belum reconnect
+        setTimeout(() => {
+            if (!isConnected && !isSessionEnded) {
+                document.getElementById('btn-reconnect-manual').style.display = 'block';
+            }
+        }, 5000);
+    }
+
+    function hideDisconnectedBanner() {
+        document.getElementById('disconnection-banner').classList.remove('show');
+        document.getElementById('btn-reconnect-manual').style.display = 'none';
+        document.getElementById('connection-status').innerText = '● Tersambung';
+        document.getElementById('connection-status').classList.remove('disconnected');
+    }
+
     function reconnect() {
-        if (!adminId || isSessionEnded) return;
-        document.getElementById('connection-status').innerText = '🔄 Menghubungkan ulang...';
-        document.getElementById('connection-status').style.background = 'rgba(255, 165, 0, 0.2)';
+        if (!adminId || isSessionEnded || isReconnecting) return;
+        isReconnecting = true;
+        showDisconnectedBanner();
+        console.log('Mencoba reconnect... percobaan ke-', reconnectAttempts + 1);
+        
+        if (peer) { try { peer.destroy(); } catch(e){} peer = null; }
+        
         peer = new Peer({ debug: 2, config: iceConfig });
-        peer.on('open', () => { conn = peer.connect(adminId, { reliable: true }); setupConnectionHandlers(); });
+        peer.on('open', () => { 
+            conn = peer.connect(adminId, { reliable: true }); 
+            setupConnectionHandlers(); 
+        });
+        peer.on('error', (err) => {
+            console.log('Reconnect error:', err.type);
+            isReconnecting = false;
+            if (err.type === 'peer-unavailable') {
+                // Madam Ti mungkin offline, tetap coba lagi nanti
+                setTimeout(() => { if (!isSessionEnded) reconnect(); }, 10000);
+            }
+        });
         setupPeerCallHandler();
+    }
+
+    function manualReconnect() {
+        reconnectAttempts = 0;
+        reconnect();
     }
 
     function getMessageText(data) { if (typeof data === 'string') return data; if (data && typeof data === 'object') { if (data.text) return data.text; if (data.message) return data.message; } return '...'; }
@@ -220,14 +295,22 @@
         if (!conn) return;
         conn.on('open', () => {
             if (isSessionEnded) return;
-            reconnectAttempts = 0; isConnected = true;
-            document.getElementById('connection-status').innerText = '● Tersambung';
-            document.getElementById('connection-status').style.background = 'rgba(0, 255, 136, 0.2)';
+            reconnectAttempts = 0; isConnected = true; isReconnecting = false;
+            hideDisconnectedBanner();
             document.getElementById('patient-info').style.display = 'flex';
-            document.getElementById('display-patient-name').innerText = '👤 ' + patientName;
+            document.getElementById('display-patient-name').innerText = ' ' + patientName;
             document.getElementById('exit-btn').style.display = 'block';
+            // Kirim info nama untuk session resumption
             conn.send({ type: 'patientInfo', name: patientName });
-            transitionToChat(); startHeartbeat();
+            startHeartbeat();
+            
+            // FIX: Muat ulang history chat jika ada
+            if (chatHistory.length > 0) {
+                renderChatHistory();
+                addSystemBubble('✅ Koneksi dipulihkan. Sesi dilanjutkan.');
+            } else {
+                addSystemBubble('✅ Anda tersambung. Silakan mulai konsultasi.');
+            }
         });
 
         conn.on('data', (data) => {
@@ -235,7 +318,9 @@
                 if (pendingFileMeta) {
                     const blob = new Blob([data], { type: pendingFileMeta.fileType });
                     const url = URL.createObjectURL(blob);
-                    addFileToBox({ name: pendingFileMeta.name, fileType: pendingFileMeta.fileType, data: url, size: pendingFileMeta.size }, 'in');
+                    const fileMsg = { type: 'file', name: pendingFileMeta.name, fileType: pendingFileMeta.fileType, data: url, size: pendingFileMeta.size, direction: 'in', timestamp: new Date().toISOString() };
+                    addFileToBox(fileMsg, 'in');
+                    addToHistory(fileMsg);
                     pendingFileMeta = null;
                 }
                 return;
@@ -245,22 +330,32 @@
             if (data && data.type === 'heartbeat') return;
             
             if (data && data.type === 'call_rejected') { handleCallRejected(); addSystemBubble('📴 Panggilan dibatalkan oleh Madam Ti'); return; }
-            if (data && data.type === 'end_call') { isRemoteEndingCall = true; handleCallRejected(); addSystemBubble(' Panggilan diakhiri oleh Madam Ti'); isRemoteEndingCall = false; return; }
+            if (data && data.type === 'end_call') { isRemoteEndingCall = true; handleCallRejected(); addSystemBubble('📴 Panggilan diakhiri oleh Madam Ti'); isRemoteEndingCall = false; return; }
             
+            // FIX: Hanya akhiri sesi jika benar-benar dapat sinyal exit dari Madam Ti
             if (data && data.type === 'exit') {
                 const message = data.message || 'Madam Ti\' telah mengakhiri sesi konsultasi';
-                addSystemBubble('❌ ' + message); isSessionEnded = true; hideAllUI();
-                setTimeout(() => { showEndedScreen(message); }, 1000); return;
+                addSystemBubble('❌ ' + message);
+                isSessionEnded = true;
+                clearChatHistory(); // Hanya clear history jika sesi benar-benar berakhir
+                hideAllUI();
+                setTimeout(() => { showEndedScreen(message); }, 1000);
+                return;
             }
 
             const box = document.getElementById('chat-box');
-            if (data && data.type === 'file') { addFileToBox(data, 'in'); } 
-            else {
+            if (data && data.type === 'file') { 
+                const fileMsg = { type: 'file', name: data.name, fileType: data.fileType, data: data.data, size: data.size, direction: 'in', timestamp: new Date().toISOString() };
+                addFileToBox(fileMsg, 'in'); 
+                addToHistory(fileMsg);
+            } else {
                 const messageText = getMessageText(data);
+                const textMsg = { type: 'text', text: messageText, direction: 'in', timestamp: new Date().toISOString() };
                 const div = document.createElement('div');
                 div.className = 'msg msg-in';
                 div.innerHTML = '<b style="color:var(--accent); font-size:0.8em;">Madam Ti\'</b><br>' + messageText;
                 box.appendChild(div); box.scrollTop = box.scrollHeight;
+                addToHistory(textMsg);
                 showNotification('Madam Ti\'', messageText);
             }
             if(navigator.vibrate) navigator.vibrate(100);
@@ -268,20 +363,24 @@
 
         conn.on('error', (err) => {
             if (isSessionEnded) return;
-            document.getElementById('connection-status').innerText = '⚠️ Error';
-            document.getElementById('connection-status').style.background = 'rgba(255, 68, 68, 0.2)';
-            document.getElementById('status').innerText = 'Error: ' + err.type;
-            document.getElementById('btn-connect').disabled = false;
-            document.getElementById('btn-connect').innerText = 'Hubungkan Energi';
+            console.log('Connection error:', err.type);
         });
 
+        // FIX: Saat close, JANGAN langsung akhiri sesi. Coba reconnect.
         conn.on('close', () => {
+            if (isSessionEnded) return;
             stopHeartbeat(); isConnected = false;
             document.getElementById('exit-btn').style.display = 'none';
-            if (isSessionEnded) return;
-            addSystemBubble('🔄 Sinyal terputus, mencoba menyambung ulang...');
-            if (reconnectAttempts < MAX_RECONNECT) { setTimeout(() => { reconnect(); }, 3000); } 
-            else { addSystemBubble('❌ Koneksi gagal dipulihkan. Silakan muat ulang halaman.'); }
+            showDisconnectedBanner();
+            addSystemBubble('⚠️ Sinyal terputus. Mencoba menyambung ulang...');
+            
+            // Coba reconnect dengan delay
+            if (reconnectAttempts < MAX_RECONNECT) { 
+                reconnectAttempts++;
+                setTimeout(() => { if (!isSessionEnded) reconnect(); }, 3000); 
+            } else {
+                addSystemBubble('❌ Koneksi gagal dipulihkan. Silakan klik tombol di atas untuk coba lagi.');
+            }
         });
     }
 
@@ -324,7 +423,7 @@
         if (call) { call.close(); call = null; }
         if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
         if (conn && conn.open) { conn.send({ type: 'end_call' }); }
-        addSystemBubble(' Panggilan ditolak');
+        addSystemBubble('📴 Panggilan ditolak');
     }
 
     function stopRingtone() { const ringtone = document.getElementById('ringtone'); if (ringtonePlaying) { ringtone.pause(); ringtone.currentTime = 0; ringtonePlaying = false; } }
@@ -342,11 +441,24 @@
 
     function enableLoudspeaker() { const audio = document.getElementById('remoteAudio'); audio.volume = 1.0; }
 
-    function transitionToChat() {
-        if (isSessionEnded) return;
-        document.getElementById('login-container').style.display = 'none';
-        document.getElementById('chat-area').style.display = 'flex';
-        addSystemBubble('✅ Anda tersambung. Silakan mulai konsultasi.');
+    function renderChatHistory() {
+        const box = document.getElementById('chat-box');
+        box.innerHTML = '';
+        chatHistory.forEach(msg => {
+            if (msg.type === 'file') {
+                addFileToBox(msg, msg.direction);
+            } else if (msg.type === 'text') {
+                const div = document.createElement('div');
+                div.className = 'msg msg-' + msg.direction;
+                if (msg.direction === 'in') {
+                    div.innerHTML = '<b style="color:var(--accent); font-size:0.8em;">Madam Ti\'</b><br>' + msg.text;
+                } else {
+                    div.innerText = msg.text;
+                }
+                box.appendChild(div);
+            }
+        });
+        box.scrollTop = box.scrollHeight;
     }
 
     function connect() {
@@ -359,6 +471,10 @@
         const btn = document.getElementById('btn-connect');
         btn.disabled = true; btn.innerText = 'Menghubungkan...';
         document.getElementById('status').innerText = 'Menghubungkan...';
+        
+        // FIX: Muat history chat yang tersimpan
+        chatHistory = loadChatHistory();
+        
         peer = new Peer({ debug: 2, config: iceConfig });
         peer.on('open', (id) => { conn = peer.connect(adminId, { reliable: true }); setupConnectionHandlers(); setupPeerCallHandler(); });
         peer.on('error', (err) => {
@@ -366,7 +482,7 @@
             document.getElementById('status').innerText = 'Error: ' + err.type;
             btn.disabled = false; btn.innerText = 'Hubungkan Energi';
             if (err.type === 'peer-unavailable') alert('❌ ID Madam Ti tidak ditemukan atau sedang offline.');
-            else if (err.type === 'network') alert('️ Error jaringan.');
+            else if (err.type === 'network') alert('⚠️ Error jaringan.');
         });
     }
 
@@ -384,11 +500,15 @@
         const messageText = input.value.trim();
         if(conn && conn.open && messageText) {
             conn.send({ type: 'text', text: messageText });
+            const textMsg = { type: 'text', text: messageText, direction: 'out', timestamp: new Date().toISOString() };
             const box = document.getElementById('chat-box');
             const div = document.createElement('div');
             div.className = 'msg msg-out'; div.innerText = messageText;
             box.appendChild(div); input.value = ''; box.scrollTop = box.scrollHeight;
-        } else if (!conn || !conn.open) { alert('Koneksi terputus.'); }
+            addToHistory(textMsg);
+        } else if (!conn || !conn.open) { 
+            alert('⚠️ Koneksi terputus. Pesan akan terkirim otomatis setelah tersambung kembali.');
+        }
     }
 
     function addSystemBubble(text) {
@@ -417,7 +537,11 @@
                 
                 const blob = new Blob([arrayBuffer], { type: file.type });
                 const url = URL.createObjectURL(blob);
-                addFileToBox({ name: file.name, fileType: file.type, data: url, size: file.size }, 'out');
+                const fileMsg = { type: 'file', name: file.name, fileType: file.type, data: url, size: file.size, direction: 'out', timestamp: new Date().toISOString() };
+                addFileToBox(fileMsg, 'out');
+                addToHistory(fileMsg);
+            } else {
+                alert('⚠️ Koneksi terputus. File akan terkirim otomatis setelah tersambung kembali.');
             }
             statusDiv.remove(); event.target.value = '';
         };
@@ -447,7 +571,7 @@
     }
 
     function startCall() {
-        if (!conn || !conn.open) { alert('Koneksi terputus.'); return; }
+        if (!conn || !conn.open) { alert('⚠️ Koneksi terputus. Tidak bisa menelepon.'); return; }
         navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } })
         .then((stream) => {
             localStream = stream; call = peer.call(adminId, stream); isCalling = true;
@@ -476,6 +600,7 @@
         document.getElementById('patient-info').style.display = 'none';
         document.getElementById('exit-btn').style.display = 'none';
         document.getElementById('notification').style.display = 'none';
+        document.getElementById('disconnection-banner').classList.remove('show');
         document.getElementById('incoming-call-overlay').classList.remove('show');
         stopRingtone();
     }
@@ -485,26 +610,38 @@
         document.getElementById('ended-screen').style.display = 'flex';
     }
 
+    // FIX: exitSession hanya dipanggil jika anak madam KLIK tombol "Akhiri Sesi"
     function exitSession(customMessage) {
-        if (isSessionEnded) return;
-        isSessionEnded = true;
-        if (customMessage) document.getElementById('end-message').innerText = customMessage;
-        if (isCalling) endCall();
-        if (conn && conn.open) { conn.send({ type: 'exit', reason: 'patient_left' }); conn.close(); }
-        if (peer) peer.destroy();
-        stopHeartbeat();
-        hideAllUI();
-        showEndedScreen(customMessage);
+        if(confirm('Yakin ingin mengakhiri sesi konsultasi?\n\nSesi akan benar-benar ditutup dan history chat akan dihapus.')) {
+            isSessionEnded = true;
+            if (customMessage) document.getElementById('end-message').innerText = customMessage;
+            if (isCalling) endCall();
+            if (conn && conn.open) { conn.send({ type: 'exit', reason: 'patient_left' }); conn.close(); }
+            if (peer) peer.destroy();
+            stopHeartbeat();
+            clearChatHistory(); // Hapus history hanya saat benar-benar exit
+            hideAllUI();
+            showEndedScreen(customMessage || 'Anda telah mengakhiri sesi konsultasi.');
+        }
     }
 
+    // FIX: Saat kembali ke aplikasi, otomatis coba reconnect jika terputus
     document.addEventListener('visibilitychange', async () => {
         if (document.visibilityState === 'visible') {
             requestWakeLock(); startKeepAlive();
             if (isSessionEnded) return;
-            if (peer && peer.disconnected) peer.reconnect();
-            if (conn && !conn.open && reconnectAttempts < MAX_RECONNECT) { addSystemBubble('🔄 Memulihkan koneksi...'); reconnect(); }
+            if (peer && peer.disconnected) { peer.reconnect(); }
+            if (!isConnected && !isReconnecting) { 
+                console.log('Halaman aktif kembali, mencoba reconnect...');
+                reconnectAttempts = 0;
+                reconnect(); 
+            }
+        } else {
+            // Saat pergi ke background, stop heartbeat tapi JANGAN akhiri sesi
+            stopHeartbeat();
         }
     });
+    
     requestWakeLock();
 </script>
 </body>
